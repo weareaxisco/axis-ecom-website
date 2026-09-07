@@ -104,7 +104,7 @@ export default function Navbar() {
   }, [])
 
   useEffect(() => {
-    document.documentElement.style.setProperty('--header-height', '56px')
+    document.documentElement.style.setProperty('--header-height', '60px')
     document.documentElement.style.setProperty('--header-stack-height', '104px')
     return () => {
       document.documentElement.style.removeProperty('--header-height')
@@ -123,9 +123,14 @@ export default function Navbar() {
   }, [isDrawerOpen, isSearchOpen])
 
   const cartCount = config.cart_item_count ?? config.cart_count ?? 0
-  const toggleMenu = () => {
-    setIsSearchOpen(false)
-    setIsDrawerOpen((open) => !open)
+  const handleLeftIconClick = () => {
+    if (isSearchOpen) {
+      setIsSearchOpen(false)
+    } else if (isDrawerOpen) {
+      setIsDrawerOpen(false)
+    } else {
+      setIsDrawerOpen(true)
+    }
   }
 
   return (
@@ -140,27 +145,24 @@ export default function Navbar() {
         }`}
       >
         <div className={`fixed left-0 right-0 top-0 z-50 md:hidden transition-transform duration-300 ease-out ${isMobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
-          <div className="relative z-50 flex h-14 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
-            <div className="flex items-center">
-              <IconButton label={isDrawerOpen ? 'Close navigation' : 'Open navigation'} onClick={toggleMenu}>
-                {isDrawerOpen ? <X className="h-5 w-5" strokeWidth={1.25} /> : <Menu className="h-5 w-5" strokeWidth={1.25} />}
+          <div className="relative z-50 flex h-[60px] w-full items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
+            <div className="flex w-[60px] items-center justify-start">
+              <IconButton label={isDrawerOpen || isSearchOpen ? 'Close overlay' : 'Open navigation'} onClick={handleLeftIconClick}>
+                {isDrawerOpen || isSearchOpen ? <X className="h-5 w-5" strokeWidth={1.25} /> : <Menu className="h-5 w-5" strokeWidth={1.25} />}
               </IconButton>
-              {isSearchOpen && (
-                <IconButton label="Close search" onClick={() => setIsSearchOpen(false)}>
-                  <X className="h-5 w-5" strokeWidth={1.25} />
-                </IconButton>
-              )}
             </div>
-            <a href="/" className="truncate px-2 text-center font-serif text-sm tracking-widest">
+            <a href="/" className="pointer-events-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 truncate px-2 text-center font-serif text-sm tracking-widest">
               {config.store_name}
             </a>
-            <IconButton label="Shopping bag" className="relative">
+            <div className="flex w-[60px] items-center justify-end">
+              <IconButton label="Shopping bag" className="relative">
               <ShoppingBag strokeWidth={1.25} size={19} />
               {cartCount > 0 && <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-gold)] px-1 text-[9px] text-[var(--bg-primary)]">{cartCount}</span>}
-            </IconButton>
+              </IconButton>
+            </div>
           </div>
         </div>
-        <div className={`fixed left-0 right-0 top-14 z-20 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2 transition-opacity duration-300 md:hidden ${isMobileHeaderVisible && !isDrawerOpen && !isSearchOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
+        <div className={`fixed left-0 right-0 top-[60px] z-20 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2 transition-opacity duration-300 md:hidden ${isMobileHeaderVisible && !isDrawerOpen && !isSearchOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
           <div className="relative">
             <Search size={16} strokeWidth={1.25} className="pointer-events-none absolute left-3 top-2.5 text-[var(--text-primary)] opacity-60" />
             <input type="search" readOnly onClick={() => setIsSearchOpen(true)} onFocus={() => setIsSearchOpen(true)} placeholder="Search creations" className="relative z-20 w-full rounded-full bg-[var(--bg-primary)] py-2 pl-9 pr-4 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-primary)] placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]" />
