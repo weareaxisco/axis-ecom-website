@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight, Eye, Heart, ShoppingBag } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Heart } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useSiteConfig } from '../context/ConfigContext'
 
@@ -64,6 +64,11 @@ export default function ProductCard({ product }) {
       onBlur={() => setIsHovered(false)}
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-[var(--surface-primary)]">
+        {product.is_new && (
+          <span className="absolute left-4 top-4 z-10 text-[10px] uppercase tracking-[0.2em] text-white">
+            New
+          </span>
+        )}
         {gallery.map((image, index) => (
           <img
             key={`${image}-${index}`}
@@ -73,7 +78,7 @@ export default function ProductCard({ product }) {
             onError={replaceWithFallback}
             className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ease-out ${
               activeImageIndex === index
-                ? 'scale-105 opacity-100'
+                ? 'scale-100 opacity-100 group-hover:scale-[1.03]'
                 : 'scale-100 opacity-0'
             }`}
           />
@@ -139,49 +144,20 @@ export default function ProductCard({ product }) {
           ))}
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 z-10 flex translate-y-full items-center justify-center gap-2 bg-[var(--bg-primary)]/95 px-4 py-3 opacity-0 transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100">
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation()
-            navigate(`/product/${product.id}`)
-            }}
-            className="inline-flex h-11 flex-1 items-center justify-center gap-2 border border-[var(--accent-gold)] px-3 text-[10px] uppercase tracking-[0.2em] text-[var(--accent-gold)] transition-all duration-300 ease-out hover:bg-[var(--accent-gold)] hover:text-[var(--bg-primary)]"
-          >
-            <Eye size={15} strokeWidth={1.25} />
-            Discover
-          </button>
-          <button
-            type="button"
-            aria-label={`Add ${product.name || 'creation'} to shopping bag`}
-            onClick={(event) => event.stopPropagation()}
-            className="inline-flex h-11 w-11 items-center justify-center border border-[var(--accent-gold)] text-[var(--text-primary)] transition-all duration-300 ease-out hover:bg-[var(--accent-gold)] hover:text-[var(--bg-primary)]"
-          >
-            <ShoppingBag size={16} strokeWidth={1.25} />
-          </button>
-        </div>
       </div>
 
       <div className="space-y-2 p-4 text-left">
-        {product.is_new && (
-          <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--accent-gold)]">
-            New
-          </span>
-        )}
-        <p className="font-serif text-sm uppercase tracking-widest text-[var(--text-primary)]">
+        <p className="font-serif text-xs uppercase tracking-widest text-[var(--text-primary)]">
           {product.collection_name || categoryName}
         </p>
-        <h3 className="font-serif text-sm tracking-wide text-[var(--text-primary)] md:text-base">
-          {product.name || product.title || 'Untitled creation'}
-        </h3>
-        <div className="relative min-h-11">
-          <p className="absolute inset-0 flex items-center text-[10px] uppercase tracking-[0.15em] text-[var(--text-primary)] opacity-60 transition-all duration-300 group-hover:-translate-y-2 group-hover:opacity-0">
+        <div className="relative flex h-10 items-center">
+          <p className="flex items-center text-xs uppercase tracking-[0.12em] text-[var(--text-primary)] opacity-60 transition-all duration-200 group-hover:-translate-y-2 group-hover:opacity-0">
             {product.subtitle || product.material || categoryName}
           </p>
           <button
             type="button"
             onClick={() => navigate(`/product/${product.id}`)}
-            className="absolute inset-0 flex h-11 w-full translate-y-2 items-center justify-center border border-[var(--accent-gold)] bg-[var(--bg-primary)] text-[10px] uppercase tracking-[0.2em] text-[var(--accent-gold)] opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100"
+            className="absolute inset-x-0 flex h-10 items-center justify-center bg-black py-2.5 text-xs font-semibold uppercase tracking-widest text-white opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 dark:bg-white dark:text-black"
           >
             Discover
           </button>
