@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Heart,
   Menu,
@@ -86,6 +86,7 @@ export default function Navbar() {
   const [isMobileHeaderVisible, setIsMobileHeaderVisible] = useState(true)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const searchCloseTimer = useRef(null)
 
   useEffect(() => {
     let lastScrollY = window.scrollY
@@ -124,6 +125,26 @@ export default function Navbar() {
   }, [isDrawerOpen, isSearchOpen])
 
   const cartCount = config.cart_item_count ?? config.cart_count ?? 0
+  const cancelSearchClose = () => {
+    if (searchCloseTimer.current) {
+      window.clearTimeout(searchCloseTimer.current)
+      searchCloseTimer.current = null
+    }
+  }
+  const scheduleSearchClose = () => {
+    cancelSearchClose()
+    searchCloseTimer.current = window.setTimeout(() => setIsSearchOpen(false), 180)
+  }
+  const openDesktopSearch = () => {
+    cancelSearchClose()
+    setIsDrawerOpen(false)
+    setIsSearchOpen(true)
+  }
+  const toggleDesktopSearch = () => {
+    cancelSearchClose()
+    setIsDrawerOpen(false)
+    setIsSearchOpen((open) => !open)
+  }
   const handleLeftIconClick = () => {
     if (isSearchOpen) {
       setIsSearchOpen(false)
@@ -133,6 +154,7 @@ export default function Navbar() {
       setIsDrawerOpen(true)
     }
   }
+  useEffect(() => () => cancelSearchClose(), [])
 
   return (
     <>
@@ -191,9 +213,9 @@ export default function Navbar() {
               >
                 <Menu strokeWidth={1.25} size={21} />
               </IconButton>
-              <div onMouseEnter={() => setIsSearchOpen(true)}>
-                <IconButton label="Search" onClick={() => { setIsDrawerOpen(false); setIsSearchOpen(true) }}>
-                  <Search strokeWidth={1.25} size={20} />
+              <div onMouseEnter={openDesktopSearch} onMouseLeave={scheduleSearchClose}>
+                <IconButton label={isSearchOpen ? 'Close search' : 'Search'} onClick={toggleDesktopSearch}>
+                  {isSearchOpen ? <X strokeWidth={1.25} size={20} /> : <Search strokeWidth={1.25} size={20} />}
                 </IconButton>
               </div>
             </div>
@@ -264,7 +286,12 @@ export default function Navbar() {
       />
       <DesktopSearchDropdown
         isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
+        onClose={() => {
+          cancelSearchClose()
+          setIsSearchOpen(false)
+        }}
+        onMouseEnter={cancelSearchClose}
+        onMouseLeave={scheduleSearchClose}
       />
     </>
   )

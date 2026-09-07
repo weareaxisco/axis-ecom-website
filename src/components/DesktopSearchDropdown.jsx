@@ -4,7 +4,7 @@ import { mockProducts } from './ProductCatalog'
 import { supabase } from '../supabaseClient'
 import { useSiteConfig } from '../context/ConfigContext'
 
-export default function DesktopSearchDropdown({ isOpen, onClose }) {
+export default function DesktopSearchDropdown({ isOpen, onClose, onMouseEnter, onMouseLeave }) {
   const { config } = useSiteConfig()
   const [query, setQuery] = useState('')
   const [products, setProducts] = useState(mockProducts)
@@ -48,9 +48,9 @@ export default function DesktopSearchDropdown({ isOpen, onClose }) {
   )
 
   return (
-    <div className="fixed inset-0 z-40 hidden md:block" role="dialog" aria-modal="true" aria-label="Desktop search">
-      <button type="button" aria-label="Close search" onClick={onClose} className={`fixed inset-0 top-[80px] z-30 bg-black/60 transition-opacity duration-300 ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} />
-      <section className={`fixed left-0 right-0 top-[80px] z-40 h-[calc(95vh-80px)] w-full overflow-y-auto bg-[var(--surface-primary)] text-[var(--text-primary)] transition-[transform,opacity] duration-300 ease-out ${isOpen ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'}`}>
+    <div className={`fixed inset-0 z-40 hidden transition-opacity duration-300 md:block ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} role="dialog" aria-modal="true" aria-label="Desktop search" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+      <button type="button" aria-label="Close search" onClick={onClose} onMouseEnter={onMouseLeave} className={`fixed inset-0 top-[80px] z-30 bg-black/60 transition-opacity duration-300 ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} />
+      <section className={`fixed left-0 right-0 top-[80px] z-40 h-[calc(95vh-80px)] w-full overflow-y-auto bg-[var(--surface-primary)] text-[var(--text-primary)] transition-all duration-300 ease-out ${isOpen ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none -translate-y-8 opacity-0'}`}>
         <div className="mx-auto max-w-7xl px-8 py-6">
           <div className="flex items-center gap-4 border-b border-[var(--border-subtle)] bg-neutral-900/80 px-4 py-3">
             <Search size={22} strokeWidth={1.25} className="opacity-60" />
