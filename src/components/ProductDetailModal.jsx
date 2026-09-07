@@ -66,9 +66,11 @@ export default function ProductDetailModal({ product, onClose }) {
       if (event.key === 'Escape') onClose()
     }
 
+    document.documentElement.style.overflow = 'hidden'
     document.body.style.overflow = 'hidden'
     window.addEventListener('keydown', handleKeyDown)
     return () => {
+      document.documentElement.style.overflow = ''
       document.body.style.overflow = ''
       window.removeEventListener('keydown', handleKeyDown)
     }
@@ -135,7 +137,7 @@ export default function ProductDetailModal({ product, onClose }) {
           )}
         </div>
 
-        <div className="w-full space-y-8 p-6 md:w-1/2 md:overflow-y-auto md:p-10 lg:p-14">
+        <div className="w-full space-y-8 p-6 md:w-1/2 md:p-10 lg:p-14">
           <div>
             <p className="text-xs uppercase tracking-[0.25em] opacity-60">{getCategoryName(product)}</p>
             <h2 id="product-detail-title" className="mt-4 font-serif text-2xl md:text-3xl">{productName}</h2>

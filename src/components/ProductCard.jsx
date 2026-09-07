@@ -20,6 +20,7 @@ export default function ProductCard({ product, onSelect }) {
   const { config } = useSiteConfig()
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
+  const [isWishlisted, setIsWishlisted] = useState(false)
   const images = useMemo(
     () => [...new Set([product.main_image_url, product.hover_image_url].filter(Boolean))],
     [product.main_image_url, product.hover_image_url],
@@ -77,10 +78,21 @@ export default function ProductCard({ product, onSelect }) {
         <button
           type="button"
           aria-label={`Add ${product.name || 'creation'} to wishlist`}
-          onClick={(event) => event.stopPropagation()}
-          className="absolute right-4 top-4 z-10 inline-flex h-9 w-9 items-center justify-center text-[var(--text-primary)] opacity-0 transition-all duration-300 ease-out hover:text-[var(--accent-gold)] group-hover:opacity-100"
+          onClick={(event) => {
+            event.stopPropagation()
+            setIsWishlisted((current) => !current)
+          }}
+          className="absolute right-4 top-4 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/30 p-2 backdrop-blur-md transition-transform duration-300 ease-out hover:scale-110"
         >
-          <Heart size={19} strokeWidth={1.25} />
+          <Heart
+            size={19}
+            strokeWidth={1.25}
+            className={
+              isWishlisted
+                ? 'fill-[var(--accent-gold)] text-[var(--accent-gold)]'
+                : 'text-white/80 hover:text-white'
+            }
+          />
         </button>
 
         {gallery.length > 1 && (
@@ -110,14 +122,14 @@ export default function ProductCard({ product, onSelect }) {
           </>
         )}
 
-        <div className="absolute inset-x-0 bottom-0 z-10 flex gap-1 px-4 pb-16 opacity-0 transition-all duration-300 ease-out group-hover:opacity-100">
+        <div className="absolute inset-x-0 bottom-14 z-10 flex items-center justify-center gap-2 transition-all duration-300">
           {gallery.map((image, index) => (
             <span
               key={`${image}-indicator`}
-              className={`h-[2px] flex-1 transition-all duration-300 ${
+              className={`transition-all duration-300 ${
                 index === activeImageIndex
-                  ? 'bg-[var(--accent-gold)]'
-                  : 'bg-[var(--text-primary)]/40'
+                  ? 'h-1 w-8 rounded-full bg-[var(--text-primary)]'
+                  : 'h-1.5 w-1.5 rounded-sm bg-gray-400/50 hover:bg-gray-400'
               }`}
             />
           ))}
@@ -130,7 +142,7 @@ export default function ProductCard({ product, onSelect }) {
               event.stopPropagation()
               onSelect?.(product)
             }}
-            className="inline-flex flex-1 items-center justify-center gap-2 border border-[var(--accent-gold)] px-3 py-2 text-[10px] uppercase tracking-[0.2em] text-[var(--accent-gold)] transition-all duration-300 ease-out hover:bg-[var(--accent-gold)] hover:text-[var(--bg-primary)]"
+            className="inline-flex h-11 flex-1 items-center justify-center gap-2 border border-[var(--accent-gold)] px-3 text-[10px] uppercase tracking-[0.2em] text-[var(--accent-gold)] transition-all duration-300 ease-out hover:bg-[var(--accent-gold)] hover:text-[var(--bg-primary)]"
           >
             <Eye size={15} strokeWidth={1.25} />
             Discover
@@ -139,7 +151,7 @@ export default function ProductCard({ product, onSelect }) {
             type="button"
             aria-label={`Add ${product.name || 'creation'} to shopping bag`}
             onClick={(event) => event.stopPropagation()}
-            className="inline-flex h-9 w-9 items-center justify-center border border-[var(--border-subtle)] text-[var(--text-primary)] transition-all duration-300 ease-out hover:border-[var(--accent-gold)] hover:text-[var(--accent-gold)]"
+            className="inline-flex h-11 w-11 items-center justify-center border border-[var(--accent-gold)] text-[var(--text-primary)] transition-all duration-300 ease-out hover:bg-[var(--accent-gold)] hover:text-[var(--bg-primary)]"
           >
             <ShoppingBag size={16} strokeWidth={1.25} />
           </button>
