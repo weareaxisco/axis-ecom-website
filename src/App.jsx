@@ -3,6 +3,7 @@ import Hero from './components/Hero'
 import Navbar from './components/Navbar'
 import ProductCatalog from './components/ProductCatalog'
 import ProductDetailPage from './components/ProductDetailPage'
+import SearchResults from './components/SearchResults'
 import { ConfigProvider } from './context/ConfigContext'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import './App.css'
@@ -29,6 +30,7 @@ function App() {
           <Routes>
             <Route path="/" element={<main className="overflow-x-clip"><Hero /><ProductCatalog /></main>} />
             <Route path="/product/:id" element={<ProductDetailPage />} />
+            <Route path="/search" element={<SearchResults />} />
           </Routes>
         </div>
       </ConfigProvider>

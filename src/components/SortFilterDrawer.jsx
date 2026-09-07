@@ -69,13 +69,13 @@ export default function SortFilterDrawer({
         role="dialog"
         aria-modal="true"
         aria-label="Sort and filter products"
-        className={`pointer-events-auto absolute bottom-0 right-0 top-0 flex w-full max-w-md transform flex-col bg-white text-neutral-900 shadow-2xl transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`filter-drawer pointer-events-auto absolute bottom-0 right-0 top-0 flex w-full max-w-md transform flex-col bg-[var(--surface-primary)] text-[var(--text-primary)] shadow-2xl transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
-        <header className="flex items-center justify-between border-b border-neutral-200 px-6 py-5">
+        <header className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-5">
           <h2 className="font-serif text-xl tracking-widest">SORT &amp; FILTER</h2>
           <div className="flex items-center gap-3">
-            <button type="button" onClick={clearSelection} className="text-[10px] font-medium tracking-widest text-neutral-500 hover:text-neutral-900">CLEAR</button>
-            <button type="button" onClick={onClose} aria-label="Close" className="bg-neutral-100 p-2 text-neutral-500 hover:text-neutral-900">
+            <button type="button" onClick={clearSelection} className="text-[10px] font-medium tracking-widest text-[var(--text-primary)] opacity-60 hover:opacity-100">CLEAR</button>
+            <button type="button" onClick={onClose} aria-label="Close" className="bg-[var(--bg-primary)] p-2 text-[var(--text-primary)] opacity-70 hover:opacity-100">
               <X size={17} strokeWidth={1.25} />
             </button>
           </div>
@@ -84,7 +84,7 @@ export default function SortFilterDrawer({
           {FACET_CONFIG.map((facet) => {
             const isExpanded = openSections[facet.id]
             return (
-              <section key={facet.id} className="border-b border-neutral-200">
+              <section key={facet.id} className="border-b border-[var(--border-subtle)]">
                 <button
                   type="button"
                   onClick={() => setOpenSections((current) => ({ ...current, [facet.id]: !current[facet.id] }))}
@@ -103,7 +103,7 @@ export default function SortFilterDrawer({
                         ? selection[facet.id] === value
                         : selection[facet.id]?.includes(value)
                       return (
-                        <label key={value} className="flex cursor-pointer items-center gap-3 text-sm text-neutral-600">
+                        <label key={value} className="flex cursor-pointer items-center gap-3 text-sm text-[var(--text-primary)] opacity-75">
                           <input
                             type={facet.type}
                             name={facet.id}
@@ -125,8 +125,8 @@ export default function SortFilterDrawer({
             )
           })}
         </div>
-        <footer className="sticky bottom-0 border-t border-neutral-200 bg-white p-4">
-          <button type="button" onClick={() => { onApply(selection, targetCollectionId); onClose() }} className="w-full bg-black py-3.5 text-xs font-medium uppercase tracking-widest text-white">
+        <footer className="sticky bottom-0 border-t border-[var(--border-subtle)] bg-[var(--surface-primary)] p-4">
+          <button type="button" onClick={() => { onApply(selection, targetCollectionId); onClose() }} className="w-full bg-[var(--text-primary)] py-3.5 text-xs font-medium uppercase tracking-widest text-[var(--surface-primary)]">
             VIEW RESULTS
           </button>
         </footer>
