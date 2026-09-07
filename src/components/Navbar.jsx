@@ -159,10 +159,10 @@ export default function Navbar() {
               {cartCount > 0 && <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-gold)] px-1 text-[9px] text-[var(--bg-primary)]">{cartCount}</span>}
             </IconButton>
           </div>
-          <div className="relative z-10 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2">
+          <div className="relative z-50 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2">
             <div className="relative">
-              <Search size={16} strokeWidth={1.25} className="absolute left-3 top-2.5 text-[var(--text-primary)] opacity-60" />
-              <input type="search" readOnly onFocus={() => setIsSearchOpen(true)} placeholder="Search creations" className="w-full rounded-full bg-[var(--bg-primary)] py-2 pl-9 pr-4 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-primary)] placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]" />
+              <Search size={16} strokeWidth={1.25} className="pointer-events-none absolute left-3 top-2.5 z-50 text-[var(--text-primary)] opacity-60" />
+              <input type="search" readOnly onClick={() => setIsSearchOpen(true)} onFocus={() => setIsSearchOpen(true)} placeholder="Search creations" className="relative z-50 w-full rounded-full bg-[var(--bg-primary)] py-2 pl-9 pr-4 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-primary)] placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]" />
             </div>
           </div>
         </div>
