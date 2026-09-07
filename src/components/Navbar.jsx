@@ -89,6 +89,8 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme }) {
 export default function Navbar() {
   const { config, themeMode, toggleTheme } = useSiteConfig()
   const [isScrolled, setIsScrolled] = useState(false)
+  const [scrollY, setScrollY] = useState(0)
+  const [scrollDirection, setScrollDirection] = useState('up')
   const [isMobileHeaderVisible, setIsMobileHeaderVisible] = useState(true)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
@@ -97,7 +99,10 @@ export default function Navbar() {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
       setIsScrolled(currentScrollY > 20)
-      setIsMobileHeaderVisible(currentScrollY <= 20 || currentScrollY < lastScrollY)
+      setScrollY(currentScrollY)
+      const nextDirection = currentScrollY < lastScrollY ? 'up' : 'down'
+      setScrollDirection(nextDirection)
+      setIsMobileHeaderVisible(currentScrollY <= 20 || nextDirection === 'up')
       lastScrollY = currentScrollY
     }
 
@@ -120,6 +125,8 @@ export default function Navbar() {
   return (
     <>
       <header
+        data-scroll-y={scrollY}
+        data-scroll-direction={scrollDirection}
         className={`sticky top-0 z-50 w-full border-b border-transparent bg-[var(--bg-primary)] text-[var(--text-primary)] transition-all duration-300 ease-out md:z-40 ${
           isScrolled
             ? 'border-[var(--border-subtle)]/80 bg-[var(--bg-primary)]/90 shadow-sm backdrop-blur-md'
