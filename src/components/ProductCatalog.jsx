@@ -125,12 +125,15 @@ export default function ProductCatalog() {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
   const [isSticky, setIsSticky] = useState(false)
   const [scrollDirection, setScrollDirection] = useState('up')
+  const [scrollY, setScrollY] = useState(0)
   const [scrollProgress, setScrollProgress] = useState(0)
+  const [collectionProgress, setCollectionProgress] = useState({})
   const sortMenuRef = useRef(null)
   const filterBarRef = useRef(null)
   const lastScrollYRef = useRef(0)
   const filterOffsetTopRef = useRef(0)
   const scrollFrameRef = useRef(null)
+  const collectionRefs = useRef({})
 
   useEffect(() => {
     let isMounted = true
@@ -191,9 +194,20 @@ export default function ProductCatalog() {
       const nextProgress = scrollHeight > 0 ? currentScrollY / scrollHeight : 0
 
       setScrollDirection(nextDirection)
+      setScrollY(currentScrollY)
       setScrollProgress(Math.min(1, Math.max(0, nextProgress)))
       setIsSticky(currentScrollY > filterOffsetTopRef.current && !nearTop)
       lastScrollYRef.current = currentScrollY
+      const nextCollectionProgress = {}
+      Object.entries(collectionRefs.current).forEach(([collectionId, section]) => {
+        if (!section) return
+        const sectionTop = section.getBoundingClientRect().top + currentScrollY
+        const availableHeight = section.offsetHeight - window.innerHeight
+        nextCollectionProgress[collectionId] = availableHeight > 0
+          ? Math.min(1, Math.max(0, (currentScrollY - sectionTop) / availableHeight))
+          : 0
+      })
+      setCollectionProgress(nextCollectionProgress)
       scrollFrameRef.current = null
     }
 
@@ -247,6 +261,27 @@ export default function ProductCatalog() {
     setActiveFilter('All')
     setSortOrder('featured')
   }
+
+  const collections = useMemo(() => {
+    const grouped = new Map()
+    visibleProducts.forEach((product) => {
+      const rawTitle = getProductCollection(product) || getProductCategory(product) || 'Our Jewellery Universe'
+      const normalizedTitle = rawTitle.toLowerCase()
+      const title = normalizedTitle.includes('happy heart')
+        ? 'Happy Hearts'
+        : normalizedTitle.includes('ice cube')
+          ? 'Ice Cube'
+          : normalizedTitle.includes('high jewelry')
+            ? 'High Jewelry'
+            : rawTitle
+      const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+      if (!grouped.has(id)) grouped.set(id, { id, title, products: [] })
+      grouped.get(id).products.push(product)
+    })
+    return [...grouped.values()]
+  }, [visibleProducts])
+
+  const isNavbarVisible = scrollDirection === 'up' || scrollY <= 20
 
   return (
     <section id="high-jewelry" className="bg-[var(--bg-primary)] px-4 py-20 text-[var(--text-primary)] md:px-12 md:py-28">
@@ -357,10 +392,33 @@ export default function ProductCatalog() {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:gap-10">
             {Array.from({ length: 4 }, (_, index) => <ProductSkeleton key={index} />)}
           </div>
-        ) : visibleProducts.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:gap-10">
-            {visibleProducts.map((product) => (
-              <ProductCard key={product.id || product.slug || product.name} product={product} />
+        ) : collections.length > 0 ? (
+          <div>
+            {collections.map((collection) => (
+              <section
+                key={collection.id}
+                ref={(element) => {
+                  collectionRefs.current[collection.id] = element
+                }}
+                className="relative mb-16"
+              >
+                <div className={`sticky z-30 border-b border-white/10 bg-[var(--surface-primary)] transition-[top] duration-300 ease-out ${isNavbarVisible ? 'top-[104px] md:top-0' : 'top-0'}`}>
+                  <div className="flex cursor-pointer items-center justify-between px-4 py-3">
+                    <span className="font-serif text-xs font-medium uppercase tracking-widest">{collection.title}</span>
+                    <ChevronDown className="h-4 w-4 text-neutral-400" strokeWidth={1.25} />
+                  </div>
+                  <div
+                    aria-hidden="true"
+                    className="absolute bottom-0 left-0 right-0 h-[2px] origin-left bg-[var(--accent-gold)] will-change-transform"
+                    style={{ transform: `scaleX(${collectionProgress[collection.id] || 0})` }}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4 p-4 md:grid-cols-3 md:gap-10 lg:grid-cols-4">
+                  {collection.products.map((product) => (
+                    <ProductCard key={product.id || product.slug || product.name} product={product} />
+                  ))}
+                </div>
+              </section>
             ))}
           </div>
         ) : (
