@@ -42,26 +42,16 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme }) {
         type="button"
         aria-label="Close navigation"
         onClick={onClose}
-        className={`pointer-events-auto fixed bottom-0 left-0 right-0 top-14 bg-black/70 backdrop-blur-md transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        className={`pointer-events-auto fixed bottom-0 left-0 right-0 top-14 z-30 h-[calc(100dvh-3.5rem)] bg-black/70 backdrop-blur-md transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
       />
-      <aside className={`pointer-events-auto fixed bottom-0 left-0 top-14 z-50 flex w-[85vw] max-w-sm transform flex-col overflow-y-auto bg-[var(--surface-primary)] px-4 pt-4 text-[var(--text-primary)] shadow-2xl transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex h-14 items-center justify-between border-b border-[var(--border-subtle)]">
-          <IconButton label="Close navigation" onClick={onClose}>
-            <X strokeWidth={1.25} size={21} />
-          </IconButton>
-          <span className="truncate px-2 text-center font-serif text-sm uppercase tracking-widest">{config.store_name}</span>
-          <IconButton label="Shopping bag">
-            <ShoppingBag strokeWidth={1.25} size={19} />
-          </IconButton>
-        </div>
-
+      <aside className={`pointer-events-auto fixed bottom-0 left-0 top-14 z-40 flex h-[calc(100dvh-3.5rem)] w-[85vw] max-w-sm transform flex-col overflow-y-auto bg-[var(--surface-primary)] px-0 pt-0 text-[var(--text-primary)] shadow-2xl transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <nav className="flex flex-1 flex-col" aria-label="Mobile navigation">
           {navigationLinks.map((link) => (
             <a
               key={link}
               href="#"
               onClick={onClose}
-              className="flex items-center justify-between border-b border-[var(--border-subtle)] py-5 text-sm uppercase tracking-[0.18em] transition-all duration-300 ease-out hover:text-[var(--accent-gold)]"
+              className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-5 text-sm uppercase tracking-[0.18em] transition-all duration-300 ease-out first:pt-6 hover:text-[var(--accent-gold)]"
             >
               {link}
               <ChevronRight size={16} strokeWidth={1.25} />
@@ -135,8 +125,8 @@ export default function Navbar() {
       >
         <div className={`relative z-50 md:hidden transition-transform duration-300 ease-out ${isMobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="relative z-50 flex h-14 items-center justify-between border-b border-[var(--border-subtle)] px-4">
-            <IconButton label="Open navigation" onClick={() => setIsDrawerOpen(true)}>
-              <Menu strokeWidth={1.25} size={21} />
+            <IconButton label={isDrawerOpen ? 'Close navigation' : 'Open navigation'} onClick={() => setIsDrawerOpen((open) => !open)}>
+              {isDrawerOpen ? <X className="h-5 w-5" strokeWidth={1.25} /> : <Menu className="h-5 w-5" strokeWidth={1.25} />}
             </IconButton>
             <a href="/" className="truncate px-2 text-center font-serif text-sm tracking-widest">
               {config.store_name}
