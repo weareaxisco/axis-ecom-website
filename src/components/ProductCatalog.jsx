@@ -122,7 +122,13 @@ export default function ProductCatalog() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isSortOpen, setIsSortOpen] = useState(false)
+  const [isSticky, setIsSticky] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
   const sortMenuRef = useRef(null)
+  const filterBarRef = useRef(null)
+  const lastScrollYRef = useRef(0)
+  const filterOffsetTopRef = useRef(0)
+  const scrollFrameRef = useRef(null)
 
   useEffect(() => {
     let isMounted = true
@@ -167,6 +173,45 @@ export default function ProductCatalog() {
   }, [])
 
   useEffect(() => {
+    const updateFilterOffset = () => {
+      if (filterBarRef.current) {
+        filterOffsetTopRef.current =
+          filterBarRef.current.getBoundingClientRect().top + window.scrollY
+      }
+    }
+
+    const updateScrollState = () => {
+      const currentScrollY = window.scrollY
+      const nearTop = currentScrollY <= 20
+      const scrollingUp = currentScrollY < lastScrollYRef.current
+
+      setIsSticky(currentScrollY > filterOffsetTopRef.current)
+      setIsVisible(nearTop || scrollingUp)
+      lastScrollYRef.current = currentScrollY
+      scrollFrameRef.current = null
+    }
+
+    const handleScroll = () => {
+      if (scrollFrameRef.current === null) {
+        scrollFrameRef.current = window.requestAnimationFrame(updateScrollState)
+      }
+    }
+
+    updateFilterOffset()
+    lastScrollYRef.current = window.scrollY
+    window.addEventListener('resize', updateFilterOffset)
+    window.addEventListener('scroll', handleScroll, { passive: true })
+
+    return () => {
+      window.removeEventListener('resize', updateFilterOffset)
+      window.removeEventListener('scroll', handleScroll)
+      if (scrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(scrollFrameRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     const handlePointerDown = (event) => {
       if (!sortMenuRef.current?.contains(event.target)) setIsSortOpen(false)
     }
@@ -204,7 +249,16 @@ export default function ProductCatalog() {
             The Collection
           </p>
           <h2 className="font-serif text-3xl tracking-wide md:text-5xl">Curated Creations</h2>
-          <div className="mx-auto mt-8 flex max-w-5xl flex-col items-center justify-between gap-6 border-y border-[var(--border-subtle)] py-5 md:flex-row">
+          <div ref={filterBarRef} className="h-14">
+            <div
+              className={`mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-6 border-y border-[var(--border-subtle)] py-5 transition-transform duration-300 ease-out md:flex-row ${
+                isSticky
+                  ? `fixed inset-x-0 top-0 z-40 bg-[var(--surface-primary)]/90 px-4 shadow-md backdrop-blur-md md:px-12 ${
+                      isVisible ? 'translate-y-0' : '-translate-y-full'
+                    }`
+                  : ''
+              }`}
+            >
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-3">
               {filterOptions.map((filter) => (
                 <button
@@ -257,6 +311,7 @@ export default function ProductCatalog() {
                   ))}
                 </div>
               )}
+            </div>
             </div>
           </div>
         </div>
