@@ -1,8 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import ProductCard from './ProductCard'
 
 const filterOptions = ['All', 'High Jewelry', 'Rings', 'Bracelets', 'Timepieces']
+const sortOptions = [
+  { value: 'featured', label: 'Featured' },
+  { value: 'low', label: 'Price: Low to High' },
+  { value: 'high', label: 'Price: High to Low' },
+]
 
 export const mockProducts = [
   {
@@ -115,6 +121,8 @@ export default function ProductCatalog() {
   const [sortOrder, setSortOrder] = useState('featured')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [isSortOpen, setIsSortOpen] = useState(false)
+  const sortMenuRef = useRef(null)
 
   useEffect(() => {
     let isMounted = true
@@ -156,6 +164,15 @@ export default function ProductCatalog() {
     return () => {
       isMounted = false
     }
+  }, [])
+
+  useEffect(() => {
+    const handlePointerDown = (event) => {
+      if (!sortMenuRef.current?.contains(event.target)) setIsSortOpen(false)
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => document.removeEventListener('pointerdown', handlePointerDown)
   }, [])
 
   const visibleProducts = useMemo(() => {
@@ -207,18 +224,40 @@ export default function ProductCatalog() {
                 </button>
               ))}
             </div>
-            <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.15em] opacity-70">
-              <span className="sr-only">Sort creations</span>
-              <select
-                value={sortOrder}
-                onChange={(event) => setSortOrder(event.target.value)}
-                className="cursor-pointer border border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2 text-xs uppercase tracking-wider text-[var(--text-primary)] focus:border-[var(--accent-gold)] focus:outline-none"
+            <div ref={sortMenuRef} className="relative">
+              <button
+                type="button"
+                aria-expanded={isSortOpen}
+                aria-haspopup="menu"
+                onClick={() => setIsSortOpen((open) => !open)}
+                className="flex items-center gap-1 border-b-2 border-transparent px-2 py-1 text-xs uppercase tracking-widest text-[var(--text-primary)] opacity-70 transition-colors hover:text-[var(--text-primary)]"
               >
-                <option className="bg-[var(--surface-primary)] text-[var(--text-primary)]" value="featured">Featured</option>
-                <option className="bg-[var(--surface-primary)] text-[var(--text-primary)]" value="low">Price: Low to High</option>
-                <option className="bg-[var(--surface-primary)] text-[var(--text-primary)]" value="high">Price: High to Low</option>
-              </select>
-            </label>
+                {sortOptions.find((option) => option.value === sortOrder)?.label}
+                <ChevronDown
+                  size={14}
+                  strokeWidth={1.25}
+                  className={`transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
+              {isSortOpen && (
+                <div className="absolute right-0 z-30 mt-2 w-48 border border-[var(--border-subtle)] bg-[var(--surface-primary)] py-2 shadow-2xl backdrop-blur-md">
+                  {sortOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setSortOrder(option.value)
+                        setIsSortOpen(false)
+                      }}
+                      className="w-full cursor-pointer px-4 py-2 text-left text-xs uppercase tracking-wider text-[var(--text-primary)] transition-colors hover:bg-[var(--accent-gold)]/10 hover:text-[var(--accent-gold)]"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

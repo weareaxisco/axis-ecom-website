@@ -142,7 +142,7 @@ export default function ProductDetailModal({ product, onClose }) {
             <p className="text-xs uppercase tracking-[0.25em] opacity-60">{getCategoryName(product)}</p>
             <h2 id="product-detail-title" className="mt-4 font-serif text-2xl md:text-3xl">{productName}</h2>
             <p className="mt-5 text-sm tracking-[0.12em] text-[var(--accent-gold)]">
-              {config.currency_symbol || 'MAD'} {Number.isFinite(price) ? price.toLocaleString() : '—'}
+              {Number.isFinite(price) ? `${price.toLocaleString()} ${config.currency_symbol || 'MAD'}` : '—'}
             </p>
           </div>
 

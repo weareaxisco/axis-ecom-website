@@ -100,7 +100,7 @@ export default function ProductDetailPage() {
           </div>
         </div>
         <section className="mt-28">
-          <div className="mb-8 flex items-end justify-between"><h2 className="font-serif text-3xl">You May Also Like</h2><span className="text-[10px] uppercase tracking-[0.2em] opacity-60">Selected for you</span></div>
+          <h2 className="mb-8 text-center font-serif text-xl uppercase tracking-widest text-[var(--text-primary)] md:mb-12 md:text-2xl">You May Also Like</h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">{recommendations.map((item) => <ProductCard key={item.id} product={item} />)}</div>
         </section>
       </div>
