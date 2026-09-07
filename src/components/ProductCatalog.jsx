@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import ProductCard from './ProductCard'
 
@@ -122,11 +122,9 @@ export default function ProductCatalog() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isSortOpen, setIsSortOpen] = useState(false)
-  const [isCategoryOpen, setIsCategoryOpen] = useState(false)
   const [isSticky, setIsSticky] = useState(false)
   const [scrollDirection, setScrollDirection] = useState('up')
   const [scrollY, setScrollY] = useState(0)
-  const [scrollProgress, setScrollProgress] = useState(0)
   const [collectionProgress, setCollectionProgress] = useState({})
   const sortMenuRef = useRef(null)
   const filterBarRef = useRef(null)
@@ -190,21 +188,17 @@ export default function ProductCatalog() {
       const nearTop = currentScrollY <= 20
       const scrollingUp = currentScrollY < lastScrollYRef.current
       const nextDirection = scrollingUp ? 'up' : 'down'
-      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
-      const nextProgress = scrollHeight > 0 ? currentScrollY / scrollHeight : 0
-
       setScrollDirection(nextDirection)
       setScrollY(currentScrollY)
-      setScrollProgress(Math.min(1, Math.max(0, nextProgress)))
       setIsSticky(currentScrollY > filterOffsetTopRef.current && !nearTop)
       lastScrollYRef.current = currentScrollY
       const nextCollectionProgress = {}
       Object.entries(collectionRefs.current).forEach(([collectionId, section]) => {
         if (!section) return
-        const sectionTop = section.getBoundingClientRect().top + currentScrollY
-        const availableHeight = section.offsetHeight - window.innerHeight
+        const rect = section.getBoundingClientRect()
+        const availableHeight = rect.height - window.innerHeight
         nextCollectionProgress[collectionId] = availableHeight > 0
-          ? Math.min(1, Math.max(0, (currentScrollY - sectionTop) / availableHeight))
+          ? Math.min(1, Math.max(0, -rect.top / availableHeight))
           : 0
       })
       setCollectionProgress(nextCollectionProgress)
@@ -293,45 +287,12 @@ export default function ProductCatalog() {
           <h2 className="font-serif text-3xl tracking-wide md:text-5xl">Curated Creations</h2>
           <div ref={filterBarRef} className={isSticky ? 'h-12 md:h-14' : 'h-14'}>
             <div
-              className={`relative mx-auto w-full max-w-5xl border-y border-[var(--border-subtle)] bg-[var(--surface-primary)] transition-[top] duration-300 ease-in-out ${
+              className={`relative mx-auto hidden w-full max-w-5xl border-y border-[var(--border-subtle)] bg-[var(--surface-primary)] transition-[top] duration-300 ease-in-out md:block ${
                 isSticky
                   ? `sticky z-30 shadow-md ${scrollDirection === 'up' ? 'top-14' : 'top-0'}`
                   : ''
               }`}
             >
-              <div className="md:hidden">
-                <button
-                  type="button"
-                  aria-expanded={isCategoryOpen}
-                  onClick={() => setIsCategoryOpen((open) => !open)}
-                  className="flex w-full items-center justify-between bg-[var(--surface-primary)] px-4 py-3 text-xs font-medium uppercase tracking-widest"
-                >
-                  {activeFilter === 'All' ? 'Our Jewellery Universe' : activeFilter}
-                  {isCategoryOpen ? <ChevronUp size={15} strokeWidth={1.25} /> : <ChevronDown size={15} strokeWidth={1.25} />}
-                </button>
-                {isCategoryOpen && (
-                  <div className="border-t border-[var(--border-subtle)] bg-[var(--surface-primary)]">
-                    {filterOptions.map((filter) => (
-                      <button
-                        key={filter}
-                        type="button"
-                        onClick={() => {
-                          setActiveFilter(filter)
-                          setIsCategoryOpen(false)
-                        }}
-                        className="block w-full border-b border-[var(--border-subtle)] px-4 py-3 text-left text-xs uppercase tracking-widest text-[var(--text-primary)] last:border-b-0"
-                      >
-                        {filter}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <span
-                  aria-hidden="true"
-                  className="absolute bottom-0 left-0 right-0 h-[2px] origin-left bg-[var(--accent-gold)] will-change-transform transition-transform duration-75"
-                  style={{ transform: `scaleX(${scrollProgress})` }}
-                />
-              </div>
               <div className="hidden items-center justify-between gap-6 px-4 py-5 md:flex md:px-12">
                 <div className="no-scrollbar flex min-w-0 flex-1 items-center justify-center gap-6 overflow-x-auto whitespace-nowrap">
                   {filterOptions.map((filter) => (
@@ -404,8 +365,8 @@ export default function ProductCatalog() {
               >
                 <div className={`sticky z-30 border-b border-white/10 bg-[var(--surface-primary)] transition-[top] duration-300 ease-out ${isNavbarVisible ? 'top-[104px] md:top-0' : 'top-0'}`}>
                   <div className="flex cursor-pointer items-center justify-between px-4 py-3">
-                    <span className="font-serif text-xs font-medium uppercase tracking-widest">{collection.title}</span>
-                    <ChevronDown className="h-4 w-4 text-neutral-400" strokeWidth={1.25} />
+                    <h3 className="font-serif text-xs font-medium uppercase tracking-widest">{collection.title}</h3>
+                    <span className="text-[10px] tracking-wider text-neutral-400">{collection.products.length} Creations</span>
                   </div>
                   <div
                     aria-hidden="true"
@@ -413,7 +374,7 @@ export default function ProductCatalog() {
                     style={{ transform: `scaleX(${collectionProgress[collection.id] || 0})` }}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4 p-4 md:grid-cols-3 md:gap-10 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-6 p-4 sm:grid-cols-2 lg:grid-cols-3">
                   {collection.products.map((product) => (
                     <ProductCard key={product.id || product.slug || product.name} product={product} />
                   ))}
