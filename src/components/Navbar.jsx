@@ -12,6 +12,7 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import { useSiteConfig } from '../context/ConfigContext'
+import SearchDrawer from './SearchDrawer'
 
 const navigationLinks = [
   'High Jewelry',
@@ -83,6 +84,7 @@ export default function Navbar() {
   const [scrollDirection, setScrollDirection] = useState('up')
   const [isMobileHeaderVisible, setIsMobileHeaderVisible] = useState(true)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   useEffect(() => {
     let lastScrollY = window.scrollY
@@ -107,15 +109,20 @@ export default function Navbar() {
   }, [])
 
   useEffect(() => {
-    document.documentElement.style.overflow = isDrawerOpen ? 'hidden' : ''
-    document.body.style.overflow = isDrawerOpen ? 'hidden' : ''
+    const isOverlayOpen = isDrawerOpen || isSearchOpen
+    document.documentElement.style.overflow = isOverlayOpen ? 'hidden' : ''
+    document.body.style.overflow = isOverlayOpen ? 'hidden' : ''
     return () => {
       document.documentElement.style.overflow = ''
       document.body.style.overflow = ''
     }
-  }, [isDrawerOpen])
+  }, [isDrawerOpen, isSearchOpen])
 
   const cartCount = config.cart_item_count ?? config.cart_count ?? 0
+  const toggleMenu = () => {
+    setIsSearchOpen(false)
+    setIsDrawerOpen((open) => !open)
+  }
 
   return (
     <>
@@ -130,7 +137,7 @@ export default function Navbar() {
       >
         <div className={`fixed left-0 right-0 top-0 z-50 md:hidden transition-transform duration-300 ease-out ${isMobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="relative z-50 flex h-14 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
-            <IconButton label={isDrawerOpen ? 'Close navigation' : 'Open navigation'} onClick={() => setIsDrawerOpen((open) => !open)}>
+            <IconButton label={isDrawerOpen ? 'Close navigation' : 'Open navigation'} onClick={toggleMenu}>
               {isDrawerOpen ? <X className="h-5 w-5" strokeWidth={1.25} /> : <Menu className="h-5 w-5" strokeWidth={1.25} />}
             </IconButton>
             <a href="/" className="truncate px-2 text-center font-serif text-sm tracking-widest">
@@ -144,7 +151,7 @@ export default function Navbar() {
           <div className="relative z-10 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2">
             <div className="relative">
               <Search size={16} strokeWidth={1.25} className="absolute left-3 top-2.5 text-[var(--text-primary)] opacity-60" />
-              <input type="search" placeholder="Search creations" className="w-full rounded-full bg-[var(--bg-primary)] py-2 pl-9 pr-4 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-primary)] placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]" />
+              <input type="search" readOnly onFocus={() => setIsSearchOpen(true)} placeholder="Search creations" className="w-full rounded-full bg-[var(--bg-primary)] py-2 pl-9 pr-4 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-primary)] placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]" />
             </div>
           </div>
         </div>
@@ -170,7 +177,7 @@ export default function Navbar() {
               >
                 <Menu strokeWidth={1.25} size={21} />
               </IconButton>
-              <IconButton label="Search">
+              <IconButton label="Search" onClick={() => { setIsDrawerOpen(false); setIsSearchOpen(true) }}>
                 <Search strokeWidth={1.25} size={20} />
               </IconButton>
             </div>
@@ -231,6 +238,15 @@ export default function Navbar() {
         onClose={() => setIsDrawerOpen(false)}
         themeMode={themeMode}
         toggleTheme={toggleTheme}
+      />
+      <SearchDrawer
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onMenuOpen={() => {
+          setIsSearchOpen(false)
+          setIsDrawerOpen(true)
+        }}
+        storeName={config.store_name}
       />
     </>
   )

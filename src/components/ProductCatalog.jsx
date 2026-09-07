@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronDown, Filter } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import ProductCard from './ProductCard'
-import SortFilterDrawer from './SortFilterDrawer'
+import SortFilterDrawer, { createInitialSelection } from './SortFilterDrawer'
 
 const calculateCollectionProgress = (sectionElement, stickyOffset, headerHeight = 44) => {
   if (!sectionElement) return 0
@@ -144,14 +144,8 @@ export default function ProductCatalog() {
   const [error, setError] = useState(null)
   const [isSortOpen, setIsSortOpen] = useState(false)
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false)
-  const [activeFacetSelection, setActiveFacetSelection] = useState({
-    sort: 'recommended',
-    category: [],
-    metal: [],
-    novelties: [],
-    gender: [],
-    shape: [],
-  })
+  const [targetCollectionId, setTargetCollectionId] = useState(null)
+  const [collectionFilters, setCollectionFilters] = useState({})
   const [isSticky, setIsSticky] = useState(false)
   const [scrollDirection, setScrollDirection] = useState('up')
   const [scrollY, setScrollY] = useState(0)
@@ -271,7 +265,8 @@ export default function ProductCatalog() {
       const filter = activeFilter.toLowerCase()
       const matchesCategory = activeFilter === 'All' || category === filter || collection === filter || category.includes(filter)
       if (!matchesCategory) return false
-      return Object.entries(activeFacetSelection).every(([facetId, selectedValues]) => {
+      return Object.entries(createInitialSelection()).every(([facetId]) => {
+        const selectedValues = collectionFilters.all?.[facetId]
         if (facetId === 'sort' || !selectedValues?.length) return true
         const productValue = getProductFacetValue(product, facetId)
         return selectedValues.some((value) => productValue.includes(value.toLowerCase()))
@@ -279,29 +274,20 @@ export default function ProductCatalog() {
     })
 
     return [...filtered].sort((first, second) => {
-      if (activeFacetSelection.sort === 'name_asc') return String(first.name || '').localeCompare(String(second.name || ''))
-      if (activeFacetSelection.sort === 'name_desc') return String(second.name || '').localeCompare(String(first.name || ''))
       if (sortOrder === 'low') return Number(first.price) - Number(second.price)
       if (sortOrder === 'high') return Number(second.price) - Number(first.price)
       return Number(first.display_order ?? first.sort_order ?? 0) - Number(second.display_order ?? second.sort_order ?? 0)
     })
-  }, [activeFacetSelection, activeFilter, products, sortOrder])
+  }, [activeFilter, collectionFilters, products, sortOrder])
 
   const resetFilters = () => {
     setActiveFilter('All')
     setSortOrder('featured')
-    setActiveFacetSelection({
-      sort: 'recommended',
-      category: [],
-      metal: [],
-      novelties: [],
-      gender: [],
-      shape: [],
-    })
+    setCollectionFilters({})
   }
 
-  const applyDrawerSelection = (selection) => {
-    setActiveFacetSelection(selection)
+  const applyDrawerSelection = (selection, collectionId) => {
+    setCollectionFilters((current) => ({ ...current, [collectionId || 'all']: selection }))
     if (selection.sort === 'recommended') setSortOrder('featured')
   }
 
@@ -319,10 +305,25 @@ export default function ProductCatalog() {
             : rawTitle
       const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
       if (!grouped.has(id)) grouped.set(id, { id, title, products: [] })
-      grouped.get(id).products.push(product)
+      const selection = collectionFilters[id]
+      const matchesCollection = !selection || Object.entries(selection).every(([facetId, selectedValues]) => {
+        if (facetId === 'sort' || !selectedValues?.length) return true
+        return selectedValues.some((value) => getProductFacetValue(product, facetId).includes(value.toLowerCase()))
+      })
+      if (matchesCollection) grouped.get(id).products.push(product)
     })
-    return [...grouped.values()]
-  }, [visibleProducts])
+    return [...grouped.values()].map((collection) => {
+      const selection = collectionFilters[collection.id]
+      if (!selection || selection.sort === 'recommended') return collection
+      const productsForCollection = [...collection.products]
+      if (selection.sort === 'name_asc') {
+        productsForCollection.sort((first, second) => String(first.name || '').localeCompare(String(second.name || '')))
+      } else if (selection.sort === 'name_desc') {
+        productsForCollection.sort((first, second) => String(second.name || '').localeCompare(String(first.name || '')))
+      }
+      return { ...collection, products: productsForCollection }
+    })
+  }, [collectionFilters, visibleProducts])
 
   const isNavbarVisible = scrollDirection === 'up' || scrollY <= 20
 
@@ -420,7 +421,10 @@ export default function ProductCatalog() {
                       <button
                         type="button"
                         aria-label={`Filter ${collection.title}`}
-                        onClick={() => setIsFilterDrawerOpen(true)}
+                        onClick={() => {
+                          setTargetCollectionId(collection.id)
+                          setIsFilterDrawerOpen(true)
+                        }}
                         className="text-neutral-400 transition-colors hover:text-[var(--accent-gold)]"
                       >
                         <Filter size={16} strokeWidth={1.25} />
@@ -462,8 +466,9 @@ export default function ProductCatalog() {
       <SortFilterDrawer
         isOpen={isFilterDrawerOpen}
         onClose={() => setIsFilterDrawerOpen(false)}
-        activeSelection={activeFacetSelection}
+        activeSelection={collectionFilters[targetCollectionId] || createInitialSelection()}
         onApply={applyDrawerSelection}
+        targetCollectionId={targetCollectionId}
       />
     </section>
   )

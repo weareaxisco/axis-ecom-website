@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronUp, X } from 'lucide-react'
 import { FACET_CONFIG } from '../constants/facets'
 
-function createInitialSelection() {
+export function createInitialSelection() {
   return {
     sort: 'recommended',
     category: [],
@@ -18,6 +18,7 @@ export default function SortFilterDrawer({
   onClose,
   activeSelection,
   onApply,
+  targetCollectionId,
 }) {
   const [selection, setSelection] = useState(activeSelection || createInitialSelection())
   const [openSections, setOpenSections] = useState(
@@ -35,7 +36,11 @@ export default function SortFilterDrawer({
     }
   }, [isOpen])
 
-  const clearSelection = () => setSelection(createInitialSelection())
+  const clearSelection = () => {
+    const clearedSelection = createInitialSelection()
+    setSelection(clearedSelection)
+    onApply(clearedSelection, targetCollectionId)
+  }
 
   const toggleOption = (facetId, option) => {
     setSelection((current) => {
@@ -88,8 +93,9 @@ export default function SortFilterDrawer({
                   {facet.label}
                   {isExpanded ? <ChevronUp size={15} strokeWidth={1.25} /> : <ChevronDown size={15} strokeWidth={1.25} />}
                 </button>
-                {isExpanded && (
-                  <div className="space-y-3 pb-5">
+                <div className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+                  <div className="overflow-hidden">
+                    <div className="space-y-3 pb-5">
                     {facet.options.map((option) => {
                       const value = typeof option === 'string' ? option : option.value
                       const label = typeof option === 'string' ? option : option.label
@@ -112,14 +118,15 @@ export default function SortFilterDrawer({
                         </label>
                       )
                     })}
+                    </div>
                   </div>
-                )}
+                </div>
               </section>
             )
           })}
         </div>
         <footer className="sticky bottom-0 border-t border-neutral-200 bg-white p-4">
-          <button type="button" onClick={() => { onApply(selection); onClose() }} className="w-full bg-black py-3.5 text-xs font-medium uppercase tracking-widest text-white">
+          <button type="button" onClick={() => { onApply(selection, targetCollectionId); onClose() }} className="w-full bg-black py-3.5 text-xs font-medium uppercase tracking-widest text-white">
             VIEW RESULTS
           </button>
         </footer>
