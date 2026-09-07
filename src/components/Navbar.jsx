@@ -214,9 +214,13 @@ export default function Navbar() {
                 <Menu strokeWidth={1.25} size={21} />
               </IconButton>
               <div onMouseEnter={openDesktopSearch} onMouseLeave={scheduleSearchClose}>
-                <IconButton label={isSearchOpen ? 'Close search' : 'Search'} onClick={toggleDesktopSearch}>
-                  {isSearchOpen ? <X strokeWidth={1.25} size={20} /> : <Search strokeWidth={1.25} size={20} />}
-                </IconButton>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center">
+                    <IconButton label={isSearchOpen ? 'Close search' : 'Search'} onClick={toggleDesktopSearch} className="h-6 w-6 shrink-0">
+                      {isSearchOpen ? <X strokeWidth={1.25} size={20} /> : <Search strokeWidth={1.25} size={20} />}
+                    </IconButton>
+                  </div>
+                </div>
               </div>
             </div>
 
