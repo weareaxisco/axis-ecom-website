@@ -135,7 +135,7 @@ export default function Navbar() {
   }
   const scheduleSearchClose = () => {
     cancelSearchClose()
-    searchCloseTimer.current = window.setTimeout(() => setIsSearchOpen(false), 180)
+    searchCloseTimer.current = window.setTimeout(() => setIsSearchOpen(false), 250)
   }
   const openDesktopSearch = () => {
     cancelSearchClose()
@@ -168,6 +168,8 @@ export default function Navbar() {
             ? 'border-[var(--border-subtle)]/80 bg-[var(--bg-primary)]/90 shadow-sm backdrop-blur-md'
             : ''
         }`}
+        onMouseEnter={cancelSearchClose}
+        onMouseLeave={scheduleSearchClose}
       >
         <div className={`fixed left-0 right-0 top-0 z-50 md:hidden transition-transform duration-300 ease-out ${isMobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
           <div className="relative z-50 flex h-[60px] w-full items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
@@ -215,13 +217,12 @@ export default function Navbar() {
               >
                 <Menu strokeWidth={1.25} size={21} />
               </IconButton>
-              <div onMouseEnter={openDesktopSearch} onMouseLeave={scheduleSearchClose}>
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center">
-                    <IconButton label={isSearchOpen ? 'Close search' : 'Search'} onClick={toggleDesktopSearch} className="h-6 w-6 shrink-0">
-                      {isSearchOpen ? <X strokeWidth={1.25} size={20} /> : <Search strokeWidth={1.25} size={20} />}
-                    </IconButton>
-                  </div>
+              <div onMouseEnter={openDesktopSearch} onMouseLeave={scheduleSearchClose}              >
+                <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden">
+                  <IconButton label={isSearchOpen ? 'Close search' : 'Search'} onClick={toggleDesktopSearch} className="relative h-8 w-8 shrink-0">
+                    <Search className={`absolute inset-0 m-auto transition-opacity duration-200 ${isSearchOpen ? 'opacity-0' : 'opacity-100'}`} strokeWidth={1.25} size={20} />
+                    <X className={`absolute inset-0 m-auto transition-opacity duration-200 ${isSearchOpen ? 'opacity-100' : 'opacity-0'}`} strokeWidth={1.25} size={20} />
+                  </IconButton>
                 </div>
               </div>
             </div>
