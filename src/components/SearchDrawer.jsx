@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Heart, Menu, Search, X } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { mockProducts } from './ProductCatalog'
@@ -23,7 +23,7 @@ function collectionName(product) {
   return relatedName(product.collection) || relatedName(product.collections) || product.collection_name || product.category_name || 'Our Jewellery Universe'
 }
 
-export default function SearchDrawer({ isOpen, onClose, onMenuOpen, storeName }) {
+export default function SearchDrawer({ isOpen, onClose }) {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [products, setProducts] = useState([])
@@ -71,13 +71,8 @@ export default function SearchDrawer({ isOpen, onClose, onMenuOpen, storeName })
 
   return (
     <div className={`pointer-events-none fixed inset-0 z-40 ${isOpen ? 'visible' : 'invisible'}`} aria-hidden={!isOpen}>
-      <button type="button" aria-label="Close search" onClick={onClose} className={`pointer-events-auto absolute bottom-0 left-0 right-0 top-[var(--header-height)] z-40 bg-black/60 transition-opacity duration-300 md:top-0 ${isOpen ? 'opacity-100' : 'opacity-0'}`} />
-      <aside className={`search-drawer pointer-events-auto absolute bottom-0 left-0 top-[var(--header-height)] z-[45] flex h-[calc(100dvh-var(--header-height))] w-full max-w-[400px] transform flex-col overflow-y-auto bg-[var(--surface-primary)] text-[var(--text-primary)] shadow-2xl transition-transform duration-300 ease-out md:top-0 md:h-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <header className="flex h-14 items-center justify-between border-b border-[var(--border-subtle)] px-4">
-          <button type="button" aria-label="Open navigation" onClick={() => { onClose(); onMenuOpen() }}><Menu size={20} strokeWidth={1.25} /></button>
-          <span className="truncate px-3 font-serif text-sm uppercase tracking-widest">{storeName}</span>
-          <div className="flex items-center gap-3"><Heart size={19} strokeWidth={1.25} /><button type="button" aria-label="Close search" onClick={onClose}><X size={19} strokeWidth={1.25} /></button></div>
-        </header>
+      <button type="button" aria-label="Close search" onClick={onClose} className={`pointer-events-auto absolute bottom-0 left-0 right-0 top-[60px] z-40 bg-black/60 transition-opacity duration-300 md:top-0 ${isOpen ? 'opacity-100' : 'opacity-0'}`} />
+      <aside className={`search-drawer pointer-events-auto fixed inset-x-0 bottom-0 top-[60px] z-40 flex h-[calc(100dvh-60px)] transform flex-col overflow-y-auto bg-[var(--surface-primary)] text-[var(--text-primary)] shadow-2xl transition-transform duration-300 ease-out md:top-0 md:h-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="search-input-wrapper m-4 flex items-center gap-2 bg-[var(--bg-primary)] px-3 py-3">
           <Search size={17} strokeWidth={1.25} className="opacity-60" />
           <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search creations" className="min-w-0 flex-1 bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-primary)] placeholder:opacity-40" />

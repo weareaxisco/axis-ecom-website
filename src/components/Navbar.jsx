@@ -141,9 +141,16 @@ export default function Navbar() {
       >
         <div className={`fixed left-0 right-0 top-0 z-50 md:hidden transition-transform duration-300 ease-out ${isMobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="relative z-50 flex h-14 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
-            <IconButton label={isDrawerOpen ? 'Close navigation' : 'Open navigation'} onClick={toggleMenu}>
-              {isDrawerOpen ? <X className="h-5 w-5" strokeWidth={1.25} /> : <Menu className="h-5 w-5" strokeWidth={1.25} />}
-            </IconButton>
+            <div className="flex items-center">
+              <IconButton label={isDrawerOpen ? 'Close navigation' : 'Open navigation'} onClick={toggleMenu}>
+                {isDrawerOpen ? <X className="h-5 w-5" strokeWidth={1.25} /> : <Menu className="h-5 w-5" strokeWidth={1.25} />}
+              </IconButton>
+              {isSearchOpen && (
+                <IconButton label="Close search" onClick={() => setIsSearchOpen(false)}>
+                  <X className="h-5 w-5" strokeWidth={1.25} />
+                </IconButton>
+              )}
+            </div>
             <a href="/" className="truncate px-2 text-center font-serif text-sm tracking-widest">
               {config.store_name}
             </a>
@@ -246,11 +253,6 @@ export default function Navbar() {
       <SearchDrawer
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
-        onMenuOpen={() => {
-          setIsSearchOpen(false)
-          setIsDrawerOpen(true)
-        }}
-        storeName={config.store_name}
       />
     </>
   )
