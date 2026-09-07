@@ -5,6 +5,7 @@ import ProductCatalog from './components/ProductCatalog'
 import ProductDetailPage from './components/ProductDetailPage'
 import SearchResults from './components/SearchResults'
 import Footer from './components/Footer'
+import Register from './pages/Register'
 import { ConfigProvider } from './context/ConfigContext'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import './App.css'
@@ -32,6 +33,7 @@ function App() {
             <Route path="/" element={<main className="overflow-x-clip"><Hero /><ProductCatalog /></main>} />
             <Route path="/product/:id" element={<ProductDetailPage />} />
             <Route path="/search" element={<SearchResults />} />
+            <Route path="/register" element={<Register />} />
           </Routes>
           <Footer />
         </div>

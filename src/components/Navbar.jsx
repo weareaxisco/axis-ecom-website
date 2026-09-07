@@ -14,6 +14,7 @@ import {
 import { useSiteConfig } from '../context/ConfigContext'
 import SearchDrawer from './SearchDrawer'
 import DesktopSearchDropdown from './DesktopSearchDropdown'
+import LoginDrawer from './LoginDrawer'
 
 const navigationLinks = [
   'High Jewelry',
@@ -37,7 +38,7 @@ function IconButton({ label, children, onClick, className = '' }) {
   )
 }
 
-function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme }) {
+function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin }) {
   return (
     <div className={`pointer-events-none fixed inset-0 z-40 md:hidden ${isOpen ? 'visible' : 'invisible'}`} role="dialog" aria-modal="true" aria-hidden={!isOpen}>
       <button
@@ -67,7 +68,7 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme }) {
             {themeMode === 'dark' ? <Sun size={16} strokeWidth={1.25} /> : <Moon size={16} strokeWidth={1.25} />}
           </button>
           <a href="#" onClick={onClose} className="flex items-center justify-between">Favorites <span className="flex items-center gap-2"><Heart size={16} strokeWidth={1.25} />{config.favorite_count ?? 0}</span></a>
-          <a href="#" onClick={onClose} className="flex items-center justify-between">Sign In / Account <User size={16} strokeWidth={1.25} /></a>
+          <button type="button" onClick={() => { onClose(); onLogin() }} className="flex w-full items-center justify-between text-left">Sign In / Account <User size={16} strokeWidth={1.25} /></button>
           <div className="space-y-1 border-t border-[var(--border-subtle)] pt-4 opacity-70">
             <p>{config.location_city} | {config.phone_number}</p>
             <a href={`https://wa.me/${config.whatsapp_number}`}>Boutique Concierge</a>
@@ -86,6 +87,7 @@ export default function Navbar() {
   const [isMobileHeaderVisible, setIsMobileHeaderVisible] = useState(true)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isLoginOpen, setIsLoginOpen] = useState(false)
   const searchCloseTimer = useRef(null)
 
   useEffect(() => {
@@ -250,7 +252,9 @@ export default function Navbar() {
                 <Heart strokeWidth={1.25} size={19} />
               </IconButton>
               <IconButton label="Account" className="hidden sm:inline-flex">
+                <span onClick={() => setIsLoginOpen(true)} className="flex h-full w-full items-center justify-center">
                 <User strokeWidth={1.25} size={19} />
+                </span>
               </IconButton>
               <IconButton label="Shopping bag" className="relative">
                 <ShoppingBag strokeWidth={1.25} size={20} />
@@ -283,6 +287,7 @@ export default function Navbar() {
         onClose={() => setIsDrawerOpen(false)}
         themeMode={themeMode}
         toggleTheme={toggleTheme}
+        onLogin={() => setIsLoginOpen(true)}
       />
       <SearchDrawer
         isOpen={isSearchOpen}
@@ -297,6 +302,7 @@ export default function Navbar() {
         onMouseEnter={cancelSearchClose}
         onMouseLeave={scheduleSearchClose}
       />
+      <LoginDrawer isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </>
   )
 }
