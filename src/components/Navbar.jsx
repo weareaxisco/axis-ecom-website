@@ -37,14 +37,14 @@ function IconButton({ label, children, onClick, className = '' }) {
 
 function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme }) {
   return (
-    <div className={`pointer-events-none fixed bottom-0 left-0 right-0 top-14 z-40 md:hidden ${isOpen ? 'visible' : 'invisible'}`} role="dialog" aria-modal="true" aria-hidden={!isOpen}>
+    <div className={`pointer-events-none fixed inset-0 z-40 md:hidden ${isOpen ? 'visible' : 'invisible'}`} role="dialog" aria-modal="true" aria-hidden={!isOpen}>
       <button
         type="button"
         aria-label="Close navigation"
         onClick={onClose}
-        className={`pointer-events-auto absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        className={`pointer-events-auto fixed bottom-0 left-0 right-0 top-14 bg-black/70 backdrop-blur-md transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
       />
-      <aside className={`pointer-events-auto absolute inset-0 flex transform flex-col overflow-y-auto bg-[var(--surface-primary)] px-6 py-5 text-[var(--text-primary)] shadow-2xl transition-transform duration-300 ease-in-out ${isOpen ? 'translate-y-0' : '-translate-y-full'}`}>
+      <aside className={`pointer-events-auto fixed bottom-0 left-0 top-14 z-50 flex w-[85vw] max-w-sm transform flex-col overflow-y-auto bg-[var(--surface-primary)] px-4 pt-4 text-[var(--text-primary)] shadow-2xl transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex h-14 items-center justify-between border-b border-[var(--border-subtle)]">
           <IconButton label="Close navigation" onClick={onClose}>
             <X strokeWidth={1.25} size={21} />
