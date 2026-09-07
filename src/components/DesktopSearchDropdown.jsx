@@ -45,7 +45,9 @@ export default function DesktopSearchDropdown({
   }, [isOpen, products])
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => setDebouncedQuery(searchQuery.trim().toLowerCase()), 300)
+    const timeout = window.setTimeout(() => {
+      setDebouncedQuery(searchQuery.trim().toLowerCase())
+    }, 300)
     return () => window.clearTimeout(timeout)
   }, [searchQuery])
 
@@ -55,11 +57,29 @@ export default function DesktopSearchDropdown({
 
   const filteredMatches = useMemo(() => {
     if (!debouncedQuery) return products
-    return products.filter((product) => JSON.stringify(product).toLowerCase().includes(debouncedQuery))
+    return products.filter((product) => {
+      const searchableText = [
+        product.name,
+        product.category,
+        product.category_name,
+        product.collection,
+        product.collection_name,
+        product.description,
+        product.tags,
+      ].flatMap((value) => Array.isArray(value) ? value : [value]).filter(Boolean).join(' ').toLowerCase()
+      return searchableText.includes(debouncedQuery)
+    })
   }, [debouncedQuery, products])
   const matches = searchResults || filteredMatches
+  const isDebouncing = searchQuery.trim().toLowerCase() !== debouncedQuery
 
   const collectionNames = categories || [...new Set(products.map((product) => product.collection_name || product.category_name || 'Fine Jewelry'))].slice(0, 5)
+  const selectSearch = (value) => {
+    const normalizedValue = value.trim().toLowerCase()
+    updateSearchQuery(value)
+    setDebouncedQuery(normalizedValue)
+    onSelectSearch?.(value)
+  }
 
   if (!isOpen) return null
 
@@ -76,12 +96,10 @@ export default function DesktopSearchDropdown({
               autoFocus
               value={searchQuery}
               onChange={(event) => updateSearchQuery(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') setDebouncedQuery(searchQuery.trim().toLowerCase())
-              }}
               placeholder="SEARCH CREATIONS, HIGH JEWELRY, TIMEPIECES..."
               className="w-full bg-transparent font-serif text-lg tracking-wider text-amber-50 uppercase outline-none placeholder:text-neutral-500 md:text-xl"
             />
+            {isDebouncing && <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" aria-label="Searching" />}
             {searchQuery && (
               <button type="button" aria-label="Clear search" onClick={() => updateSearchQuery('')} className="p-1 text-neutral-400 transition-colors hover:text-amber-400">
                 <X className="h-5 w-5" />
@@ -95,7 +113,7 @@ export default function DesktopSearchDropdown({
                 <h3 className="mb-2 text-xs font-mono tracking-widest text-amber-400/90 uppercase">Popular Searches</h3>
                 <div className="flex flex-wrap gap-2">
                   {popularSearches.map((item) => (
-                    <button key={item} type="button" onClick={() => { updateSearchQuery(item); onSelectSearch?.(item) }} className="border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-xs font-mono tracking-wider text-neutral-300 uppercase transition-all hover:border-amber-500/60 hover:text-amber-300">{item}</button>
+                    <button key={item} type="button" onClick={() => selectSearch(item)} className="border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-xs font-mono tracking-wider text-neutral-300 uppercase transition-all hover:border-amber-500/60 hover:text-amber-300">{item}</button>
                   ))}
                 </div>
               </div>
@@ -103,15 +121,15 @@ export default function DesktopSearchDropdown({
                 <h3 className="mb-3 text-xs font-mono tracking-widest text-amber-400/90 uppercase">Collections</h3>
                 <ul className="space-y-2">
                   {collectionNames.map((category) => (
-                    <li key={category}><button type="button" onClick={() => { updateSearchQuery(category); onSelectSearch?.(category) }} className="text-sm font-serif tracking-wide text-neutral-400 uppercase transition-colors hover:text-white">{category}</button></li>
+                    <li key={category}><button type="button" onClick={() => selectSearch(category)} className="text-sm font-serif tracking-wide text-neutral-400 uppercase transition-colors hover:text-white">{category}</button></li>
                   ))}
                 </ul>
               </div>
             </div>
             <div className="col-span-12 md:col-span-8">
               <h3 className="mb-2 flex items-center justify-between text-xs font-mono tracking-widest text-amber-400/90 uppercase">
-                <span>{searchQuery ? 'Search Results' : 'Recommended Products'}</span>
-                <span className="text-[11px] font-sans text-neutral-500">{matches.length} results</span>
+                <span>{debouncedQuery ? `Results for '${debouncedQuery}'` : 'Recommended Products'}</span>
+                {debouncedQuery && <span className="text-[11px] font-sans text-neutral-500">{matches.length} results</span>}
               </h3>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
                 {matches.slice(0, 6).map((product) => (
@@ -125,6 +143,12 @@ export default function DesktopSearchDropdown({
                   </a>
                 ))}
               </div>
+              {!matches.length && debouncedQuery && (
+                <div className="py-10 text-center">
+                  <p className="font-serif text-lg text-neutral-300">No creations matching your search were found.</p>
+                  <button type="button" onClick={() => { updateSearchQuery(''); setDebouncedQuery('') }} className="mt-4 text-[11px] uppercase tracking-widest text-amber-400 hover:text-white">Reset search</button>
+                </div>
+              )}
             </div>
           </div>
         </div>
