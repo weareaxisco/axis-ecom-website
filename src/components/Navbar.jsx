@@ -104,8 +104,12 @@ export default function Navbar() {
   }, [])
 
   useEffect(() => {
+    document.documentElement.style.setProperty('--header-height', '56px')
     document.documentElement.style.setProperty('--header-stack-height', '104px')
-    return () => document.documentElement.style.removeProperty('--header-stack-height')
+    return () => {
+      document.documentElement.style.removeProperty('--header-height')
+      document.documentElement.style.removeProperty('--header-stack-height')
+    }
   }, [])
 
   useEffect(() => {

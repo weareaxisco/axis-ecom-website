@@ -70,9 +70,9 @@ export default function SearchDrawer({ isOpen, onClose, onMenuOpen, storeName })
   }, [debouncedQuery, products])
 
   return (
-    <div className={`pointer-events-none fixed inset-0 z-50 ${isOpen ? 'visible' : 'invisible'}`} aria-hidden={!isOpen}>
-      <button type="button" aria-label="Close search" onClick={onClose} className={`pointer-events-auto absolute bottom-0 left-0 right-0 top-[104px] bg-black/60 transition-opacity duration-300 md:top-0 ${isOpen ? 'opacity-100' : 'opacity-0'}`} />
-      <aside className={`search-drawer pointer-events-auto absolute bottom-0 left-0 top-[104px] flex w-full max-w-[400px] transform flex-col bg-[var(--surface-primary)] text-[var(--text-primary)] shadow-2xl transition-transform duration-300 ease-out md:top-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+    <div className={`pointer-events-none fixed inset-0 z-40 ${isOpen ? 'visible' : 'invisible'}`} aria-hidden={!isOpen}>
+      <button type="button" aria-label="Close search" onClick={onClose} className={`pointer-events-auto absolute bottom-0 left-0 right-0 top-[var(--header-height)] z-40 bg-black/60 transition-opacity duration-300 md:top-0 ${isOpen ? 'opacity-100' : 'opacity-0'}`} />
+      <aside className={`search-drawer pointer-events-auto absolute bottom-0 left-0 top-[var(--header-height)] z-[45] flex h-[calc(100dvh-var(--header-height))] w-full max-w-[400px] transform flex-col overflow-y-auto bg-[var(--surface-primary)] text-[var(--text-primary)] shadow-2xl transition-transform duration-300 ease-out md:top-0 md:h-auto ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <header className="flex h-14 items-center justify-between border-b border-[var(--border-subtle)] px-4">
           <button type="button" aria-label="Open navigation" onClick={() => { onClose(); onMenuOpen() }}><Menu size={20} strokeWidth={1.25} /></button>
           <span className="truncate px-3 font-serif text-sm uppercase tracking-widest">{storeName}</span>
