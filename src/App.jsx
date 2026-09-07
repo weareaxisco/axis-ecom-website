@@ -4,6 +4,7 @@ import Navbar from './components/Navbar'
 import ProductCatalog from './components/ProductCatalog'
 import ProductDetailPage from './components/ProductDetailPage'
 import SearchResults from './components/SearchResults'
+import Footer from './components/Footer'
 import { ConfigProvider } from './context/ConfigContext'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import './App.css'
@@ -32,6 +33,7 @@ function App() {
             <Route path="/product/:id" element={<ProductDetailPage />} />
             <Route path="/search" element={<SearchResults />} />
           </Routes>
+          <Footer />
         </div>
       </ConfigProvider>
     </BrowserRouter>

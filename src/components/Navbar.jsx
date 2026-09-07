@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useSiteConfig } from '../context/ConfigContext'
 import SearchDrawer from './SearchDrawer'
+import DesktopSearchDropdown from './DesktopSearchDropdown'
 
 const navigationLinks = [
   'High Jewelry',
@@ -220,6 +221,9 @@ export default function Navbar() {
               <IconButton label="Wishlist" className="hidden sm:inline-flex">
                 <Heart strokeWidth={1.25} size={19} />
               </IconButton>
+              <IconButton label="Account" className="hidden sm:inline-flex">
+                <User strokeWidth={1.25} size={19} />
+              </IconButton>
               <IconButton label="Shopping bag" className="relative">
                 <ShoppingBag strokeWidth={1.25} size={20} />
                 {cartCount > 0 && (
@@ -253,6 +257,10 @@ export default function Navbar() {
         toggleTheme={toggleTheme}
       />
       <SearchDrawer
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
+      <DesktopSearchDropdown
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
       />

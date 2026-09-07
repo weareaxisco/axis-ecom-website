@@ -70,7 +70,7 @@ export default function SearchDrawer({ isOpen, onClose }) {
   }, [debouncedQuery, products])
 
   return (
-    <div className={`fixed inset-0 z-40 transition-opacity duration-300 ease-in-out ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} aria-hidden={!isOpen}>
+    <div className={`fixed inset-0 z-40 block transition-opacity duration-300 ease-in-out md:hidden ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} aria-hidden={!isOpen}>
       <button type="button" aria-label="Close search" onClick={onClose} className={`fixed inset-0 z-30 bg-black/60 transition-opacity duration-300 ease-in-out ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} />
       <aside className={`search-drawer fixed bottom-0 left-0 top-[60px] z-40 flex h-auto w-full max-w-full transform flex-col overflow-y-auto border-r border-white/10 bg-[var(--surface-primary,#121212)] text-[var(--text-primary,#ffffff)] shadow-2xl transition-transform duration-300 ease-in-out sm:w-[400px] ${isOpen ? 'pointer-events-auto translate-x-0' : 'pointer-events-none -translate-x-full'}`}>
         <div className="search-input-wrapper m-4 flex items-center gap-2 bg-[var(--bg-primary)] px-3 py-3">
