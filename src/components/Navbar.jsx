@@ -191,9 +191,11 @@ export default function Navbar() {
               >
                 <Menu strokeWidth={1.25} size={21} />
               </IconButton>
-              <IconButton label="Search" onClick={() => { setIsDrawerOpen(false); setIsSearchOpen(true) }}>
-                <Search strokeWidth={1.25} size={20} />
-              </IconButton>
+              <div onMouseEnter={() => setIsSearchOpen(true)}>
+                <IconButton label="Search" onClick={() => { setIsDrawerOpen(false); setIsSearchOpen(true) }}>
+                  <Search strokeWidth={1.25} size={20} />
+                </IconButton>
+              </div>
             </div>
 
             <a

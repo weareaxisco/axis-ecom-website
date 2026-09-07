@@ -50,9 +50,9 @@ export default function DesktopSearchDropdown({ isOpen, onClose }) {
   return (
     <div className={`fixed inset-0 z-40 hidden transition-opacity duration-300 md:block ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} role="dialog" aria-modal="true" aria-label="Desktop search">
       <button type="button" aria-label="Close search" onClick={onClose} className="absolute inset-0 bg-black/65" />
-      <section className={`absolute left-0 right-0 top-[80px] z-10 max-h-[78vh] overflow-y-auto border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] text-[var(--text-primary)] shadow-2xl transition-transform duration-300 ease-out ${isOpen ? 'translate-y-0' : '-translate-y-3'}`}>
+      <section className={`absolute left-0 right-0 top-[80px] z-10 max-h-[75vh] overflow-y-auto border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] text-[var(--text-primary)] shadow-2xl transition-transform duration-300 ease-out ${isOpen ? 'translate-y-0' : '-translate-y-3'}`}>
         <div className="mx-auto max-w-7xl px-8 py-6">
-          <div className="flex items-center gap-4 border-b border-[var(--border-subtle)] pb-4">
+          <div className="flex items-center gap-4 border-b border-[var(--border-subtle)] bg-neutral-900/80 px-4 py-3">
             <Search size={22} strokeWidth={1.25} className="opacity-60" />
             <input
               autoFocus
@@ -90,8 +90,8 @@ export default function DesktopSearchDropdown({ isOpen, onClose }) {
                   <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--accent-gold)]">Recommended products</p>
                   <span className="text-[10px] opacity-50">{matches.length} results</span>
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-4 xl:grid-cols-4">
-                  {matches.slice(0, 4).map((product) => (
+                <div className="mt-4 grid grid-cols-2 gap-4 xl:grid-cols-3">
+                  {matches.slice(0, 3).map((product) => (
                     <a key={product.id} href={`/product/${product.id}`} onClick={onClose} className="group">
                       <div className="aspect-square overflow-hidden bg-[var(--bg-primary)]">
                         <img src={product.main_image_url} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
