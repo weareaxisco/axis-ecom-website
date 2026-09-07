@@ -11,3 +11,7 @@
 - [ ] Step 7: Customer Interaction Layer (Submit Review Modal, Contact Us Form & Concierge Drawer)
 - [ ] Step 8: Supabase Auth Engine (Customer Sign Up/Log In & Admin Protected Route Guards)
 - [ ] Step 9: Enterprise Admin Dashboard (Manage Site Config, Themes, Taxonomy, Products, Reviews Moderation & Enquiries)
+
+## Catalog Architecture
+
+- **Admin Product Attributes & Taxonomy System**: Define database entities for `Attributes` and `AttributeValues`. Configure Admin Product Creation forms to query these taxonomies as standardized dropdowns for Category, Metal, Gender, Shape, and Novelty rather than manual text entry, keeping storefront drawer facets synchronized automatically.

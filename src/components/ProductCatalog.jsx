@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Filter } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import ProductCard from './ProductCard'
+import SortFilterDrawer from './SortFilterDrawer'
 
 const calculateCollectionProgress = (sectionElement, stickyOffset, headerHeight = 44) => {
   if (!sectionElement) return 0
@@ -111,6 +112,17 @@ function getProductCollection(product) {
   )
 }
 
+function getProductFacetValue(product, facetId) {
+  const values = {
+    category: getProductCategory(product),
+    metal: product.metal || product.metal_type || product.material || '',
+    novelties: product.is_new || product.isNew || product.novelty ? 'Yes' : '',
+    gender: product.gender || '',
+    shape: product.shape || '',
+  }
+  return String(values[facetId] || '').toLowerCase()
+}
+
 function ProductSkeleton() {
   return (
     <div className="animate-pulse overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-primary)]">
@@ -131,6 +143,15 @@ export default function ProductCatalog() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isSortOpen, setIsSortOpen] = useState(false)
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false)
+  const [activeFacetSelection, setActiveFacetSelection] = useState({
+    sort: 'recommended',
+    category: [],
+    metal: [],
+    novelties: [],
+    gender: [],
+    shape: [],
+  })
   const [isSticky, setIsSticky] = useState(false)
   const [scrollDirection, setScrollDirection] = useState('up')
   const [scrollY, setScrollY] = useState(0)
@@ -245,23 +266,43 @@ export default function ProductCatalog() {
 
   const visibleProducts = useMemo(() => {
     const filtered = products.filter((product) => {
-      if (activeFilter === 'All') return true
       const category = getProductCategory(product).toLowerCase()
       const collection = getProductCollection(product).toLowerCase()
       const filter = activeFilter.toLowerCase()
-      return category === filter || collection === filter || category.includes(filter)
+      const matchesCategory = activeFilter === 'All' || category === filter || collection === filter || category.includes(filter)
+      if (!matchesCategory) return false
+      return Object.entries(activeFacetSelection).every(([facetId, selectedValues]) => {
+        if (facetId === 'sort' || !selectedValues?.length) return true
+        const productValue = getProductFacetValue(product, facetId)
+        return selectedValues.some((value) => productValue.includes(value.toLowerCase()))
+      })
     })
 
     return [...filtered].sort((first, second) => {
+      if (activeFacetSelection.sort === 'name_asc') return String(first.name || '').localeCompare(String(second.name || ''))
+      if (activeFacetSelection.sort === 'name_desc') return String(second.name || '').localeCompare(String(first.name || ''))
       if (sortOrder === 'low') return Number(first.price) - Number(second.price)
       if (sortOrder === 'high') return Number(second.price) - Number(first.price)
       return Number(first.display_order ?? first.sort_order ?? 0) - Number(second.display_order ?? second.sort_order ?? 0)
     })
-  }, [activeFilter, products, sortOrder])
+  }, [activeFacetSelection, activeFilter, products, sortOrder])
 
   const resetFilters = () => {
     setActiveFilter('All')
     setSortOrder('featured')
+    setActiveFacetSelection({
+      sort: 'recommended',
+      category: [],
+      metal: [],
+      novelties: [],
+      gender: [],
+      shape: [],
+    })
+  }
+
+  const applyDrawerSelection = (selection) => {
+    setActiveFacetSelection(selection)
+    if (selection.sort === 'recommended') setSortOrder('featured')
   }
 
   const collections = useMemo(() => {
@@ -372,9 +413,19 @@ export default function ProductCatalog() {
                 className="relative mb-16"
               >
                 <div className={`sticky z-30 border-b border-white/10 bg-[var(--surface-primary)] transition-[top] duration-300 ease-in-out ${isNavbarVisible ? 'top-[var(--header-stack-height)] md:top-0' : 'top-0'}`}>
-                  <div className="flex cursor-pointer items-center justify-between px-4 py-3">
+                  <div className="flex items-center justify-between px-4 py-3">
                     <h3 className="font-serif text-xs font-medium uppercase tracking-widest">{collection.title}</h3>
-                    <span className="text-[10px] tracking-wider text-neutral-400">{collection.products.length} Creations</span>
+                    <div className="flex items-center gap-4">
+                      <span className="text-[10px] tracking-wider text-neutral-400">({collection.products.length})</span>
+                      <button
+                        type="button"
+                        aria-label={`Filter ${collection.title}`}
+                        onClick={() => setIsFilterDrawerOpen(true)}
+                        className="text-neutral-400 transition-colors hover:text-[var(--accent-gold)]"
+                      >
+                        <Filter size={16} strokeWidth={1.25} />
+                      </button>
+                    </div>
                   </div>
                   <div
                     aria-hidden="true"
@@ -408,6 +459,12 @@ export default function ProductCatalog() {
           </p>
         )}
       </div>
+      <SortFilterDrawer
+        isOpen={isFilterDrawerOpen}
+        onClose={() => setIsFilterDrawerOpen(false)}
+        activeSelection={activeFacetSelection}
+        onApply={applyDrawerSelection}
+      />
     </section>
   )
 }
