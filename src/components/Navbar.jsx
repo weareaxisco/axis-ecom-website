@@ -87,6 +87,7 @@ export default function Navbar() {
   const [isMobileHeaderVisible, setIsMobileHeaderVisible] = useState(true)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const [isLoginOpen, setIsLoginOpen] = useState(false)
 
   useEffect(() => {
@@ -274,6 +275,8 @@ export default function Navbar() {
       <DesktopSearchDropdown
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
       />
       <LoginDrawer isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </>

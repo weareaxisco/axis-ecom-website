@@ -4,12 +4,23 @@ import { mockProducts } from './ProductCatalog'
 import { supabase } from '../supabaseClient'
 import { useSiteConfig } from '../context/ConfigContext'
 
-export default function DesktopSearchDropdown({ isOpen, onClose }) {
+const defaultPopularSearches = ['Diamond', 'Ice Cube', 'High Jewelry', 'Timepieces']
+
+export default function DesktopSearchDropdown({
+  isOpen,
+  onClose,
+  searchQuery = '',
+  setSearchQuery,
+  searchResults,
+  categories,
+  popularSearches = defaultPopularSearches,
+  onSelectSearch,
+}) {
   const { config } = useSiteConfig()
-  const [query, setQuery] = useState('')
   const [products, setProducts] = useState(mockProducts)
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const inputRef = useRef(null)
+  const updateSearchQuery = setSearchQuery || (() => {})
 
   useEffect(() => {
     if (!isOpen) return undefined
@@ -34,84 +45,88 @@ export default function DesktopSearchDropdown({ isOpen, onClose }) {
   }, [isOpen, products])
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => setDebouncedQuery(query.trim().toLowerCase()), 300)
+    const timeout = window.setTimeout(() => setDebouncedQuery(searchQuery.trim().toLowerCase()), 300)
     return () => window.clearTimeout(timeout)
-  }, [query])
+  }, [searchQuery])
 
   useEffect(() => {
     if (isOpen) inputRef.current?.focus()
   }, [isOpen])
 
-  const matches = useMemo(() => {
+  const filteredMatches = useMemo(() => {
     if (!debouncedQuery) return products
     return products.filter((product) => JSON.stringify(product).toLowerCase().includes(debouncedQuery))
   }, [debouncedQuery, products])
+  const matches = searchResults || filteredMatches
 
-  const collections = useMemo(
-    () => [...new Set(products.map((product) => product.collection_name || product.category_name || 'Fine Jewelry'))].slice(0, 5),
-    [products],
-  )
+  const collectionNames = categories || [...new Set(products.map((product) => product.collection_name || product.category_name || 'Fine Jewelry'))].slice(0, 5)
+
+  if (!isOpen) return null
 
   return (
-    <div className={`fixed inset-0 z-40 hidden transition-opacity duration-300 md:block ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} role="dialog" aria-modal="true" aria-label="Desktop search">
-      <div aria-hidden="true" className={`fixed inset-0 top-[80px] z-30 bg-black/60 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`} />
-      <section className={`fixed left-0 right-0 top-[80px] z-40 h-auto max-h-[80vh] w-full overflow-y-auto border-b border-neutral-800 bg-neutral-950/95 text-[var(--text-primary)] backdrop-blur-md transition-all duration-500 ease-in-out ${isOpen ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none -translate-y-full opacity-0'}`}>
-        <div className="mx-auto max-w-7xl px-8 py-6">
-          <div className="relative mb-6 flex w-full items-center gap-3 rounded-sm border-b border-amber-500/50 bg-neutral-900/90 px-4 py-3 transition-colors focus-within:border-amber-400">
-            <Search size={20} strokeWidth={1.25} className="flex-shrink-0 text-amber-400" />
+    <div className="fixed inset-0 z-40 hidden md:block" role="dialog" aria-modal="true" aria-label="Desktop search">
+      <div aria-hidden="true" className="fixed inset-0 top-[80px] z-30 bg-black/60" />
+      <section className="fixed left-0 right-0 top-[80px] z-40 max-h-[80vh] w-full overflow-y-auto border-b border-amber-500/30 bg-neutral-950/98 text-white shadow-2xl backdrop-blur-2xl">
+        <div className="mx-auto max-w-7xl px-6 pb-10 pt-6">
+          <div className="relative mb-8 flex w-full items-center gap-4 rounded-sm border border-amber-500/40 bg-neutral-900/80 px-5 py-3.5 shadow-inner transition-all focus-within:border-amber-400 focus-within:ring-1 focus-within:ring-amber-400/50">
+            <Search className="h-6 w-6 flex-shrink-0 text-amber-400" />
             <input
               ref={inputRef}
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              type="text"
+              autoFocus
+              value={searchQuery}
+              onChange={(event) => updateSearchQuery(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === 'Enter') setDebouncedQuery(query.trim().toLowerCase())
+                if (event.key === 'Enter') setDebouncedQuery(searchQuery.trim().toLowerCase())
               }}
-              placeholder="Search high jewelry, timepieces, collections..."
-              className="w-full min-w-0 bg-transparent text-lg text-white outline-none placeholder:text-neutral-500 md:text-xl"
+              placeholder="SEARCH CREATIONS, HIGH JEWELRY, TIMEPIECES..."
+              className="w-full bg-transparent font-serif text-lg tracking-wider text-amber-50 uppercase outline-none placeholder:text-neutral-500 md:text-xl"
             />
-            {query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')} className="text-neutral-400 hover:text-white"><X size={16} strokeWidth={1.25} /></button>}
+            {searchQuery && (
+              <button type="button" aria-label="Clear search" onClick={() => updateSearchQuery('')} className="p-1 text-neutral-400 transition-colors hover:text-amber-400">
+                <X className="h-5 w-5" />
+              </button>
+            )}
           </div>
 
-          {matches.length ? (
-            <div className="grid gap-10 py-8 lg:grid-cols-[0.7fr_1.8fr]">
+          <div className="grid grid-cols-12 gap-8">
+            <div className="col-span-12 space-y-8 md:col-span-4">
               <div>
-                <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--accent-gold)]">Popular searches</p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {['Diamond', 'Ice Cube', 'High Jewelry', 'Timepieces'].map((term) => (
-                    <button key={term} type="button" onClick={() => setQuery(term)} className="border border-[var(--border-subtle)] px-3 py-2 text-[10px] uppercase tracking-widest hover:border-[var(--accent-gold)]">
-                      {term}
-                    </button>
+                <h3 className="mb-4 text-xs font-mono tracking-widest text-amber-400/90 uppercase">Popular Searches</h3>
+                <div className="flex flex-wrap gap-2">
+                  {popularSearches.map((item) => (
+                    <button key={item} type="button" onClick={() => { updateSearchQuery(item); onSelectSearch?.(item) }} className="border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-xs font-mono tracking-wider text-neutral-300 uppercase transition-all hover:border-amber-500/60 hover:text-amber-300">{item}</button>
                   ))}
                 </div>
-                <p className="mt-8 text-[10px] uppercase tracking-[0.25em] text-[var(--accent-gold)]">Collections</p>
-                <ul className="mt-3 space-y-2 text-xs uppercase tracking-widest opacity-75">
-                  {collections.map((collection) => <li key={collection}>{collection}</li>)}
+              </div>
+              <div>
+                <h3 className="mb-3 text-xs font-mono tracking-widest text-amber-400/90 uppercase">Collections</h3>
+                <ul className="space-y-2">
+                  {collectionNames.map((category) => (
+                    <li key={category}><button type="button" onClick={() => { updateSearchQuery(category); onSelectSearch?.(category) }} className="text-sm font-serif tracking-wide text-neutral-400 uppercase transition-colors hover:text-white">{category}</button></li>
+                  ))}
                 </ul>
               </div>
-              <div>
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--accent-gold)]">Recommended products</p>
-                  <span className="text-[10px] opacity-50">{matches.length} results</span>
-                </div>
-                <div className="mt-4 grid grid-cols-2 gap-4 xl:grid-cols-3">
-                  {matches.slice(0, 3).map((product) => (
-                    <a key={product.id} href={`/product/${product.id}`} onClick={onClose} className="group">
-                      <div className="aspect-square overflow-hidden bg-[var(--bg-primary)]">
-                        <img src={product.main_image_url} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                      </div>
-                      <p className="mt-2 truncate font-serif text-xs uppercase tracking-wider">{product.name}</p>
-                      <p className="mt-1 truncate text-[10px] uppercase tracking-wider opacity-60">{product.subtitle || product.material || product.category_name || 'Fine Jewelry'}</p>
-                      <p className="mt-1 text-xs">{Number(product.price).toLocaleString()} {config.currency_symbol || 'MAD'}</p>
-                    </a>
-                  ))}
-                </div>
+            </div>
+            <div className="col-span-12 md:col-span-8">
+              <h3 className="mb-4 flex items-center justify-between text-xs font-mono tracking-widest text-amber-400/90 uppercase">
+                <span>{searchQuery ? 'Search Results' : 'Recommended Products'}</span>
+                <span className="text-[11px] font-sans text-neutral-500">{matches.length} results</span>
+              </h3>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+                {matches.slice(0, 6).map((product) => (
+                  <a key={product.id} href={`/product/${product.id}`} onClick={onClose} className="group cursor-pointer">
+                    <div className="mb-3 aspect-square overflow-hidden border border-neutral-800 bg-neutral-900 transition-colors group-hover:border-amber-500/40">
+                      <img src={product.image || product.main_image_url || product.images?.[0]} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    </div>
+                    <h4 className="line-clamp-1 font-serif text-sm text-neutral-200 transition-colors group-hover:text-amber-300">{product.name}</h4>
+                    <p className="mt-1 text-xs font-mono text-neutral-400">{product.category || product.category_name || product.material || 'Fine Jewelry'}</p>
+                    <p className="mt-0.5 text-xs font-mono text-amber-400">{product.price ? `${product.price} ${config.currency_symbol || 'MAD'}` : ''}</p>
+                  </a>
+                ))}
               </div>
             </div>
-          ) : (
-            <div className="flex min-h-64 items-center justify-center py-16 text-center">
-              <h2 className="font-serif text-2xl uppercase tracking-widest">No results for "{query}"</h2>
-            </div>
-          )}
+          </div>
         </div>
       </section>
     </div>
