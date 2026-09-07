@@ -1,23 +1,29 @@
 import { Eye, Heart, ShoppingBag } from 'lucide-react'
 import { useSiteConfig } from '../context/ConfigContext'
 
+const cardImageFallback =
+  'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1200&q=85'
+
 function getCategoryName(product) {
   if (typeof product.category === 'string') return product.category
   return product.category?.name || product.categories?.name || product.category_name || 'Fine Jewelry'
 }
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, onSelect }) {
   const { config } = useSiteConfig()
   const categoryName = getCategoryName(product)
   const price = Number(product.price)
   const formattedPrice = Number.isFinite(price) ? price.toLocaleString() : '—'
 
   return (
-    <article className="group overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-primary)] transition-all duration-300 ease-out hover:shadow-lg">
+    <article className="group overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-primary)] transition-all duration-300 ease-out hover:shadow-lg" onClick={() => onSelect?.(product)}>
       <div className="relative aspect-[3/4] overflow-hidden bg-[var(--surface-primary)]">
         <img
           src={product.main_image_url || product.image_url}
           alt={product.name || 'Jewelry creation'}
+          onError={(event) => {
+            event.currentTarget.src = cardImageFallback
+          }}
           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
         />
         {product.hover_image_url && (
@@ -33,6 +39,10 @@ export default function ProductCard({ product }) {
           <button
             type="button"
             aria-label={`Quick view ${product.name || 'creation'}`}
+            onClick={(event) => {
+              event.stopPropagation()
+              onSelect?.(product)
+            }}
             className="inline-flex items-center gap-2 border border-[var(--border-subtle)] px-3 py-2 text-[10px] uppercase tracking-[0.15em] text-[var(--text-primary)] transition-all duration-300 ease-out hover:border-[var(--accent-gold)] hover:text-[var(--accent-gold)]"
           >
             <Eye size={15} strokeWidth={1.25} />
@@ -41,6 +51,7 @@ export default function ProductCard({ product }) {
           <button
             type="button"
             aria-label={`Add ${product.name || 'creation'} to wishlist`}
+            onClick={(event) => event.stopPropagation()}
             className="inline-flex h-9 w-9 items-center justify-center border border-[var(--border-subtle)] text-[var(--text-primary)] transition-all duration-300 ease-out hover:border-[var(--accent-gold)] hover:text-[var(--accent-gold)]"
           >
             <Heart size={16} strokeWidth={1.25} />
@@ -48,6 +59,7 @@ export default function ProductCard({ product }) {
           <button
             type="button"
             aria-label={`Add ${product.name || 'creation'} to shopping bag`}
+            onClick={(event) => event.stopPropagation()}
             className="inline-flex h-9 w-9 items-center justify-center border border-[var(--border-subtle)] text-[var(--text-primary)] transition-all duration-300 ease-out hover:border-[var(--accent-gold)] hover:text-[var(--accent-gold)]"
           >
             <ShoppingBag size={16} strokeWidth={1.25} />

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import ProductCard from './ProductCard'
+import ProductDetailModal from './ProductDetailModal'
 
 const filterOptions = ['All', 'High Jewelry', 'Rings', 'Bracelets', 'Timepieces']
 
@@ -33,7 +34,7 @@ const mockProducts = [
     category_name: 'Rings',
     price: 98000,
     main_image_url:
-      'https://images.unsplash.com/photo-1603561596112-db7e5b7f3d2c?auto=format&fit=crop&w=1200&q=85',
+      'https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=1200&q=85',
     hover_image_url:
       'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?auto=format&fit=crop&w=1200&q=85',
     display_order: 3,
@@ -115,6 +116,7 @@ export default function ProductCatalog() {
   const [sortOrder, setSortOrder] = useState('featured')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [selectedProduct, setSelectedProduct] = useState(null)
 
   useEffect(() => {
     let isMounted = true
@@ -229,7 +231,11 @@ export default function ProductCatalog() {
         ) : visibleProducts.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:gap-10">
             {visibleProducts.map((product) => (
-              <ProductCard key={product.id || product.slug || product.name} product={product} />
+              <ProductCard
+                key={product.id || product.slug || product.name}
+                product={product}
+                onSelect={setSelectedProduct}
+              />
             ))}
           </div>
         ) : (
@@ -250,6 +256,7 @@ export default function ProductCatalog() {
           </p>
         )}
       </div>
+      <ProductDetailModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
     </section>
   )
 }
