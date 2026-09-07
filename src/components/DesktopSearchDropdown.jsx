@@ -65,10 +65,10 @@ export default function DesktopSearchDropdown({
 
   return (
     <div className="fixed inset-0 z-40 hidden md:block" role="dialog" aria-modal="true" aria-label="Desktop search">
-      <div aria-hidden="true" className="fixed inset-0 top-[80px] z-30 bg-black/60" />
-      <section className="fixed left-0 right-0 top-[80px] z-40 max-h-[80vh] w-full overflow-y-auto border-b border-amber-500/30 bg-neutral-950/98 text-white shadow-2xl backdrop-blur-2xl">
-        <div className="mx-auto max-w-7xl px-6 pb-10 pt-6">
-          <div className="relative mb-8 flex w-full items-center gap-4 rounded-sm border border-amber-500/40 bg-neutral-900/80 px-5 py-3.5 shadow-inner transition-all focus-within:border-amber-400 focus-within:ring-1 focus-within:ring-amber-400/50">
+      <div aria-hidden="true" className="fixed inset-0 top-[152px] z-30 bg-black/60" />
+      <section className="fixed left-0 right-0 top-[152px] z-40 max-h-[55vh] w-full overflow-y-auto border-b border-amber-500/30 bg-neutral-950/98 text-white shadow-2xl backdrop-blur-2xl">
+        <div className="mx-auto max-w-7xl px-6 py-4">
+          <div className="relative mb-6 flex w-full items-center gap-4 rounded-sm border border-amber-500/40 bg-neutral-900/80 px-5 py-3.5 shadow-inner transition-all focus-within:border-amber-400 focus-within:ring-1 focus-within:ring-amber-400/50">
             <Search className="h-6 w-6 flex-shrink-0 text-amber-400" />
             <input
               ref={inputRef}
@@ -89,10 +89,10 @@ export default function DesktopSearchDropdown({
             )}
           </div>
 
-          <div className="grid grid-cols-12 gap-8">
-            <div className="col-span-12 space-y-8 md:col-span-4">
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-12 space-y-4 md:col-span-4">
               <div>
-                <h3 className="mb-4 text-xs font-mono tracking-widest text-amber-400/90 uppercase">Popular Searches</h3>
+                <h3 className="mb-2 text-xs font-mono tracking-widest text-amber-400/90 uppercase">Popular Searches</h3>
                 <div className="flex flex-wrap gap-2">
                   {popularSearches.map((item) => (
                     <button key={item} type="button" onClick={() => { updateSearchQuery(item); onSelectSearch?.(item) }} className="border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-xs font-mono tracking-wider text-neutral-300 uppercase transition-all hover:border-amber-500/60 hover:text-amber-300">{item}</button>
@@ -109,19 +109,19 @@ export default function DesktopSearchDropdown({
               </div>
             </div>
             <div className="col-span-12 md:col-span-8">
-              <h3 className="mb-4 flex items-center justify-between text-xs font-mono tracking-widest text-amber-400/90 uppercase">
+              <h3 className="mb-2 flex items-center justify-between text-xs font-mono tracking-widest text-amber-400/90 uppercase">
                 <span>{searchQuery ? 'Search Results' : 'Recommended Products'}</span>
                 <span className="text-[11px] font-sans text-neutral-500">{matches.length} results</span>
               </h3>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
                 {matches.slice(0, 6).map((product) => (
                   <a key={product.id} href={`/product/${product.id}`} onClick={onClose} className="group cursor-pointer">
-                    <div className="mb-3 aspect-square overflow-hidden border border-neutral-800 bg-neutral-900 transition-colors group-hover:border-amber-500/40">
+                    <div className="mb-2 aspect-[4/3] max-h-28 overflow-hidden border border-neutral-800 bg-neutral-900 transition-colors group-hover:border-amber-500/40">
                       <img src={product.image || product.main_image_url || product.images?.[0]} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     </div>
-                    <h4 className="line-clamp-1 font-serif text-sm text-neutral-200 transition-colors group-hover:text-amber-300">{product.name}</h4>
-                    <p className="mt-1 text-xs font-mono text-neutral-400">{product.category || product.category_name || product.material || 'Fine Jewelry'}</p>
-                    <p className="mt-0.5 text-xs font-mono text-amber-400">{product.price ? `${product.price} ${config.currency_symbol || 'MAD'}` : ''}</p>
+                    <h4 className="line-clamp-1 font-serif text-xs text-neutral-200 transition-colors group-hover:text-amber-300">{product.name}</h4>
+                    <p className="mt-0.5 text-[10px] font-mono text-neutral-400">{product.category || product.category_name || product.material || 'Fine Jewelry'}</p>
+                    <p className="mt-0.5 text-[10px] font-mono text-amber-400">{product.price ? `${product.price} ${config.currency_symbol || 'MAD'}` : ''}</p>
                   </a>
                 ))}
               </div>
