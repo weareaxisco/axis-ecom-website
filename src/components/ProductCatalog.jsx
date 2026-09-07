@@ -259,7 +259,7 @@ export default function ProductCatalog() {
                   : ''
               }`}
             >
-            <div className="flex flex-wrap justify-center gap-x-6 gap-y-3">
+            <div className="no-scrollbar flex min-w-0 flex-1 items-center justify-start gap-6 overflow-x-auto whitespace-nowrap px-4 py-3 md:justify-center md:gap-x-6 md:gap-y-3 md:overflow-visible md:px-0 md:py-0">
               {filterOptions.map((filter) => (
                 <button
                   key={filter}
@@ -278,7 +278,7 @@ export default function ProductCatalog() {
                 </button>
               ))}
             </div>
-            <div ref={sortMenuRef} className="relative">
+            <div ref={sortMenuRef} className="relative shrink-0">
               <button
                 type="button"
                 aria-expanded={isSortOpen}

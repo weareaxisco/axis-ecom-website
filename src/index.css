@@ -51,6 +51,15 @@
   background: var(--accent-gold);
 }
 
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 @keyframes hero-pulse {
   from {
     transform: scale(1.05);

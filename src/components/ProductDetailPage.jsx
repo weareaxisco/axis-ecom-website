@@ -71,21 +71,29 @@ export default function ProductDetailPage() {
     <main className="min-h-screen bg-[var(--bg-primary)] px-5 py-12 text-[var(--text-primary)] md:px-10 lg:px-16">
       <div className="mx-auto max-w-7xl">
         <button type="button" onClick={() => navigate(-1)} className="mb-10 inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] opacity-70 hover:text-[var(--accent-gold)]"><ArrowLeft size={15} strokeWidth={1.25} /> Back</button>
-        <p className="mb-8 text-[10px] uppercase tracking-[0.25em] opacity-60">{category} — {collection}</p>
+        <p className="mb-8 hidden text-[10px] uppercase tracking-[0.25em] opacity-60 md:block">{category} — {collection}</p>
         <div className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="-mx-5 grid gap-4 sm:mx-0 sm:grid-cols-2">
             {(gallery.length ? gallery : [imageFallback]).map((image, index) => (
-              <div key={`${image}-${index}`} className="aspect-[4/5] overflow-hidden bg-[var(--surface-primary)]">
+              <div key={`${image}-${index}`} className="relative aspect-[4/5] overflow-hidden bg-[var(--surface-primary)]">
                 <img src={image} alt={index === 0 ? name : ''} onError={imageError} className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" />
+                {index === 0 && gallery.length > 1 && (
+                  <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5">
+                    {gallery.map((_, indicatorIndex) => (
+                      <span key={indicatorIndex} className={indicatorIndex === 0 ? 'h-[2px] w-8 rounded-full bg-white' : 'h-1.5 w-1.5 rounded-full bg-white/50'} />
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
           <div className="lg:sticky lg:top-24 lg:h-fit">
+            <p className="mb-1 text-[10px] uppercase tracking-widest opacity-60 md:hidden">{category} — {collection}</p>
             <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--accent-gold)]">{collection}</p>
-            <h1 className="mt-4 font-serif text-3xl tracking-wide md:text-5xl">{name}</h1>
-            <p className="mt-4 text-xs uppercase tracking-[0.18em] opacity-65">{product.subtitle || product.material || category}</p>
-            <p className="mt-8 text-sm tracking-[0.15em] text-[var(--accent-gold)]">{Number.isFinite(price) ? `${price.toLocaleString()} ${config.currency_symbol || 'MAD'}` : 'Price on request'}</p>
-            <a href={`https://wa.me/${config.whatsapp_number}?text=${encodeURIComponent(`Greetings, I would like to inquire about the ${name} listed on ${config.store_name}.`)}`} target="_blank" rel="noreferrer" className="mt-10 flex items-center justify-center border border-[var(--accent-gold)] bg-[var(--accent-gold)] px-6 py-4 text-xs uppercase tracking-[0.2em] text-[var(--bg-primary)] hover:opacity-85">Contact Us / Boutique Appointment</a>
+            <h1 className="mt-4 font-serif text-2xl uppercase tracking-widest md:text-3xl">{name}</h1>
+            <p className="mt-4 text-xs uppercase tracking-wider opacity-65">{product.subtitle || product.material || category}</p>
+            <p className="mt-8 text-sm font-semibold tracking-wider text-[var(--text-primary)]">{Number.isFinite(price) ? `${price.toLocaleString()} ${config.currency_symbol || 'MAD'}` : 'Price on request'}</p>
+            <a href={`https://wa.me/${config.whatsapp_number}?text=${encodeURIComponent(`Greetings, I would like to inquire about the ${name} listed on ${config.store_name}.`)}`} target="_blank" rel="noreferrer" className="mt-10 flex w-full items-center justify-center bg-black py-3.5 text-xs font-semibold uppercase tracking-widest text-white shadow-md transition-transform active:scale-[0.99] dark:bg-white dark:text-black">Contact Us / Boutique Appointment</a>
             <div className="mt-12 border-y border-[var(--border-subtle)]">
               {[
                 ['description', 'Description', product.description || `A considered expression from ${config.store_name}.`],

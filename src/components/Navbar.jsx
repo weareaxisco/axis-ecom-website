@@ -8,6 +8,7 @@ import {
   Sparkles,
   Sun,
   X,
+  ChevronRight,
 } from 'lucide-react'
 import { useSiteConfig } from '../context/ConfigContext'
 
@@ -33,44 +34,50 @@ function IconButton({ label, children, onClick, className = '' }) {
   )
 }
 
-function MobileDrawer({ config, isOpen, onClose }) {
-  if (!isOpen) return null
-
+function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme }) {
   return (
-    <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true">
+    <div className={`pointer-events-none fixed inset-0 z-50 md:hidden ${isOpen ? 'visible' : 'invisible'}`} role="dialog" aria-modal="true" aria-hidden={!isOpen}>
       <button
         type="button"
         aria-label="Close navigation"
         onClick={onClose}
-        className="absolute inset-0 bg-[var(--bg-primary)]/80 backdrop-blur-sm"
+        className={`pointer-events-auto absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
       />
-      <aside className="relative flex h-full w-[min(88vw,24rem)] flex-col bg-[var(--bg-primary)] px-6 py-5 text-[var(--text-primary)] shadow-2xl transition-all duration-300 ease-out">
-        <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-5">
-          <span className="font-serif text-sm uppercase tracking-[0.15em]">
-            {config.store_name}
-          </span>
+      <aside className={`pointer-events-auto relative flex h-full w-[85vw] max-w-sm transform flex-col bg-[var(--surface-primary)] px-6 py-5 text-[var(--text-primary)] shadow-2xl transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex h-14 items-center justify-between border-b border-[var(--border-subtle)]">
           <IconButton label="Close navigation" onClick={onClose}>
             <X strokeWidth={1.25} size={21} />
           </IconButton>
+          <span className="truncate px-2 text-center font-serif text-sm uppercase tracking-widest">{config.store_name}</span>
+          <IconButton label="Wishlist">
+            <Heart strokeWidth={1.25} size={19} />
+          </IconButton>
         </div>
 
-        <nav className="flex flex-1 flex-col justify-center gap-6" aria-label="Mobile navigation">
+        <nav className="flex flex-1 flex-col justify-center" aria-label="Mobile navigation">
           {navigationLinks.map((link) => (
             <a
               key={link}
               href="#"
               onClick={onClose}
-              className="font-serif text-xl tracking-[0.08em] transition-all duration-300 ease-out hover:text-[var(--accent-gold)]"
+              className="flex items-center justify-between border-b border-[var(--border-subtle)] py-5 text-sm uppercase tracking-[0.18em] transition-all duration-300 ease-out hover:text-[var(--accent-gold)]"
             >
               {link}
+              <ChevronRight size={16} strokeWidth={1.25} />
             </a>
           ))}
         </nav>
 
-        <div className="space-y-3 border-t border-[var(--border-subtle)] pt-5 text-[10px] uppercase tracking-[0.2em] opacity-70">
-          <p>{config.location_city}</p>
-          <a href={`tel:${config.phone_number}`}>{config.phone_number}</a>
-          <a href={`https://wa.me/${config.whatsapp_number}`}>WhatsApp</a>
+        <div className="space-y-4 bg-[var(--bg-primary)]/30 p-4 text-[10px] uppercase tracking-[0.18em]">
+          <button type="button" onClick={toggleTheme} className="flex w-full items-center justify-between">
+            Theme
+            {themeMode === 'dark' ? <Sun size={16} strokeWidth={1.25} /> : <Moon size={16} strokeWidth={1.25} />}
+          </button>
+          <a href="#" onClick={onClose} className="flex items-center justify-between">Shopping Bag <ShoppingBag size={16} strokeWidth={1.25} /></a>
+          <div className="space-y-1 border-t border-[var(--border-subtle)] pt-4 opacity-70">
+            <p>{config.location_city} | {config.phone_number}</p>
+            <a href={`https://wa.me/${config.whatsapp_number}`}>Boutique Concierge</a>
+          </div>
         </div>
       </aside>
     </div>
@@ -91,8 +98,10 @@ export default function Navbar() {
   }, [])
 
   useEffect(() => {
+    document.documentElement.style.overflow = isDrawerOpen ? 'hidden' : ''
     document.body.style.overflow = isDrawerOpen ? 'hidden' : ''
     return () => {
+      document.documentElement.style.overflow = ''
       document.body.style.overflow = ''
     }
   }, [isDrawerOpen])
@@ -108,7 +117,27 @@ export default function Navbar() {
             : ''
         }`}
       >
-        <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+        <div className="md:hidden">
+          <div className="flex h-14 items-center justify-between border-b border-[var(--border-subtle)] px-4">
+            <IconButton label="Open navigation" onClick={() => setIsDrawerOpen(true)}>
+              <Menu strokeWidth={1.25} size={21} />
+            </IconButton>
+            <a href="/" className="truncate px-2 text-center font-serif text-sm tracking-widest">
+              {config.store_name}
+            </a>
+            <IconButton label="Wishlist" className="relative">
+              <Heart strokeWidth={1.25} size={19} />
+              {cartCount > 0 && <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-gold)] px-1 text-[9px] text-[var(--bg-primary)]">{cartCount}</span>}
+            </IconButton>
+          </div>
+          <div className="border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2">
+            <div className="relative">
+              <Search size={16} strokeWidth={1.25} className="absolute left-3 top-2.5 text-[var(--text-primary)] opacity-60" />
+              <input type="search" placeholder="Search creations" className="w-full rounded-full bg-[var(--bg-primary)] py-2 pl-9 pr-4 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-primary)] placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]" />
+            </div>
+          </div>
+        </div>
+        <div className="mx-auto hidden max-w-7xl px-5 sm:px-8 md:block lg:px-10">
           <div className="flex h-8 items-center justify-center border-b border-[var(--border-subtle)]/50 text-center">
             <Sparkles
               aria-hidden="true"
@@ -189,6 +218,8 @@ export default function Navbar() {
         config={config}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
+        themeMode={themeMode}
+        toggleTheme={toggleTheme}
       />
     </>
   )
