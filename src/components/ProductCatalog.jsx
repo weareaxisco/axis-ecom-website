@@ -212,11 +212,11 @@ export default function ProductCatalog() {
               <select
                 value={sortOrder}
                 onChange={(event) => setSortOrder(event.target.value)}
-                className="bg-transparent py-1 text-[10px] uppercase tracking-[0.15em] text-[var(--text-primary)] outline-none"
+                className="cursor-pointer border border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2 text-xs uppercase tracking-wider text-[var(--text-primary)] focus:border-[var(--accent-gold)] focus:outline-none"
               >
-                <option value="featured">Featured</option>
-                <option value="low">Price: Low to High</option>
-                <option value="high">Price: High to Low</option>
+                <option className="bg-[var(--surface-primary)] text-[var(--text-primary)]" value="featured">Featured</option>
+                <option className="bg-[var(--surface-primary)] text-[var(--text-primary)]" value="low">Price: Low to High</option>
+                <option className="bg-[var(--surface-primary)] text-[var(--text-primary)]" value="high">Price: High to Low</option>
               </select>
             </label>
           </div>

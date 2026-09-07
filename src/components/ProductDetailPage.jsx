@@ -84,7 +84,7 @@ export default function ProductDetailPage() {
             <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--accent-gold)]">{collection}</p>
             <h1 className="mt-4 font-serif text-3xl tracking-wide md:text-5xl">{name}</h1>
             <p className="mt-4 text-xs uppercase tracking-[0.18em] opacity-65">{product.subtitle || product.material || category}</p>
-            <p className="mt-8 text-sm tracking-[0.15em] text-[var(--accent-gold)]">{Number.isFinite(price) ? `${config.currency_symbol || 'MAD'} ${price.toLocaleString()}` : 'Price on request'}</p>
+            <p className="mt-8 text-sm tracking-[0.15em] text-[var(--accent-gold)]">{Number.isFinite(price) ? `${price.toLocaleString()} ${config.currency_symbol || 'MAD'}` : 'Price on request'}</p>
             <a href={`https://wa.me/${config.whatsapp_number}?text=${encodeURIComponent(`Greetings, I would like to inquire about the ${name} listed on ${config.store_name}.`)}`} target="_blank" rel="noreferrer" className="mt-10 flex items-center justify-center border border-[var(--accent-gold)] bg-[var(--accent-gold)] px-6 py-4 text-xs uppercase tracking-[0.2em] text-[var(--bg-primary)] hover:opacity-85">Contact Us / Boutique Appointment</a>
             <div className="mt-12 border-y border-[var(--border-subtle)]">
               {[

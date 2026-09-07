@@ -131,14 +131,14 @@ export default function ProductCard({ product }) {
           </>
         )}
 
-        <div className="absolute inset-x-0 bottom-14 z-10 flex items-center justify-center gap-2 transition-all duration-300">
+        <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5">
           {gallery.map((image, index) => (
             <span
               key={`${image}-indicator`}
               className={`transition-all duration-300 ${
                 index === activeImageIndex
-                  ? 'h-1 w-8 rounded-full bg-[var(--text-primary)]'
-                  : 'h-1.5 w-1.5 rounded-sm bg-gray-400/50 hover:bg-gray-400'
+                  ? 'h-[2px] w-8 rounded-full bg-[var(--text-primary)]'
+                  : 'h-1.5 w-1.5 rounded-full bg-gray-400/50'
               }`}
             />
           ))}
@@ -163,7 +163,7 @@ export default function ProductCard({ product }) {
           </button>
         </div>
         <p className="text-xs tracking-[0.08em] text-[var(--text-primary)] opacity-80">
-          {config.currency_symbol || 'MAD'} {formattedPrice}
+          {formattedPrice} {config.currency_symbol || 'MAD'}
         </p>
       </div>
     </article>
