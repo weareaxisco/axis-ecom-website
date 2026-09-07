@@ -43,9 +43,9 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme }) {
         type="button"
         aria-label="Close navigation"
         onClick={onClose}
-        className={`pointer-events-auto fixed bottom-0 left-0 right-0 top-14 z-40 h-[calc(100dvh-3.5rem)] bg-black/75 backdrop-blur-md transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        className={`fixed bottom-0 left-0 right-0 top-[60px] z-30 h-[calc(100dvh-60px)] bg-black/75 backdrop-blur-md transition-opacity duration-300 ${isOpen ? 'visible pointer-events-auto opacity-100' : 'invisible pointer-events-none opacity-0'}`}
       />
-      <aside className={`pointer-events-auto fixed bottom-0 left-0 top-14 z-[45] flex h-[calc(100dvh-3.5rem)] w-[85vw] max-w-sm transform flex-col overflow-y-auto bg-[var(--surface-primary)] px-0 pt-0 text-[var(--text-primary)] shadow-2xl transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed bottom-0 left-0 top-[60px] z-40 flex h-auto w-full max-w-full transform flex-col overflow-y-auto bg-[var(--surface-primary)] px-0 pt-0 text-[var(--text-primary)] shadow-2xl transition-transform duration-300 ease-in-out sm:w-[400px] ${isOpen ? 'visible pointer-events-auto translate-x-0' : 'invisible pointer-events-none -translate-x-full'}`}>
         <nav className="flex flex-1 flex-col" aria-label="Mobile navigation">
           {navigationLinks.map((link) => (
             <a
@@ -133,14 +133,14 @@ export default function Navbar() {
       <header
         data-scroll-y={scrollY}
         data-scroll-direction={scrollDirection}
-        className={`relative z-50 w-full border-b border-transparent bg-transparent text-[var(--text-primary)] transition-all duration-300 ease-out md:sticky md:top-0 md:z-50 md:bg-[var(--bg-primary)] ${
+        className={`relative w-full border-b border-transparent bg-transparent text-[var(--text-primary)] transition-all duration-300 ease-out md:sticky md:top-0 md:z-40 md:bg-[var(--bg-primary)] ${
           isScrolled
             ? 'border-[var(--border-subtle)]/80 bg-[var(--bg-primary)]/90 shadow-sm backdrop-blur-md'
             : ''
         }`}
       >
         <div className={`fixed left-0 right-0 top-0 z-50 md:hidden transition-transform duration-300 ease-out ${isMobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
-        <div className="relative z-50 flex h-14 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
+          <div className="relative z-50 flex h-14 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
             <div className="flex items-center">
               <IconButton label={isDrawerOpen ? 'Close navigation' : 'Open navigation'} onClick={toggleMenu}>
                 {isDrawerOpen ? <X className="h-5 w-5" strokeWidth={1.25} /> : <Menu className="h-5 w-5" strokeWidth={1.25} />}
@@ -159,12 +159,12 @@ export default function Navbar() {
               {cartCount > 0 && <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-gold)] px-1 text-[9px] text-[var(--bg-primary)]">{cartCount}</span>}
             </IconButton>
           </div>
-          <div className="relative z-50 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2">
-            <div className="relative">
-              <Search size={16} strokeWidth={1.25} className="pointer-events-none absolute left-3 top-2.5 z-50 text-[var(--text-primary)] opacity-60" />
-              <input type="search" readOnly onClick={() => setIsSearchOpen(true)} onFocus={() => setIsSearchOpen(true)} placeholder="Search creations" className="relative z-50 w-full rounded-full bg-[var(--bg-primary)] py-2 pl-9 pr-4 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-primary)] placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]" />
+        </div>
+        <div className={`fixed left-0 right-0 top-14 z-20 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2 transition-opacity duration-300 md:hidden ${isMobileHeaderVisible && !isDrawerOpen && !isSearchOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
+          <div className="relative">
+            <Search size={16} strokeWidth={1.25} className="pointer-events-none absolute left-3 top-2.5 text-[var(--text-primary)] opacity-60" />
+            <input type="search" readOnly onClick={() => setIsSearchOpen(true)} onFocus={() => setIsSearchOpen(true)} placeholder="Search creations" className="relative z-20 w-full rounded-full bg-[var(--bg-primary)] py-2 pl-9 pr-4 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-primary)] placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]" />
             </div>
-          </div>
         </div>
         <div className="mx-auto hidden max-w-7xl px-5 sm:px-8 md:block lg:px-10">
           <div className="flex h-8 items-center justify-center border-b border-[var(--border-subtle)]/50 text-center">
