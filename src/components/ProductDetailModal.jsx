@@ -4,7 +4,13 @@ import { useSiteConfig } from '../context/ConfigContext'
 import { supabase } from '../supabaseClient'
 
 const imageFallback =
-  'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1600&q=85'
+  'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=1000'
+
+function replaceWithFallback(event) {
+  if (event.currentTarget.src !== imageFallback) {
+    event.currentTarget.src = imageFallback
+  }
+}
 
 function getCategoryName(product) {
   if (typeof product.category === 'string') return product.category
@@ -83,14 +89,14 @@ export default function ProductDetailModal({ product, onClose }) {
   const emailUrl = `mailto:${config.concierge_email || ''}?subject=${encodeURIComponent(`Private Concierge: ${productName}`)}&body=${encodeURIComponent(whatsappMessage)}`
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-0 md:p-6" role="dialog" aria-modal="true" aria-labelledby="product-detail-title">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/80 p-4 backdrop-blur-md md:p-8" role="dialog" aria-modal="true" aria-labelledby="product-detail-title">
       <button
         type="button"
         aria-label="Close product details"
         onClick={onClose}
         className="absolute inset-0 bg-black/80 backdrop-blur-md"
       />
-      <div className="relative z-10 flex h-full w-full max-w-6xl flex-col overflow-y-auto bg-[var(--bg-primary)] text-[var(--text-primary)] shadow-2xl md:max-h-[92vh] md:flex-row">
+      <div className="scrollbar-thin relative z-10 flex max-h-[90vh] w-full max-w-5xl flex-col overflow-y-auto rounded-none border border-[var(--border-subtle)] bg-[var(--surface-primary)] text-[var(--text-primary)] shadow-2xl md:flex-row">
         <button
           type="button"
           aria-label="Close product details"
@@ -105,9 +111,7 @@ export default function ProductDetailModal({ product, onClose }) {
             <img
               src={activeImage}
               alt={productName}
-              onError={(event) => {
-                event.currentTarget.src = imageFallback
-              }}
+              onError={replaceWithFallback}
               className="h-full w-full object-cover transition-transform duration-700 ease-out hover:scale-105"
             />
           </div>
@@ -124,7 +128,7 @@ export default function ProductDetailModal({ product, onClose }) {
                       : 'border-[var(--border-subtle)] opacity-60 hover:opacity-100'
                   }`}
                 >
-                  <img src={image} alt="" className="h-full w-full object-cover" />
+                  <img src={image} alt="" onError={replaceWithFallback} className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>
