@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, Eye, Heart, ShoppingBag } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useSiteConfig } from '../context/ConfigContext'
 
 const cardImageFallback =
@@ -16,11 +17,13 @@ function replaceWithFallback(event) {
   }
 }
 
-export default function ProductCard({ product, onSelect }) {
+export default function ProductCard({ product }) {
   const { config } = useSiteConfig()
+  const navigate = useNavigate()
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
   const [isWishlisted, setIsWishlisted] = useState(false)
+  const [timerKey, setTimerKey] = useState(0)
   const images = useMemo(
     () => [...new Set([product.main_image_url, product.hover_image_url].filter(Boolean))],
     [product.main_image_url, product.hover_image_url],
@@ -42,9 +45,10 @@ export default function ProductCard({ product, onSelect }) {
     }, 2500)
 
     return () => window.clearInterval(interval)
-  }, [gallery.length, isHovered])
+  }, [gallery.length, isHovered, timerKey])
 
   const changeImage = (direction) => {
+    setTimerKey((key) => key + 1)
     setActiveImageIndex(
       (currentIndex) => (currentIndex + direction + gallery.length) % gallery.length,
     )
@@ -53,7 +57,7 @@ export default function ProductCard({ product, onSelect }) {
   return (
     <article
       className="group overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-primary)] transition-all duration-300 ease-out hover:shadow-lg"
-      onClick={() => onSelect?.(product)}
+      onClick={() => navigate(`/product/${product.id}`)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onFocus={() => setIsHovered(true)}
@@ -140,7 +144,7 @@ export default function ProductCard({ product, onSelect }) {
             type="button"
             onClick={(event) => {
               event.stopPropagation()
-              onSelect?.(product)
+            navigate(`/product/${product.id}`)
             }}
             className="inline-flex h-11 flex-1 items-center justify-center gap-2 border border-[var(--accent-gold)] px-3 text-[10px] uppercase tracking-[0.2em] text-[var(--accent-gold)] transition-all duration-300 ease-out hover:bg-[var(--accent-gold)] hover:text-[var(--bg-primary)]"
           >
@@ -159,12 +163,29 @@ export default function ProductCard({ product, onSelect }) {
       </div>
 
       <div className="space-y-2 p-4 text-left">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-primary)] opacity-60">
-          {categoryName}
+        {product.is_new && (
+          <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--accent-gold)]">
+            New
+          </span>
+        )}
+        <p className="font-serif text-sm uppercase tracking-widest text-[var(--text-primary)]">
+          {product.collection_name || categoryName}
         </p>
         <h3 className="font-serif text-sm tracking-wide text-[var(--text-primary)] md:text-base">
           {product.name || product.title || 'Untitled creation'}
         </h3>
+        <div className="relative min-h-11">
+          <p className="absolute inset-0 flex items-center text-[10px] uppercase tracking-[0.15em] text-[var(--text-primary)] opacity-60 transition-all duration-300 group-hover:-translate-y-2 group-hover:opacity-0">
+            {product.subtitle || product.material || categoryName}
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate(`/product/${product.id}`)}
+            className="absolute inset-0 flex h-11 w-full translate-y-2 items-center justify-center border border-[var(--accent-gold)] bg-[var(--bg-primary)] text-[10px] uppercase tracking-[0.2em] text-[var(--accent-gold)] opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100"
+          >
+            Discover
+          </button>
+        </div>
         <p className="text-xs tracking-[0.08em] text-[var(--text-primary)] opacity-80">
           {config.currency_symbol || 'MAD'} {formattedPrice}
         </p>

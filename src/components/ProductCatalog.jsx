@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import ProductCard from './ProductCard'
-import ProductDetailModal from './ProductDetailModal'
 
 const filterOptions = ['All', 'High Jewelry', 'Rings', 'Bracelets', 'Timepieces']
 
-const mockProducts = [
+export const mockProducts = [
   {
     id: 'mock-ice-cube-ring',
     name: 'Ice Cube Eternity Ring',
@@ -116,7 +115,6 @@ export default function ProductCatalog() {
   const [sortOrder, setSortOrder] = useState('featured')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [selectedProduct, setSelectedProduct] = useState(null)
 
   useEffect(() => {
     let isMounted = true
@@ -231,11 +229,7 @@ export default function ProductCatalog() {
         ) : visibleProducts.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:gap-10">
             {visibleProducts.map((product) => (
-              <ProductCard
-                key={product.id || product.slug || product.name}
-                product={product}
-                onSelect={setSelectedProduct}
-              />
+              <ProductCard key={product.id || product.slug || product.name} product={product} />
             ))}
           </div>
         ) : (
@@ -256,7 +250,6 @@ export default function ProductCatalog() {
           </p>
         )}
       </div>
-      <ProductDetailModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
     </section>
   )
 }
