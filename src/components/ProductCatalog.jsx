@@ -204,22 +204,22 @@ export default function ProductCatalog() {
             The Collection
           </p>
           <h2 className="font-serif text-3xl tracking-wide md:text-5xl">Curated Creations</h2>
-          <div className="mx-auto mt-8 flex max-w-5xl flex-col items-center justify-center gap-6 border-y border-[var(--border-subtle)] py-5 md:flex-row">
+          <div className="mx-auto mt-8 flex max-w-5xl flex-col items-center justify-between gap-6 border-y border-[var(--border-subtle)] py-5 md:flex-row">
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-3">
               {filterOptions.map((filter) => (
                 <button
                   key={filter}
                   type="button"
                   onClick={() => setActiveFilter(filter)}
-                  className={`relative pb-1 text-[10px] uppercase tracking-[0.18em] transition-all duration-300 ease-out ${
+                  className={`relative text-[11px] font-medium uppercase leading-none tracking-[0.18em] transition-colors duration-200 md:text-xs ${
                     activeFilter === filter
-                      ? 'text-[var(--accent-gold)]'
-                      : 'text-[var(--text-primary)] opacity-60 hover:text-[var(--accent-gold)] hover:opacity-100'
+                      ? 'border-b-2 border-[var(--accent-gold)] pb-1 text-[var(--text-primary)]'
+                      : 'text-[var(--text-primary)] opacity-60 hover:text-[var(--text-primary)]'
                   }`}
                 >
                   {filter}
                   {activeFilter === filter && (
-                    <span className="absolute inset-x-0 -bottom-px h-px bg-[var(--accent-gold)]" />
+                    <span className="sr-only">Active filter</span>
                   )}
                 </button>
               ))}
@@ -230,13 +230,13 @@ export default function ProductCatalog() {
                 aria-expanded={isSortOpen}
                 aria-haspopup="menu"
                 onClick={() => setIsSortOpen((open) => !open)}
-                className="flex items-center gap-1 border-b-2 border-transparent px-2 py-1 text-xs uppercase tracking-widest text-[var(--text-primary)] opacity-70 transition-colors hover:text-[var(--text-primary)]"
+                className="flex items-center gap-1 border-b-2 border-transparent px-2 py-1 text-[11px] font-medium uppercase leading-none tracking-[0.18em] text-[var(--text-primary)] opacity-60 transition-colors duration-200 hover:text-[var(--text-primary)] md:text-xs"
               >
                 {sortOptions.find((option) => option.value === sortOrder)?.label}
                 <ChevronDown
-                  size={14}
+                  size={12}
                   strokeWidth={1.25}
-                  className={`transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`}
+                  className={`text-[var(--text-primary)] opacity-60 transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`}
                 />
               </button>
               {isSortOpen && (
