@@ -56,14 +56,14 @@ export default function ProductCard({ product }) {
 
   return (
     <article
-      className="group overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-primary)] transition-all duration-300 ease-out hover:shadow-lg"
+      className="group w-full max-w-full overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-primary)] transition-all duration-300 ease-out hover:shadow-lg"
       onClick={() => navigate(`/product/${product.id}`)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onFocus={() => setIsHovered(true)}
       onBlur={() => setIsHovered(false)}
     >
-      <div className="relative aspect-[3/4] overflow-hidden bg-[var(--surface-primary)]">
+      <div className="relative aspect-[3/4] w-full max-w-full overflow-hidden bg-[var(--surface-primary)]">
         {product.is_new && (
           <span className="absolute left-4 top-4 z-10 text-[10px] uppercase tracking-[0.2em] text-white">
             New
@@ -146,7 +146,7 @@ export default function ProductCard({ product }) {
 
       </div>
 
-      <div className="space-y-2 p-4 text-left">
+      <div className="hidden space-y-2 p-4 text-left md:block">
         <p className="font-serif text-xs uppercase tracking-widest text-[var(--text-primary)]">
           {product.collection_name || categoryName}
         </p>
@@ -165,6 +165,27 @@ export default function ProductCard({ product }) {
         <p className="text-xs tracking-[0.08em] text-[var(--text-primary)] opacity-80">
           {formattedPrice} {config.currency_symbol || 'MAD'}
         </p>
+      </div>
+      <div className="space-y-1 p-3 text-left md:hidden">
+        <p className="mt-2 truncate text-[10px] uppercase tracking-widest text-[var(--text-muted)]">
+          {product.subtitle || product.material || categoryName}
+        </p>
+        <p className="truncate font-serif text-sm font-medium uppercase text-[var(--text-primary)]">
+          {product.collection_name || product.name || categoryName}
+        </p>
+        <p className="mt-1 text-xs font-semibold text-[var(--text-primary)]">
+          {formattedPrice} {config.currency_symbol || 'MAD'}
+        </p>
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation()
+            navigate(`/product/${product.id}`)
+          }}
+          className="mt-2 w-full border border-[var(--text-primary)] py-2 text-[10px] uppercase tracking-widest text-[var(--text-primary)] transition-colors hover:bg-[var(--text-primary)] hover:text-[var(--surface-primary)]"
+        >
+          Discover
+        </button>
       </div>
     </article>
   )

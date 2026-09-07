@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import ProductCard from './ProductCard'
 
@@ -122,6 +122,7 @@ export default function ProductCatalog() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isSortOpen, setIsSortOpen] = useState(false)
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false)
   const [isSticky, setIsSticky] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
   const sortMenuRef = useRef(null)
@@ -251,34 +252,60 @@ export default function ProductCatalog() {
           <h2 className="font-serif text-3xl tracking-wide md:text-5xl">Curated Creations</h2>
           <div ref={filterBarRef} className="h-14">
             <div
-              className={`mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-6 border-y border-[var(--border-subtle)] py-5 transition-transform duration-300 ease-out md:flex-row ${
+              className={`mx-auto w-full max-w-5xl border-y border-[var(--border-subtle)] transition-transform duration-300 ease-out ${
                 isSticky
-                  ? `fixed inset-x-0 top-0 z-40 bg-[var(--surface-primary)]/90 px-4 shadow-md backdrop-blur-md md:px-12 ${
+                  ? `fixed inset-x-0 top-0 z-30 bg-[var(--surface-primary)]/95 shadow-md backdrop-blur-md ${
                       isVisible ? 'translate-y-0' : '-translate-y-full'
                     }`
                   : ''
               }`}
             >
-            <div className="no-scrollbar flex min-w-0 flex-1 items-center justify-start gap-6 overflow-x-auto whitespace-nowrap px-4 py-3 md:justify-center md:gap-x-6 md:gap-y-3 md:overflow-visible md:px-0 md:py-0">
-              {filterOptions.map((filter) => (
+              <div className="md:hidden">
                 <button
-                  key={filter}
                   type="button"
-                  onClick={() => setActiveFilter(filter)}
-                  className={`relative text-[11px] font-medium uppercase leading-none tracking-[0.18em] transition-colors duration-200 md:text-xs ${
-                    activeFilter === filter
-                      ? 'border-b-2 border-[var(--accent-gold)] pb-1 text-[var(--text-primary)]'
-                      : 'text-[var(--text-primary)] opacity-60 hover:text-[var(--text-primary)]'
-                  }`}
+                  aria-expanded={isCategoryOpen}
+                  onClick={() => setIsCategoryOpen((open) => !open)}
+                  className="flex w-full items-center justify-between bg-[var(--surface-primary)] px-4 py-3 text-xs font-medium uppercase tracking-widest"
                 >
-                  {filter}
-                  {activeFilter === filter && (
-                    <span className="sr-only">Active filter</span>
-                  )}
+                  {activeFilter === 'All' ? 'Our Jewellery Universe' : activeFilter}
+                  {isCategoryOpen ? <ChevronUp size={15} strokeWidth={1.25} /> : <ChevronDown size={15} strokeWidth={1.25} />}
                 </button>
-              ))}
-            </div>
-            <div ref={sortMenuRef} className="relative shrink-0">
+                {isCategoryOpen && (
+                  <div className="border-t border-[var(--border-subtle)] bg-[var(--surface-primary)]">
+                    {filterOptions.map((filter) => (
+                      <button
+                        key={filter}
+                        type="button"
+                        onClick={() => {
+                          setActiveFilter(filter)
+                          setIsCategoryOpen(false)
+                        }}
+                        className="block w-full border-b border-[var(--border-subtle)] px-4 py-3 text-left text-xs uppercase tracking-widest text-[var(--text-primary)] last:border-b-0"
+                      >
+                        {filter}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="hidden items-center justify-between gap-6 px-4 py-5 md:flex md:px-12">
+                <div className="no-scrollbar flex min-w-0 flex-1 items-center justify-center gap-6 overflow-x-auto whitespace-nowrap">
+                  {filterOptions.map((filter) => (
+                    <button
+                      key={filter}
+                      type="button"
+                      onClick={() => setActiveFilter(filter)}
+                      className={`relative text-[11px] font-medium uppercase leading-none tracking-[0.18em] transition-colors duration-200 md:text-xs ${
+                        activeFilter === filter
+                          ? 'border-b-2 border-[var(--accent-gold)] pb-1 text-[var(--text-primary)]'
+                          : 'text-[var(--text-primary)] opacity-60 hover:text-[var(--text-primary)]'
+                      }`}
+                    >
+                      {filter}
+                    </button>
+                  ))}
+                </div>
+                <div ref={sortMenuRef} className="relative shrink-0">
               <button
                 type="button"
                 aria-expanded={isSortOpen}
@@ -311,7 +338,8 @@ export default function ProductCatalog() {
                   ))}
                 </div>
               )}
-            </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
