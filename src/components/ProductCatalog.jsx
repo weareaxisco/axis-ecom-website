@@ -124,7 +124,6 @@ export default function ProductCatalog() {
   const [isSortOpen, setIsSortOpen] = useState(false)
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
   const [isSticky, setIsSticky] = useState(false)
-  const [isVisible, setIsVisible] = useState(true)
   const [scrollDirection, setScrollDirection] = useState('up')
   const [scrollProgress, setScrollProgress] = useState(0)
   const sortMenuRef = useRef(null)
@@ -194,7 +193,6 @@ export default function ProductCatalog() {
       setScrollDirection(nextDirection)
       setScrollProgress(Math.min(1, Math.max(0, nextProgress)))
       setIsSticky(currentScrollY > filterOffsetTopRef.current && !nearTop)
-      setIsVisible(nearTop || scrollingUp)
       lastScrollYRef.current = currentScrollY
       scrollFrameRef.current = null
     }
@@ -260,13 +258,9 @@ export default function ProductCatalog() {
           <h2 className="font-serif text-3xl tracking-wide md:text-5xl">Curated Creations</h2>
           <div ref={filterBarRef} className={isSticky ? 'h-12 md:h-14' : 'h-14'}>
             <div
-              className={`relative mx-auto w-full max-w-5xl border-y border-[var(--border-subtle)] transition-transform duration-300 ease-out ${
+              className={`relative mx-auto w-full max-w-5xl border-y border-[var(--border-subtle)] bg-[var(--surface-primary)] transition-[top] duration-300 ease-in-out ${
                 isSticky
-                  ? `fixed inset-x-0 z-30 bg-[var(--surface-primary)]/95 shadow-md backdrop-blur-md ${
-                      'top-0'
-                    } ${
-                      scrollDirection === 'down' || isVisible ? 'translate-y-0' : '-translate-y-full'
-                    }`
+                  ? `sticky z-30 shadow-md ${scrollDirection === 'up' ? 'top-14' : 'top-0'}`
                   : ''
               }`}
             >

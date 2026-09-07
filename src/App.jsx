@@ -22,10 +22,12 @@ function App() {
     <BrowserRouter>
       <ConfigProvider>
         <ScrollToTop />
-        <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300">
-          <Navbar />
+        <div className="min-h-screen overflow-x-clip bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300">
+          <div className="fixed left-0 right-0 top-0 z-50">
+            <Navbar />
+          </div>
           <Routes>
-            <Route path="/" element={<main><Hero /><ProductCatalog /></main>} />
+            <Route path="/" element={<main className="overflow-x-clip"><Hero /><ProductCatalog /></main>} />
             <Route path="/product/:id" element={<ProductDetailPage />} />
           </Routes>
         </div>
