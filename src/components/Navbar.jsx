@@ -218,10 +218,10 @@ export default function Navbar() {
                 <Menu strokeWidth={1.25} size={21} />
               </IconButton>
               <div onMouseEnter={openDesktopSearch} onMouseLeave={scheduleSearchClose}              >
-                <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden">
-                  <IconButton label={isSearchOpen ? 'Close search' : 'Search'} onClick={toggleDesktopSearch} className="relative h-8 w-8 shrink-0">
-                    <Search className={`absolute inset-0 m-auto transition-opacity duration-200 ${isSearchOpen ? 'opacity-0' : 'opacity-100'}`} strokeWidth={1.25} size={20} />
-                    <X className={`absolute inset-0 m-auto transition-opacity duration-200 ${isSearchOpen ? 'opacity-100' : 'opacity-0'}`} strokeWidth={1.25} size={20} />
+                <div className="relative flex h-9 w-9 shrink-0 select-none items-center justify-center">
+                  <IconButton label={isSearchOpen ? 'Close search' : 'Search'} onClick={toggleDesktopSearch} className="relative h-9 w-9 shrink-0">
+                    <Search className={`absolute inset-0 m-auto h-5 w-5 transition-all duration-200 ease-out ${isSearchOpen ? 'scale-75 opacity-0' : 'scale-100 opacity-100'}`} strokeWidth={1.25} />
+                    <X className={`absolute inset-0 m-auto h-5 w-5 transition-all duration-200 ease-out ${isSearchOpen ? 'scale-100 opacity-100' : 'scale-75 opacity-0'}`} strokeWidth={1.25} />
                   </IconButton>
                 </div>
               </div>
@@ -238,7 +238,7 @@ export default function Navbar() {
               )}
             </a>
 
-            <div className="flex items-center gap-1">
+            <div className="flex h-10 items-center gap-1">
               <IconButton
                 label={`Switch to ${themeMode === 'dark' ? 'light' : 'dark'} mode`}
                 onClick={toggleTheme}

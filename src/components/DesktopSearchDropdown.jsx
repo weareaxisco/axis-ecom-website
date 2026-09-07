@@ -57,7 +57,7 @@ export default function DesktopSearchDropdown({ isOpen, onClose, onMouseEnter, o
       <button type="button" aria-label="Close search" onClick={onClose} onMouseEnter={onMouseLeave} className={`fixed inset-0 top-[80px] z-30 bg-black/60 transition-opacity duration-300 ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} />
       <section className={`fixed left-0 right-0 top-[80px] z-40 h-auto max-h-[80vh] w-full overflow-y-auto border-b border-neutral-800 bg-neutral-950/95 text-[var(--text-primary)] backdrop-blur-md transition-all duration-500 ease-in-out ${isOpen ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none -translate-y-full opacity-0'}`}>
         <div className="mx-auto max-w-7xl px-8 py-6">
-          <div className="relative mb-8 flex w-full items-center gap-3 border-b border-neutral-700 pb-2 transition-colors focus-within:border-amber-500/80">
+          <div className="relative mb-8 flex w-full items-center gap-3 border-b border-neutral-700/80 transition-colors focus-within:border-amber-400">
             <Search size={20} strokeWidth={1.25} className="text-neutral-400" />
             <input
               ref={inputRef}
@@ -67,7 +67,7 @@ export default function DesktopSearchDropdown({ isOpen, onClose, onMouseEnter, o
                 if (event.key === 'Enter') setDebouncedQuery(query.trim().toLowerCase())
               }}
               placeholder="Search creations, high jewelry, timepieces..."
-              className="w-full min-w-0 bg-transparent font-serif text-lg text-white outline-none placeholder:text-neutral-500 md:text-xl"
+              className="w-full min-w-0 bg-transparent py-2 font-serif text-xl tracking-wide text-white outline-none placeholder:text-neutral-500"
             />
             {query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')} className="text-neutral-400 hover:text-white"><X size={16} strokeWidth={1.25} /></button>}
           </div>
