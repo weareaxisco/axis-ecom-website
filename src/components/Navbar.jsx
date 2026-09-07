@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Heart,
   Menu,
@@ -88,7 +88,6 @@ export default function Navbar() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
-  const searchCloseTimer = useRef(null)
 
   useEffect(() => {
     let lastScrollY = window.scrollY
@@ -127,23 +126,7 @@ export default function Navbar() {
   }, [isDrawerOpen, isSearchOpen])
 
   const cartCount = config.cart_item_count ?? config.cart_count ?? 0
-  const cancelSearchClose = () => {
-    if (searchCloseTimer.current) {
-      window.clearTimeout(searchCloseTimer.current)
-      searchCloseTimer.current = null
-    }
-  }
-  const scheduleSearchClose = () => {
-    cancelSearchClose()
-    searchCloseTimer.current = window.setTimeout(() => setIsSearchOpen(false), 250)
-  }
-  const openDesktopSearch = () => {
-    cancelSearchClose()
-    setIsDrawerOpen(false)
-    setIsSearchOpen(true)
-  }
   const toggleDesktopSearch = () => {
-    cancelSearchClose()
     setIsDrawerOpen(false)
     setIsSearchOpen((open) => !open)
   }
@@ -156,8 +139,6 @@ export default function Navbar() {
       setIsDrawerOpen(true)
     }
   }
-  useEffect(() => () => cancelSearchClose(), [])
-
   return (
     <>
       <header
@@ -168,8 +149,6 @@ export default function Navbar() {
             ? 'border-[var(--border-subtle)]/80 bg-[var(--bg-primary)]/90 shadow-sm backdrop-blur-md'
             : ''
         }`}
-        onMouseEnter={cancelSearchClose}
-        onMouseLeave={scheduleSearchClose}
       >
         <div className={`fixed left-0 right-0 top-0 z-50 md:hidden transition-transform duration-300 ease-out ${isMobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
           <div className="relative z-50 flex h-[60px] w-full items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
@@ -217,13 +196,11 @@ export default function Navbar() {
               >
                 <Menu strokeWidth={1.25} size={21} />
               </IconButton>
-              <div onMouseEnter={openDesktopSearch} onMouseLeave={scheduleSearchClose}              >
-                <div className="relative flex h-9 w-9 shrink-0 select-none items-center justify-center">
+              <div className="relative flex h-10 w-10 shrink-0 select-none items-center justify-center">
                   <IconButton label={isSearchOpen ? 'Close search' : 'Search'} onClick={toggleDesktopSearch} className="relative h-9 w-9 shrink-0">
                     <Search className={`absolute inset-0 m-auto h-5 w-5 transition-all duration-200 ease-out ${isSearchOpen ? 'scale-75 opacity-0' : 'scale-100 opacity-100'}`} strokeWidth={1.25} />
                     <X className={`absolute inset-0 m-auto h-5 w-5 transition-all duration-200 ease-out ${isSearchOpen ? 'scale-100 opacity-100' : 'scale-75 opacity-0'}`} strokeWidth={1.25} />
                   </IconButton>
-                </div>
               </div>
             </div>
 
@@ -296,12 +273,7 @@ export default function Navbar() {
       />
       <DesktopSearchDropdown
         isOpen={isSearchOpen}
-        onClose={() => {
-          cancelSearchClose()
-          setIsSearchOpen(false)
-        }}
-        onMouseEnter={cancelSearchClose}
-        onMouseLeave={scheduleSearchClose}
+        onClose={() => setIsSearchOpen(false)}
       />
       <LoginDrawer isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </>
