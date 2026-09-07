@@ -42,16 +42,16 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme }) {
         type="button"
         aria-label="Close navigation"
         onClick={onClose}
-        className={`pointer-events-auto fixed bottom-0 left-0 right-0 top-14 z-30 h-[calc(100dvh-3.5rem)] bg-black/70 backdrop-blur-md transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        className={`pointer-events-auto fixed bottom-0 left-0 right-0 top-14 z-40 h-[calc(100dvh-3.5rem)] bg-black/75 backdrop-blur-md transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
       />
-      <aside className={`pointer-events-auto fixed bottom-0 left-0 top-14 z-40 flex h-[calc(100dvh-3.5rem)] w-[85vw] max-w-sm transform flex-col overflow-y-auto bg-[var(--surface-primary)] px-0 pt-0 text-[var(--text-primary)] shadow-2xl transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`pointer-events-auto fixed bottom-0 left-0 top-14 z-[45] flex h-[calc(100dvh-3.5rem)] w-[85vw] max-w-sm transform flex-col overflow-y-auto bg-[var(--surface-primary)] px-0 pt-0 text-[var(--text-primary)] shadow-2xl transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <nav className="flex flex-1 flex-col" aria-label="Mobile navigation">
           {navigationLinks.map((link) => (
             <a
               key={link}
               href="#"
               onClick={onClose}
-              className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-5 text-sm uppercase tracking-[0.18em] transition-all duration-300 ease-out first:pt-6 hover:text-[var(--accent-gold)]"
+              className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-5 text-sm uppercase tracking-[0.18em] transition-all duration-300 ease-out first:pt-4 hover:text-[var(--accent-gold)]"
             >
               {link}
               <ChevronRight size={16} strokeWidth={1.25} />
@@ -117,14 +117,14 @@ export default function Navbar() {
       <header
         data-scroll-y={scrollY}
         data-scroll-direction={scrollDirection}
-        className={`sticky top-0 z-50 w-full border-b border-transparent bg-[var(--bg-primary)] text-[var(--text-primary)] transition-all duration-300 ease-out md:z-40 ${
+        className={`relative z-0 w-full border-b border-transparent bg-transparent text-[var(--text-primary)] transition-all duration-300 ease-out md:sticky md:top-0 md:z-40 md:bg-[var(--bg-primary)] ${
           isScrolled
             ? 'border-[var(--border-subtle)]/80 bg-[var(--bg-primary)]/90 shadow-sm backdrop-blur-md'
             : ''
         }`}
       >
-        <div className={`relative z-50 md:hidden transition-transform duration-300 ease-out ${isMobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
-        <div className="relative z-50 flex h-14 items-center justify-between border-b border-[var(--border-subtle)] px-4">
+        <div className={`fixed left-0 right-0 top-0 z-50 md:hidden transition-transform duration-300 ease-out ${isMobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+        <div className="relative z-50 flex h-14 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
             <IconButton label={isDrawerOpen ? 'Close navigation' : 'Open navigation'} onClick={() => setIsDrawerOpen((open) => !open)}>
               {isDrawerOpen ? <X className="h-5 w-5" strokeWidth={1.25} /> : <Menu className="h-5 w-5" strokeWidth={1.25} />}
             </IconButton>
@@ -136,7 +136,7 @@ export default function Navbar() {
               {cartCount > 0 && <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-gold)] px-1 text-[9px] text-[var(--bg-primary)]">{cartCount}</span>}
             </IconButton>
           </div>
-          <div className="relative z-40 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2">
+          <div className="relative z-10 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2">
             <div className="relative">
               <Search size={16} strokeWidth={1.25} className="absolute left-3 top-2.5 text-[var(--text-primary)] opacity-60" />
               <input type="search" placeholder="Search creations" className="w-full rounded-full bg-[var(--bg-primary)] py-2 pl-9 pr-4 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-primary)] placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]" />

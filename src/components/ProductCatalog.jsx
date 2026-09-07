@@ -189,10 +189,10 @@ export default function ProductCatalog() {
       const scrollingUp = currentScrollY < lastScrollYRef.current
       const nextDirection = scrollingUp ? 'up' : 'down'
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
-      const nextProgress = scrollHeight > 0 ? (currentScrollY / scrollHeight) * 100 : 0
+      const nextProgress = scrollHeight > 0 ? currentScrollY / scrollHeight : 0
 
       setScrollDirection(nextDirection)
-      setScrollProgress(Math.min(100, Math.max(0, nextProgress)))
+      setScrollProgress(Math.min(1, Math.max(0, nextProgress)))
       setIsSticky(currentScrollY > filterOffsetTopRef.current && !nearTop)
       setIsVisible(nearTop || scrollingUp)
       lastScrollYRef.current = currentScrollY
@@ -258,12 +258,12 @@ export default function ProductCatalog() {
             The Collection
           </p>
           <h2 className="font-serif text-3xl tracking-wide md:text-5xl">Curated Creations</h2>
-          <div ref={filterBarRef} className="h-14">
+          <div ref={filterBarRef} className={isSticky ? 'h-12 md:h-14' : 'h-14'}>
             <div
               className={`relative mx-auto w-full max-w-5xl border-y border-[var(--border-subtle)] transition-transform duration-300 ease-out ${
                 isSticky
                   ? `fixed inset-x-0 z-30 bg-[var(--surface-primary)]/95 shadow-md backdrop-blur-md ${
-                      scrollDirection === 'up' ? 'top-[6.5rem] md:top-0' : 'top-0'
+                      'top-0'
                     } ${
                       scrollDirection === 'down' || isVisible ? 'translate-y-0' : '-translate-y-full'
                     }`
@@ -299,8 +299,8 @@ export default function ProductCatalog() {
                 )}
                 <span
                   aria-hidden="true"
-                  className="absolute bottom-0 left-0 h-[2px] bg-[var(--accent-gold)] transition-all duration-75 ease-out"
-                  style={{ width: `${scrollProgress}%` }}
+                  className="absolute bottom-0 left-0 right-0 h-[2px] origin-left bg-[var(--accent-gold)] will-change-transform transition-transform duration-75"
+                  style={{ transform: `scaleX(${scrollProgress})` }}
                 />
               </div>
               <div className="hidden items-center justify-between gap-6 px-4 py-5 md:flex md:px-12">
