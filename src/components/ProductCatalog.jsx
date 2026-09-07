@@ -3,6 +3,15 @@ import { ChevronDown } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import ProductCard from './ProductCard'
 
+const calculateCollectionProgress = (sectionElement, stickyOffset, headerHeight = 44) => {
+  if (!sectionElement) return 0
+  const rect = sectionElement.getBoundingClientRect()
+  const scrolledDistance = stickyOffset - rect.top
+  const maxScrollableRange = rect.height - headerHeight
+  if (maxScrollableRange <= 0) return 0
+  return Math.min(1, Math.max(0, scrolledDistance / maxScrollableRange))
+}
+
 const filterOptions = ['All', 'High Jewelry', 'Rings', 'Bracelets', 'Timepieces']
 const sortOptions = [
   { value: 'featured', label: 'Featured' },
@@ -195,11 +204,10 @@ export default function ProductCatalog() {
       const nextCollectionProgress = {}
       Object.entries(collectionRefs.current).forEach(([collectionId, section]) => {
         if (!section) return
-        const rect = section.getBoundingClientRect()
-        const availableHeight = rect.height - window.innerHeight
-        nextCollectionProgress[collectionId] = availableHeight > 0
-          ? Math.min(1, Math.max(0, -rect.top / availableHeight))
+        const stickyOffset = nextDirection === 'up'
+          ? 104
           : 0
+        nextCollectionProgress[collectionId] = calculateCollectionProgress(section, stickyOffset)
       })
       setCollectionProgress(nextCollectionProgress)
       scrollFrameRef.current = null
@@ -363,7 +371,7 @@ export default function ProductCatalog() {
                 }}
                 className="relative mb-16"
               >
-                <div className={`sticky z-30 border-b border-white/10 bg-[var(--surface-primary)] transition-[top] duration-300 ease-out ${isNavbarVisible ? 'top-[104px] md:top-0' : 'top-0'}`}>
+                <div className={`sticky z-30 border-b border-white/10 bg-[var(--surface-primary)] transition-[top] duration-300 ease-in-out ${isNavbarVisible ? 'top-[var(--header-stack-height)] md:top-0' : 'top-0'}`}>
                   <div className="flex cursor-pointer items-center justify-between px-4 py-3">
                     <h3 className="font-serif text-xs font-medium uppercase tracking-widest">{collection.title}</h3>
                     <span className="text-[10px] tracking-wider text-neutral-400">{collection.products.length} Creations</span>

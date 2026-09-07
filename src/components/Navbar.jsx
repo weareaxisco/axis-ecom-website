@@ -102,6 +102,11 @@ export default function Navbar() {
   }, [])
 
   useEffect(() => {
+    document.documentElement.style.setProperty('--header-stack-height', '104px')
+    return () => document.documentElement.style.removeProperty('--header-stack-height')
+  }, [])
+
+  useEffect(() => {
     document.documentElement.style.overflow = isDrawerOpen ? 'hidden' : ''
     document.body.style.overflow = isDrawerOpen ? 'hidden' : ''
     return () => {
