@@ -70,9 +70,9 @@ export default function SearchDrawer({ isOpen, onClose }) {
   }, [debouncedQuery, products])
 
   return (
-    <div className={`fixed inset-x-0 bottom-0 top-[60px] z-40 transition-opacity duration-300 ease-in-out md:top-0 ${isOpen ? 'visible pointer-events-auto opacity-100' : 'invisible pointer-events-none opacity-0'}`} aria-hidden={!isOpen}>
-      <button type="button" aria-label="Close search" onClick={onClose} className={`absolute inset-0 z-30 bg-black/60 transition-all duration-300 ease-in-out ${isOpen ? 'visible pointer-events-auto opacity-100' : 'invisible pointer-events-none opacity-0'}`} />
-      <aside className={`search-drawer fixed inset-x-0 bottom-0 top-0 z-40 flex h-full transform flex-col overflow-y-auto bg-[var(--surface-primary)] text-[var(--text-primary)] shadow-2xl transition-all duration-300 ease-in-out ${isOpen ? 'visible pointer-events-auto translate-x-0 opacity-100' : 'invisible pointer-events-none -translate-x-full opacity-0'}`}>
+    <div className={`fixed inset-0 z-40 transition-opacity duration-300 ease-in-out ${isOpen ? 'visible pointer-events-auto opacity-100' : 'invisible pointer-events-none opacity-0'}`} aria-hidden={!isOpen}>
+      <button type="button" aria-label="Close search" onClick={onClose} className={`fixed inset-0 z-30 bg-black/60 transition-opacity duration-300 ease-in-out ${isOpen ? 'visible pointer-events-auto opacity-100' : 'invisible pointer-events-none opacity-0'}`} />
+      <aside className={`search-drawer fixed bottom-0 left-0 top-[60px] z-40 flex h-auto w-full max-w-full transform flex-col overflow-y-auto border-r border-white/10 bg-[var(--surface-primary,#121212)] text-[var(--text-primary,#ffffff)] shadow-2xl transition-transform duration-300 ease-in-out sm:w-[400px] ${isOpen ? 'visible pointer-events-auto translate-x-0' : 'invisible pointer-events-none -translate-x-full'}`}>
         <div className="search-input-wrapper m-4 flex items-center gap-2 bg-[var(--bg-primary)] px-3 py-3">
           <Search size={17} strokeWidth={1.25} className="opacity-60" />
           <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search creations" className="min-w-0 flex-1 bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-primary)] placeholder:opacity-40" />
