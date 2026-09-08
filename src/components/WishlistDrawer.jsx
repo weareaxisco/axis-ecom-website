@@ -1,0 +1,9 @@
+import { X } from 'lucide-react'
+import { useCart } from '../context/CartContext'
+import { useWishlist } from '../context/WishlistContext'
+
+export default function WishlistDrawer() {
+  const { addToCart } = useCart()
+  const { wishlistItems, removeFromWishlist, isWishlistOpen, setIsWishlistOpen } = useWishlist()
+  return <div className={`fixed inset-0 z-[75] transition-opacity ${isWishlistOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}><button type="button" aria-label="Close wishlist" onClick={() => setIsWishlistOpen(false)} className="absolute inset-0 bg-black/70" /><aside className={`absolute inset-y-0 right-0 w-full max-w-md bg-neutral-950 p-6 text-white transition-transform ${isWishlistOpen ? 'translate-x-0' : 'translate-x-full'}`}><header className="flex justify-between border-b border-neutral-800 pb-5"><h2 className="font-serif text-2xl uppercase tracking-widest">Wishlist</h2><button type="button" aria-label="Close wishlist" onClick={() => setIsWishlistOpen(false)}><X /></button></header><div className="mt-6 space-y-5">{wishlistItems.length ? wishlistItems.map((item) => <article key={item.id} className="flex gap-4 border-b border-neutral-800 pb-5"><img src={item.main_image_url || item.image} alt={item.name} className="h-24 w-20 object-cover" /><div className="flex-1"><h3 className="font-serif">{item.name}</h3><p className="mt-2 text-sm text-amber-400">{Number(item.price || 0).toLocaleString()} DH</p><div className="mt-4 flex gap-3"><button type="button" onClick={() => addToCart(item)} className="text-[10px] uppercase tracking-widest text-amber-300">Move to Bag</button><button type="button" onClick={() => removeFromWishlist(item.id)} className="text-[10px] uppercase tracking-widest text-neutral-500">Remove</button></div></div></article>) : <p className="py-16 text-center text-sm text-neutral-500">Your wishlist is empty.</p>}</div></aside></div>
+}

@@ -18,6 +18,7 @@ import LoginDrawer from './LoginDrawer'
 import { useCart } from '../context/CartContext'
 import LanguageSwitcher from './LanguageSwitcher'
 import { useWishlist } from '../context/WishlistContext'
+import { useSiteConfigSettings } from '../context/SiteConfigContext'
 
 const navigationLinks = [
   'High Jewelry',
@@ -84,8 +85,10 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin
 
 export default function Navbar() {
   const { config, themeMode, toggleTheme } = useSiteConfig()
+  const { siteConfig } = useSiteConfigSettings()
+  const brandName = siteConfig.site_name || config.store_name
   const { cartItems, setIsBagOpen } = useCart()
-  const { wishlistItems } = useWishlist()
+  const { wishlistItems, setIsWishlistOpen } = useWishlist()
   const [isScrolled, setIsScrolled] = useState(false)
   const [scrollY, setScrollY] = useState(0)
   const [scrollDirection, setScrollDirection] = useState('up')
@@ -164,7 +167,7 @@ export default function Navbar() {
               </IconButton>
             </div>
             <a href="/" className="pointer-events-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 truncate px-2 text-center font-serif text-sm tracking-widest">
-              {config.store_name}
+              {brandName}
             </a>
             <div className="flex w-[60px] items-center justify-end">
               <IconButton label="Shopping bag" className="relative" onClick={() => setIsBagOpen(true)}>
@@ -215,9 +218,9 @@ export default function Navbar() {
               className="absolute left-1/2 -translate-x-1/2 text-center font-serif uppercase tracking-[0.15em] text-xl transition-all duration-300 ease-out hover:text-[var(--accent-gold)] md:text-2xl"
             >
               {config.logo_url ? (
-                <img src={config.logo_url} alt={config.store_name} className="max-h-10 max-w-48 object-contain" />
+                <img src={config.logo_url} alt={brandName} className="max-h-10 max-w-48 object-contain" />
               ) : (
-                config.store_name
+                brandName
               )}
             </a>
 
@@ -233,7 +236,7 @@ export default function Navbar() {
                   <Moon strokeWidth={1.25} size={19} />
                 )}
               </IconButton>
-              <IconButton label="Wishlist" className="relative hidden sm:inline-flex" onClick={() => window.location.assign('/account?tab=wishlist')}>
+              <IconButton label="Wishlist" className="relative hidden sm:inline-flex" onClick={() => setIsWishlistOpen(true)}>
                 <Heart strokeWidth={1.25} size={19} />
                 {wishlistItems.length > 0 && <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-gold)] px-1 text-[9px] text-[var(--bg-primary)]">{wishlistItems.length}</span>}
               </IconButton>

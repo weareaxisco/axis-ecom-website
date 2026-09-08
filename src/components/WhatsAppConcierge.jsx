@@ -1,12 +1,14 @@
 import { MessageCircle } from 'lucide-react'
 import { useLocation, useParams } from 'react-router-dom'
 import { useSiteConfig } from '../context/ConfigContext'
+import { useSiteConfigSettings } from '../context/SiteConfigContext'
 
 export default function WhatsAppConcierge() {
   const location = useLocation()
   const { id } = useParams()
   const { config } = useSiteConfig()
-  const phone = config.whatsapp_number || '212600000000'
+  const { siteConfig } = useSiteConfigSettings()
+  const phone = (siteConfig.contact_phone || config.whatsapp_number || '212600000000').replace(/\D/g, '')
   let message = 'Bonjour Maison de l’Élégance, I would like to speak with a personal jewelry advisor.'
   if (location.pathname.startsWith('/product/')) message = `Bonjour, I would like to inquire about creation ${id} (Ref: ${id}).`
   if (location.pathname.startsWith('/checkout') || location.pathname.startsWith('/account')) message = 'Bonjour, I need assistance regarding my order.'

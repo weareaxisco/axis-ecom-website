@@ -13,12 +13,14 @@ import Catalog from './pages/Catalog'
 import ProductDetail from './pages/ProductDetail'
 import BagDrawer from './components/BagDrawer'
 import WhatsAppConcierge from './components/WhatsAppConcierge'
+import WishlistDrawer from './components/WishlistDrawer'
 import SEOHead from './components/SEOHead'
 import { ConfigProvider } from './context/ConfigContext'
 import { CartProvider } from './context/CartContext'
 import { LanguageProvider } from './context/LanguageContext'
 import { AuthProvider } from './context/AuthContext'
 import { WishlistProvider } from './context/WishlistContext'
+import { SiteConfigProvider } from './context/SiteConfigContext'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import './App.css'
 
@@ -39,6 +41,7 @@ function App() {
         <LanguageProvider>
         <AuthProvider>
         <WishlistProvider>
+        <SiteConfigProvider>
         <CartProvider>
           <ScrollToTop />
           <div className="min-h-screen overflow-x-clip bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300">
@@ -60,8 +63,10 @@ function App() {
           <Footer />
             <BagDrawer />
             <WhatsAppConcierge />
+            <WishlistDrawer />
           </div>
         </CartProvider>
+        </SiteConfigProvider>
         </WishlistProvider>
         </AuthProvider>
         </LanguageProvider>

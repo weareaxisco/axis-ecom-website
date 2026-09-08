@@ -39,7 +39,8 @@ create table if not exists public.profiles (
   city text,
   address text,
   created_at timestamptz not null default timezone('utc', now()),
-  updated_at timestamptz not null default timezone('utc', now())
+  updated_at timestamptz not null default timezone('utc', now()),
+  wishlist jsonb not null default '[]'::jsonb
 );
 
 create table if not exists public.products (
@@ -49,6 +50,7 @@ create table if not exists public.products (
   category text not null,
   collection text,
   description text,
+  material text,
   price_dh numeric(12, 2) not null check (price_dh >= 0),
   onsite_only boolean not null default false,
   images text[] not null default '{}',
@@ -85,6 +87,23 @@ create table if not exists public.appointments (
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
+
+create table if not exists public.site_config (
+  id integer primary key default 1 check (id = 1),
+  site_name text not null default 'Maison de L''Élégance',
+  contact_email text not null default '',
+  contact_phone text not null default '+212 522 000 000',
+  contact_address text not null default 'Casablanca, Morocco',
+  currency_label text not null default 'DH',
+  updated_at timestamptz not null default now()
+);
+
+alter table public.site_config enable row level security;
+drop policy if exists "Public can read site settings" on public.site_config;
+create policy "Public can read site settings" on public.site_config for select using (true);
+drop policy if exists "Admins can manage site settings" on public.site_config;
+create policy "Admins can manage site settings" on public.site_config for all using (public.is_admin()) with check (public.is_admin());
+insert into public.site_config (id) values (1) on conflict (id) do nothing;
 
 create index if not exists products_category_idx on public.products(category);
 create index if not exists products_collection_idx on public.products(collection);

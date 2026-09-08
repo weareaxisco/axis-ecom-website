@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ChevronDown, Heart, MessageCircle, Play } from 'lucide-react'
 import { useSiteConfig } from '../context/ConfigContext'
+import { useSiteConfigSettings } from '../context/SiteConfigContext'
 
 const sections = [
   { title: 'Contact', links: ['Boutique Concierge', 'Find a boutique', 'Contact us'] },
@@ -27,6 +28,7 @@ function SectionLinks({ title, links, mobile = false }) {
 
 export default function Footer() {
   const { config } = useSiteConfig()
+  const { siteConfig } = useSiteConfigSettings()
   return (
     <footer className="border-t border-[var(--border-subtle)] bg-[var(--surface-primary)] text-[var(--text-primary)]">
       <div className="hidden border-b border-[var(--border-subtle)] px-8 py-3 text-[10px] uppercase tracking-widest opacity-70 md:flex md:justify-between">
@@ -52,7 +54,7 @@ export default function Footer() {
       </div>
       <div className="flex flex-col gap-3 border-t border-[var(--border-subtle)] px-4 py-5 text-center text-[9px] uppercase tracking-widest opacity-60 md:flex-row md:items-center md:justify-between md:px-8">
         <div className="flex flex-wrap justify-center gap-4 md:justify-start"><a href="#">Privacy Policy</a><a href="#">Cookies Policy</a><a href="#">Terms</a><a href="#">Modern Slavery Act</a></div>
-        <span>© 2026 {config.store_name || "Maison de L'Élégance"} - All rights reserved</span>
+        <span>© 2026 {siteConfig.site_name || config.store_name || "Maison de L'Élégance"} - {siteConfig.contact_phone} · All rights reserved</span>
       </div>
     </footer>
   )

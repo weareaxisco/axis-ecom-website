@@ -3,7 +3,7 @@ import { Check, LoaderCircle } from 'lucide-react'
 
 const money = (value) => `${Number(value || 0).toLocaleString()} DH`
 
-export default function AdminProductTable({ products, onToggleOnsiteOnly }) {
+export default function AdminProductTable({ products, onToggleOnsiteOnly, onAddProduct }) {
   const [savingId, setSavingId] = useState(null)
 
   const handleToggle = async (product) => {
@@ -16,6 +16,8 @@ export default function AdminProductTable({ products, onToggleOnsiteOnly }) {
   }
 
   return (
+    <>
+      <button type="button" onClick={onAddProduct} className="mb-5 bg-amber-500 px-5 py-3 text-xs font-semibold uppercase tracking-widest text-black">+ Add New Creation</button>
     <div className="overflow-x-auto border border-neutral-800 bg-neutral-950/70">
       <table className="w-full min-w-[760px] text-left">
         <thead className="border-b border-neutral-800 text-[10px] uppercase tracking-[0.2em] text-neutral-500">
@@ -31,10 +33,10 @@ export default function AdminProductTable({ products, onToggleOnsiteOnly }) {
         <tbody className="divide-y divide-neutral-800/80">
           {products.map((product) => (
             <tr key={product.id} className="text-sm text-neutral-200">
-              <td className="px-5 py-4"><img src={product.main_image_url || product.image} alt="" className="h-14 w-12 object-cover" /></td>
+              <td className="px-5 py-4"><img src={product.main_image_url || product.image || product.images?.[0]} alt="" className="h-14 w-12 object-cover" /></td>
               <td className="px-5 py-4 font-serif">{product.name || product.title}</td>
               <td className="px-5 py-4 text-xs text-neutral-400">{product.category_name || product.category || 'Uncategorized'}</td>
-              <td className="px-5 py-4 text-amber-400">{money(product.price)}</td>
+              <td className="px-5 py-4 text-amber-400">{money(product.price ?? product.price_dh)}</td>
               <td className="px-5 py-4 text-xs uppercase tracking-widest">{product.in_stock === false || product.stock === 0 ? 'No' : 'Yes'}</td>
               <td className="px-5 py-4">
                 <button type="button" role="switch" aria-checked={Boolean(product.onsite_only)} aria-label={`Onsite only for ${product.name}`} disabled={savingId === product.id} onClick={() => handleToggle(product)} className={`relative h-6 w-11 rounded-full transition-colors ${product.onsite_only ? 'bg-amber-500' : 'bg-neutral-700'} disabled:opacity-50`}>
@@ -49,5 +51,6 @@ export default function AdminProductTable({ products, onToggleOnsiteOnly }) {
       </table>
       {!products.length && <p className="p-10 text-center text-sm text-neutral-500">No products found.</p>}
     </div>
+    </>
   )
 }

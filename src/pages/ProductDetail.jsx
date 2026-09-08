@@ -8,6 +8,8 @@ import { mockProducts } from '../components/ProductCatalog'
 import ImageGalleryZoom from '../components/ImageGalleryZoom'
 import RingSizeGuideModal from '../components/RingSizeGuideModal'
 import SEOHead from '../components/SEOHead'
+import { Heart } from 'lucide-react'
+import { useWishlist } from '../context/WishlistContext'
 
 const metals = ['18k Rose Gold', '18k Yellow Gold', '18k White Gold', 'Platinum']
 
@@ -15,6 +17,7 @@ export default function ProductDetail() {
   const { id } = useParams()
   const { config } = useSiteConfig()
   const { addToCart } = useCart()
+  const { wishlistItems, addToWishlist, removeFromWishlist } = useWishlist()
   const [product, setProduct] = useState(null)
   const [metal, setMetal] = useState(metals[0])
   const [size, setSize] = useState('52')
@@ -35,6 +38,7 @@ export default function ProductDetail() {
   if (!product) return <main className="min-h-screen bg-[var(--bg-primary)] px-6 py-40 text-center text-[var(--text-primary)]">Curating this creation...</main>
 
   const name = product.name || product.title || 'Maison creation'
+  const isWishlisted = wishlistItems.some((item) => String(item.id) === String(product.id))
   const basePrice = Number(product.price || 0)
   const price = basePrice + (metal === 'Platinum' ? 25000 : metal === '18k Yellow Gold' ? 5000 : 0)
   const isRing = String(product.category || product.category_name || '').toLowerCase().includes('ring')
@@ -57,7 +61,7 @@ export default function ProductDetail() {
               <p className="text-[10px] uppercase tracking-[0.25em] text-amber-400">{product.collection_name || product.category_name || 'Fine Jewelry'}</p>
               <h1 className="mt-4 font-serif text-3xl uppercase tracking-widest">{name}</h1>
               <p className="mt-4 text-xs uppercase tracking-wider text-neutral-500">{product.subtitle || product.material || 'Signature Maison creation'}</p>
-              <p className="mt-8 text-xl">{price.toLocaleString()} DH</p>
+              <div className="mt-8 flex items-center justify-between"><p className="text-xl">{price.toLocaleString()} DH</p><button type="button" aria-label="Toggle wishlist" onClick={() => isWishlisted ? removeFromWishlist(product.id) : addToWishlist(product)} className={isWishlisted ? 'text-amber-400' : 'text-neutral-400 hover:text-white'}><Heart className={isWishlisted ? 'fill-amber-400' : ''} /></button></div>
               <div className="mt-8 border-t border-neutral-800 pt-6">
                 <p className="text-[10px] uppercase tracking-widest text-neutral-400">Metal</p>
                 <div className="mt-3 grid grid-cols-2 gap-2">{metals.map((option) => <button type="button" key={option} onClick={() => setMetal(option)} className={`border px-3 py-3 text-left text-xs ${metal === option ? 'border-amber-400 text-amber-300' : 'border-neutral-800 text-neutral-400'}`}>{option}</button>)}</div>
