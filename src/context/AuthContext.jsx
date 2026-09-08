@@ -13,9 +13,10 @@ export function AuthProvider({ children }) {
     const load = async (nextSession) => {
       const nextUser = nextSession?.user ? { ...nextSession.user, role: 'customer' } : null
       if (nextUser) {
-        const { data, error } = await supabase.from('profiles').select('role').eq('id', nextUser.id).maybeSingle()
+        const { data, error } = await supabase.from('profiles').select('role, permissions').eq('id', nextUser.id).maybeSingle()
         if (error && !error.message.includes('column')) console.warn(`Profile role lookup unavailable: ${error.message}`)
         nextUser.role = data?.role || nextUser.app_metadata?.role || 'customer'
+        nextUser.permissions = data?.permissions || {}
       }
       if (active) {
         setSession(nextSession)

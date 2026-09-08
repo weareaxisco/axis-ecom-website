@@ -8,10 +8,9 @@ import AdminSettings from '../components/AdminSettings'
 import AdminAddProductModal from '../components/AdminAddProductModal'
 import { useLanguage } from '../context/LanguageContext'
 import AdminAppointments from '../components/AdminAppointments'
+import AdminStaff from '../components/AdminStaff'
 import { ameexDispatchEnabled, createSandboxParcel } from '../services/ameexApi'
 
-const ADMIN_SESSION_KEY = 'maison_admin_session'
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'maison-admin'
 const orderStatuses = [
   { value: 'pending_confirmation', label: 'Pending Confirmation' },
   { value: 'deposit_received', label: 'Deposit Received' },
@@ -26,26 +25,21 @@ const mockOrders = [
   { id: 'ORD-1002', customer_name: 'Youssef Bennani', city: 'Rabat', payment_method: 'CMI / Stripe', total_dh: 320000, status: 'in_preparation' },
 ]
 
-function LoginGate({ onAuthenticated }) {
+function LoginGate() {
   const { t } = useLanguage()
-  const [password, setPassword] = useState('')
+  const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault()
-    if (password !== ADMIN_PASSWORD) {
-      setError(t('invalidCredentials'))
-      return
-    }
-    sessionStorage.setItem(ADMIN_SESSION_KEY, 'authenticated')
-    onAuthenticated()
+    const { error: signInError } = await supabase.auth.signInWithPassword(form)
+    if (signInError) setError(signInError.message)
   }
-  return <main className="flex min-h-screen items-center justify-center bg-neutral-950 px-4 text-white"><form onSubmit={submit} className="w-full max-w-sm border border-neutral-800 bg-neutral-900/70 p-8"><ShieldCheck className="text-amber-400" size={28} /><h1 className="mt-5 font-serif text-2xl uppercase tracking-widest">Maison Admin</h1><p className="mt-2 text-xs text-neutral-500">{t('secureConsole')}</p><label className="mt-8 block text-[10px] uppercase tracking-widest text-neutral-400">{t('adminPassword')}<input type="password" value={password} onChange={(event) => { setPassword(event.target.value); setError('') }} className="mt-2 w-full border border-neutral-800 bg-neutral-950 px-4 py-3 outline-none focus:border-amber-500" /></label>{error && <p className="mt-2 text-xs text-rose-400">{error}</p>}<button type="submit" className="mt-6 w-full bg-amber-500 py-3 text-xs font-semibold uppercase tracking-widest text-black">{t('enterDashboard')}</button>{import.meta.env.DEV && <button type="button" onClick={() => { sessionStorage.setItem(ADMIN_SESSION_KEY, 'authenticated'); onAuthenticated() }} className="mt-4 w-full border border-neutral-700 py-3 text-[10px] uppercase tracking-widest text-neutral-400">{t('useDevAccess')}</button>}</form></main>
+  return <main className="flex min-h-screen items-center justify-center bg-neutral-950 px-4 text-white"><form onSubmit={submit} className="w-full max-w-sm border border-neutral-800 bg-neutral-900/70 p-8"><ShieldCheck className="text-amber-400" size={28} /><h1 className="mt-5 font-serif text-2xl uppercase tracking-widest">Maison Admin</h1><p className="mt-2 text-xs text-neutral-500">{t('secureConsole')}</p><label className="mt-8 block text-[10px] uppercase tracking-widest text-neutral-400">Email<input required type="email" value={form.email} onChange={(event) => { setForm((current) => ({ ...current, email: event.target.value })); setError('') }} className="mt-2 w-full border border-neutral-800 bg-neutral-950 px-4 py-3 outline-none focus:border-amber-500" /></label><label className="mt-4 block text-[10px] uppercase tracking-widest text-neutral-400">Password<input required type="password" value={form.password} onChange={(event) => { setForm((current) => ({ ...current, password: event.target.value })); setError('') }} className="mt-2 w-full border border-neutral-800 bg-neutral-950 px-4 py-3 outline-none focus:border-amber-500" /></label>{error && <p className="mt-2 text-xs text-rose-400">{error}</p>}<button type="submit" className="mt-6 w-full bg-amber-500 py-3 text-xs font-semibold uppercase tracking-widest text-black">{t('enterDashboard')}</button></form></main>
 }
 
 export default function Admin() {
   const { user, loading: authLoading } = useAuth()
   const { t } = useLanguage()
-  const [authenticated, setAuthenticated] = useState(() => sessionStorage.getItem(ADMIN_SESSION_KEY) === 'authenticated')
   const [tab, setTab] = useState('orders')
   const [products, setProducts] = useState(mockProducts)
   const [orders, setOrders] = useState(mockOrders)
@@ -53,9 +47,18 @@ export default function Admin() {
   const [notice, setNotice] = useState('')
   const [showProductModal, setShowProductModal] = useState(false)
 
-  const isAdmin = user?.role === 'admin'
+  const isAdmin = ['super_admin', 'admin', 'staff_catalog', 'staff_orders'].includes(user?.role)
+  const can = (permission) => user?.role === 'super_admin' || user?.role === 'admin' || user?.permissions?.[permission] === true
+  const allowedTabs = [
+    can('manage_orders') && 'orders',
+    can('manage_products') && 'inventory',
+    can('manage_appointments') && 'appointments',
+    can('manage_settings') && 'settings',
+    ['super_admin', 'admin'].includes(user?.role) && 'staff',
+  ].filter(Boolean)
+  const activeTab = allowedTabs.includes(tab) ? tab : allowedTabs[0]
   useEffect(() => {
-    if (!authenticated && !isAdmin) return undefined
+    if (!isAdmin) return undefined
     let active = true
     Promise.all([
       supabase.from('products').select('*'),
@@ -73,15 +76,17 @@ export default function Admin() {
       }
     })
     return () => { active = false }
-  }, [authenticated, isAdmin])
+  }, [isAdmin])
 
   const updateOnsiteOnly = async (id, onsiteOnly) => {
+    if (!can('manage_products')) return
     setProducts((current) => current.map((product) => product.id === id ? { ...product, onsite_only: onsiteOnly } : product))
     const { error } = await supabase.from('products').update({ onsite_only: onsiteOnly }).eq('id', id)
     if (error) setNotice(`Unable to save product restriction: ${error.message}`)
   }
 
   const updateOrderStatus = async (id, status) => {
+    if (!can('manage_orders')) return
     if (status === 'dispatched_ameex') {
       setNotice('Use the explicit Dispatch to Ameex button to create a parcel.')
       return
@@ -96,6 +101,7 @@ export default function Admin() {
     }
   }
   const dispatchToAmeex = async (order) => {
+    if (!can('manage_orders')) return
       if (!ameexDispatchEnabled) {
         setNotice('Ameex dispatch is disabled by configuration.')
         return
@@ -115,11 +121,11 @@ export default function Admin() {
 
   const counts = useMemo(() => ({ products: products.length, orders: orders.length }), [products, orders])
   if (authLoading) return <main className="min-h-screen bg-neutral-950 p-20 text-center text-sm text-neutral-500">{t('loading')}</main>
-  if (!isAdmin && !authenticated) return <LoginGate onAuthenticated={() => setAuthenticated(true)} />
+  if (!isAdmin) return <LoginGate />
 
-  return <main className="min-h-screen bg-neutral-950 px-4 pb-20 pt-12 text-white md:px-10"><div className="mx-auto max-w-7xl"><header className="flex flex-wrap items-end justify-between gap-6 border-b border-neutral-800 pb-8"><div><p className="text-[10px] uppercase tracking-[0.3em] text-amber-400">Maison de l'Élégance</p><h1 className="mt-3 font-serif text-4xl uppercase tracking-widest">Operations</h1></div><button type="button" onClick={() => { sessionStorage.removeItem(ADMIN_SESSION_KEY); setAuthenticated(false) }} className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-neutral-500 hover:text-amber-400"><LogOut size={15} /> Sign out</button></header>
-    <nav className="mt-8 flex flex-wrap gap-2 border-b border-neutral-800"><button type="button" onClick={() => setTab('orders')} className={`inline-flex items-center gap-2 border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${tab === 'orders' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}><ShoppingBag size={15} /> {t('myOrders')} ({counts.orders})</button><button type="button" onClick={() => setTab('inventory')} className={`inline-flex items-center gap-2 border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${tab === 'inventory' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}><Package size={15} /> {t('inventory')} ({counts.products})</button><button type="button" onClick={() => setTab('appointments')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${tab === 'appointments' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Appointments</button><button type="button" onClick={() => setTab('settings')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${tab === 'settings' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>{t('settings')}</button></nav>
+  return <main className="min-h-screen bg-neutral-950 px-4 pb-20 pt-12 text-white md:px-10"><div className="mx-auto max-w-7xl"><header className="flex flex-wrap items-end justify-between gap-6 border-b border-neutral-800 pb-8"><div><p className="text-[10px] uppercase tracking-[0.3em] text-amber-400">Maison de l'Élégance</p><h1 className="mt-3 font-serif text-4xl uppercase tracking-widest">Operations</h1></div><button type="button" onClick={() => supabase.auth.signOut()} className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-neutral-500 hover:text-amber-400"><LogOut size={15} /> Sign out</button></header>
+    <nav className="mt-8 flex flex-wrap gap-2 border-b border-neutral-800">{can('manage_orders') && <button type="button" onClick={() => setTab('orders')} className={`inline-flex items-center gap-2 border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'orders' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}><ShoppingBag size={15} /> {t('myOrders')} ({counts.orders})</button>}{can('manage_products') && <button type="button" onClick={() => setTab('inventory')} className={`inline-flex items-center gap-2 border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'inventory' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}><Package size={15} /> {t('inventory')} ({counts.products})</button>}{can('manage_appointments') && <button type="button" onClick={() => setTab('appointments')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'appointments' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Appointments</button>}{can('manage_settings') && <button type="button" onClick={() => setTab('settings')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'settings' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>{t('settings')}</button>}{['super_admin', 'admin'].includes(user?.role) && <button type="button" onClick={() => setTab('staff')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'staff' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Staff &amp; Permissions</button>}</nav>
     {notice && <p className="mt-5 border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-300">{notice}</p>}
-    <section className="mt-8">{tab === 'settings' ? <AdminSettings /> : tab === 'appointments' ? <AdminAppointments onError={handleAppointmentError} /> : loading ? <p className="py-16 text-center text-sm text-neutral-500">Loading operations data...</p> : tab === 'inventory' ? <AdminProductTable products={products} onToggleOnsiteOnly={updateOnsiteOnly} onAddProduct={() => setShowProductModal(true)} /> : <div className="overflow-x-auto border border-neutral-800 bg-neutral-950/70"><table className="w-full min-w-[900px] text-left"><thead className="border-b border-neutral-800 text-[10px] uppercase tracking-[0.2em] text-neutral-500"><tr>{['Order ID', 'Customer Name', 'City', 'Payment Method', 'Total (DH)', 'Status', 'Ameex Tracking'].map((heading) => <th key={heading} className="px-5 py-4">{heading}</th>)}</tr></thead><tbody className="divide-y divide-neutral-800/80">{orders.map((order) => <tr key={order.id} className="text-sm"><td className="px-5 py-5 font-mono text-amber-400">{order.id}</td><td className="px-5 py-5">{order.customer_name || order.customer?.name || '—'}</td><td className="px-5 py-5 text-neutral-400">{order.city || '—'}</td><td className="px-5 py-5 text-xs text-neutral-400">{order.payment_method || order.payment || '—'}</td><td className="px-5 py-5">{Number(order.total_dh ?? order.total ?? 0).toLocaleString()} DH</td>    <td className="px-5 py-5"><div className="flex flex-wrap gap-2"><select aria-label={`Update status for ${order.id}`} value={order.status === 'dispatched_ameex' ? 'in_preparation' : order.status} onChange={(event) => updateOrderStatus(order.id, event.target.value)} className="border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs outline-none focus:border-amber-500">{orderStatuses.filter((status) => status.value !== 'dispatched_ameex').map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}</select>{order.status !== 'dispatched_ameex' && <button type="button" disabled={!ameexDispatchEnabled} onClick={() => dispatchToAmeex(order)} className="border border-amber-400 px-3 py-2 text-[10px] uppercase tracking-wider text-amber-300 transition-colors hover:bg-amber-400 hover:text-black disabled:cursor-not-allowed disabled:opacity-40">Dispatch to Ameex</button>}</div></td><td className="px-5 py-5 text-xs font-mono text-neutral-400">{order.ameex_tracking_id || '—'}</td></tr>)}</tbody></table></div>}</section>{showProductModal && <AdminAddProductModal onClose={() => setShowProductModal(false)} onCreated={(product) => setProducts((current) => [product, ...current])} />}
+    <section className="mt-8">{activeTab === 'staff' ? <AdminStaff /> : activeTab === 'settings' ? <AdminSettings /> : activeTab === 'appointments' ? <AdminAppointments onError={handleAppointmentError} /> : loading ? <p className="py-16 text-center text-sm text-neutral-500">Loading operations data...</p> : activeTab === 'inventory' ? <AdminProductTable products={products} onToggleOnsiteOnly={updateOnsiteOnly} onAddProduct={() => setShowProductModal(true)} /> : <div className="overflow-x-auto border border-neutral-800 bg-neutral-950/70"><table className="w-full min-w-[900px] text-left"><thead className="border-b border-neutral-800 text-[10px] uppercase tracking-[0.2em] text-neutral-500"><tr>{['Order ID', 'Customer Name', 'City', 'Payment Method', 'Total (DH)', 'Status', 'Ameex Tracking'].map((heading) => <th key={heading} className="px-5 py-4">{heading}</th>)}</tr></thead><tbody className="divide-y divide-neutral-800/80">{orders.map((order) => <tr key={order.id} className="text-sm"><td className="px-5 py-5 font-mono text-amber-400">{order.id}</td><td className="px-5 py-5">{order.customer_name || order.customer?.name || '—'}</td><td className="px-5 py-5 text-neutral-400">{order.city || '—'}</td><td className="px-5 py-5 text-xs text-neutral-400">{order.payment_method || order.payment || '—'}</td><td className="px-5 py-5">{Number(order.total_dh ?? order.total ?? 0).toLocaleString()} DH</td>    <td className="px-5 py-5"><div className="flex flex-wrap gap-2"><select aria-label={`Update status for ${order.id}`} value={order.status === 'dispatched_ameex' ? 'in_preparation' : order.status} onChange={(event) => updateOrderStatus(order.id, event.target.value)} className="border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs outline-none focus:border-amber-500">{orderStatuses.filter((status) => status.value !== 'dispatched_ameex').map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}</select>{order.status !== 'dispatched_ameex' && <button type="button" disabled={!ameexDispatchEnabled} onClick={() => dispatchToAmeex(order)} className="border border-amber-400 px-3 py-2 text-[10px] uppercase tracking-wider text-amber-300 transition-colors hover:bg-amber-400 hover:text-black disabled:cursor-not-allowed disabled:opacity-40">Dispatch to Ameex</button>}</div></td><td className="px-5 py-5 text-xs font-mono text-neutral-400">{order.ameex_tracking_id || '—'}</td></tr>)}</tbody></table></div>}</section>{showProductModal && <AdminAddProductModal onClose={() => setShowProductModal(false)} onCreated={(product) => setProducts((current) => [product, ...current])} />}
   </div></main>
 }

@@ -65,3 +65,10 @@ The existing footer component is present, but its navigation anchors currently u
 - [ ] Add an admin preview/validation workflow for footer copy, social URLs, contact details, and boutique map settings before publishing.
 - [ ] Add localized FR/EN copy for all new pages, footer labels, careers content, legal pages, map directions, and loading-screen text.
 - [ ] Add SEO metadata, canonical routes, and appropriate noindex/legal handling for informational, careers, and policy pages.
+
+## Next Sprint: Elevated Administration & Staff RBAC
+
+- [x] Replace the legacy shared admin-password gate with Supabase Email/Password authentication and profile-based roles.
+- [x] Add `super_admin`, `admin`, `staff_catalog`, and `staff_orders` roles with granular `manage_products`, `manage_orders`, `manage_appointments`, and `manage_settings` permissions.
+- [x] Add a protected Staff & Permissions admin tab and secure staff-account creation through a Supabase Edge Function using the service role server-side.
+- [x] Restrict admin navigation and data mutations by staff permissions and enforce matching Supabase RLS policies.
