@@ -1,3 +1,11 @@
+import { useLanguage } from '../context/LanguageContext'
+
 export default function LegalTerms() {
-  return <main className="min-h-screen bg-[var(--bg-primary)] px-4 pb-20 pt-36 text-[var(--text-primary)] md:px-10"><article className="mx-auto max-w-3xl"><p className="text-[10px] uppercase tracking-[0.3em] text-amber-400">Maison terms</p><h1 className="mt-4 font-serif text-5xl uppercase tracking-widest">Terms of Sale</h1><div className="mt-10 space-y-8 text-sm leading-7 text-neutral-400"><section><h2 className="font-serif text-2xl text-white">Orders and payment</h2><p className="mt-3">Prices are displayed in Moroccan dirhams (DH/MAD). Orders are confirmed after availability and payment method validation.</p></section><section><h2 className="font-serif text-2xl text-white">Delivery and returns</h2><p className="mt-3">Delivery timing is confirmed at checkout. Eligible returns and exchanges must be requested through our concierge team within the applicable return period and items must remain in original condition.</p></section><section><h2 className="font-serif text-2xl text-white">Bespoke creations</h2><p className="mt-3">Bespoke and personalized pieces are produced after consultation and may be non-returnable once production begins.</p></section></div></article></main>
+  const { t } = useLanguage()
+  const sections = [
+    ['termsOrdersHeading', 'termsOrdersBody'],
+    ['termsDeliveryHeading', 'termsDeliveryBody'],
+    ['termsBespokeHeading', 'termsBespokeBody'],
+  ]
+  return <main className="min-h-screen bg-[var(--bg-primary)] px-4 pb-20 pt-36 text-[var(--text-primary)] md:px-10"><article className="mx-auto max-w-3xl"><p className="text-[10px] uppercase tracking-[0.3em] text-amber-400">{t('legalTermsEyebrow')}</p><h1 className="mt-4 font-serif text-5xl uppercase tracking-widest">{t('termsTitle')}</h1><div className="mt-10 space-y-8 text-sm leading-7 text-neutral-400">{sections.map(([heading, body]) => <section key={heading}><h2 className="font-serif text-2xl text-white">{t(heading)}</h2><p className="mt-3">{t(body)}</p></section>)}</div></article></main>
 }

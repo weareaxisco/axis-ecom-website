@@ -63,7 +63,7 @@ Footer destinations, boutique configuration, social links, and global brand load
 - [x] Add a global branded loading screen that displays the current configurable website/maison name during app hydration and route/data loading transitions.
 - [x] Add responsive footer QA for accordion behavior, accessible touch targets, keyboard focus outlines, and verified destination links.
 - [x] Add an admin preview/validation workflow for footer copy, social URLs, contact details, and boutique map settings before publishing.
-- [ ] Complete localized FR/EN copy for all new pages; footer destinations, boutique labels, careers content, and shared footer actions are now covered, while legacy legal and concierge copy remains.
+- [x] Complete localized FR/EN copy for all new pages; footer destinations, boutique labels, careers content, legal pages, Concierge, and shared footer actions are covered.
 - [x] Add SEO titles, descriptions, canonical URLs, and noindex handling for selected policy-only pages.
 
 ## Next Sprint: Feedback, Consent & Admin Intelligence
@@ -97,4 +97,4 @@ Footer destinations, boutique configuration, social links, and global brand load
 - [x] Fix the Admin inventory onsite-only switch styling and prevent Supabase UUID writes for local mock products.
 - [x] Add granular CNDP cookie personalization with required, analytics, and functional categories persisted in `maison_cookie_preferences`.
 - [x] Add configurable calendar webhook settings, iCal export, and confirmation/rescheduling synchronization for Admin appointments.
-- [ ] Complete the remaining full-site hardcoded-string audit across legacy Admin, legal, and storefront copy; Concierge, feedback, footer, Careers, Boutique, and operations labels are now localized.
+- [ ] Complete the remaining full-site hardcoded-string audit across legacy Admin and storefront copy; legal, Concierge, feedback, footer, Careers, Boutique, and operations labels are now localized.
