@@ -1,0 +1,12 @@
+city_id,city_name,delivery_price_dh,estimated_days,region
+casablanca,Casablanca,25,1,Grand Casablanca-Settat
+rab-sale-kenitra,Rabat / Salé / Kénitra,35,2,Rabat-Salé-Kénitra
+marrakech,Marrakech,45,2,Marrakech-Safi
+tangier,Tangier,45,2,Tanger-Tetouan-Al Hoceima
+agadir,Agadir,45,3,Souss-Massa
+fes,Fes,45,2,Fès-Meknès
+meknes,Meknes,45,2,Fès-Meknès
+oujda,Oujda,60,3,Oriental
+laayoune,Laâyoune,60,4,Laâyoune-Sakia El Hamra
+dakhla,Dakhla,60,5,Dakhla-Oued Ed-Dahab
+tetouan,Tetouan,45,3,Tanger-Tetouan-Al Hoceima
