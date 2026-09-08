@@ -33,6 +33,11 @@ import { trackEvent } from './utils/analytics'
 import MaisonInformation from './pages/MaisonInformation'
 import './App.css'
 
+function NotFound() {
+  const { t } = useLanguage()
+  return <main className="min-h-[60vh] px-4 py-32 text-center"><h1 className="font-serif text-4xl">{t('pageNotFoundTitle')}</h1><p className="mt-4 text-sm text-[var(--text-muted)]">{t('pageNotFoundDescription')}</p><a href="/" className="mt-8 inline-flex border border-[var(--accent-gold)] px-6 py-3 text-xs uppercase tracking-widest text-[var(--accent-gold)]">{t('returnHome')}</a></main>
+}
+
 function ScrollToTop() {
   const { pathname } = useLocation()
 
@@ -81,6 +86,7 @@ function App() {
             <Route path="/craftsmanship" element={<MaisonInformation page="craftsmanship" />} />
             <Route path="/legal/cookies" element={<MaisonInformation page="cookies" />} />
             <Route path="/legal/modern-slavery" element={<MaisonInformation page="slavery" />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
           <Footer />
             <BagDrawer />
