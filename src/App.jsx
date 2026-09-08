@@ -10,6 +10,7 @@ import Checkout from './pages/Checkout'
 import Admin from './pages/Admin'
 import Account from './pages/Account'
 import Concierge from './pages/Concierge'
+import Catalog from './pages/Catalog'
 import BagDrawer from './components/BagDrawer'
 import WhatsAppConcierge from './components/WhatsAppConcierge'
 import { ConfigProvider } from './context/ConfigContext'
@@ -46,6 +47,7 @@ function App() {
             <Route path="/admin" element={<Admin />} />
             <Route path="/account" element={<Account />} />
             <Route path="/concierge" element={<Concierge />} />
+            <Route path="/catalog" element={<Catalog />} />
           </Routes>
           <Footer />
             <BagDrawer />
