@@ -47,3 +47,4 @@
 - [x] Split vendor chunks with Vite manual chunking for the mobile performance target; existing lint warnings are non-blocking.
 - [x] Add admin appointment operations with status management.
 - [x] Integrate Ameex Sandbox parcel creation, tracking persistence, and signed status webhook handling.
+- [x] Add explicit, feature-flagged Ameex dispatch controls and responsive wishlist drawer actions without bag-drawer stacking.

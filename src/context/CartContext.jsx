@@ -37,7 +37,7 @@ export function CartProvider({ children }) {
         variant: options.variant || product.variant || product.material || 'Signature selection',
       }]
     })
-    setIsBagOpen(true)
+    if (!options.suppressBagOpen) setIsBagOpen(true)
   }
 
   const removeFromCart = (cartKey) => updateCart((current) => current.filter((item) => item.cartKey !== cartKey))

@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient'
 const apiId = import.meta.env.VITE_AMEEX_API_ID
 const apiKey = import.meta.env.VITE_AMEEX_API_KEY
 const apiUrl = import.meta.env.VITE_AMEEX_API_URL || 'https://api.ameex.app'
+export const ameexDispatchEnabled = import.meta.env.VITE_ENABLE_AMEEX_DISPATCH === 'true'
 
 function requireConfig() {
   if (!apiId || !apiKey) throw new Error('Ameex API configuration is incomplete. Set VITE_AMEEX_API_ID and VITE_AMEEX_API_KEY.')
@@ -15,6 +16,7 @@ function trackingCode(payload) {
 }
 
 export async function createSandboxParcel(order) {
+  if (!ameexDispatchEnabled) throw new Error('Ameex dispatch is disabled. Set VITE_ENABLE_AMEEX_DISPATCH=true to enable it.')
   requireConfig()
   const item = order.items?.[0] || {}
   const form = new URLSearchParams({

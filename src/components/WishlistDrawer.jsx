@@ -1,12 +1,48 @@
-import { X } from 'lucide-react'
+import { Check, Trash2, X } from 'lucide-react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import { useLanguage } from '../context/LanguageContext'
+import { getProductPrice } from '../utils/productUtils'
 
 export default function WishlistDrawer() {
   const { addToCart } = useCart()
   const { wishlistItems, removeFromWishlist, isWishlistOpen, setIsWishlistOpen } = useWishlist()
   const { t } = useLanguage()
-  return <div className={`fixed inset-0 z-[75] transition-opacity ${isWishlistOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}><button type="button" aria-label={t('closeOverlay')} onClick={() => setIsWishlistOpen(false)} className="absolute inset-0 bg-black/70" /><aside className={`absolute inset-y-0 right-0 w-full max-w-md bg-neutral-950 p-6 text-white transition-transform ${isWishlistOpen ? 'translate-x-0' : 'translate-x-full'}`}><header className="flex justify-between border-b border-neutral-800 pb-5"><h2 className="font-serif text-2xl uppercase tracking-widest">{t('wishlistTitle')}</h2><button type="button" aria-label={t('closeOverlay')} onClick={() => setIsWishlistOpen(false)}><X /></button></header><div className="mt-6 space-y-5">{wishlistItems.length ? wishlistItems.map((item) => { const image = item.main_image_url || item.image || item.images?.[0]; const price = Number(item.price ?? item.price_dh ?? 0); return <article key={item.id} className="flex gap-4 border-b border-neutral-800 pb-5"><Link to={`/product/${item.id}`} onClick={() => setIsWishlistOpen(false)} className="shrink-0"><img src={image} alt={item.name} className="h-24 w-20 object-cover transition-opacity hover:opacity-80" /></Link><div className="flex-1"><Link to={`/product/${item.id}`} onClick={() => setIsWishlistOpen(false)} className="font-serif hover:text-amber-300">{item.name}</Link><p className="mt-2 text-sm text-amber-400">{price.toLocaleString()} DH</p><div className="mt-4 flex flex-wrap gap-3"><button type="button" onClick={() => addToCart({ ...item, price })} className="text-[10px] uppercase tracking-widest text-amber-300 hover:text-amber-200">{t('addToBagShort')}</button><button type="button" onClick={() => removeFromWishlist(item.id)} className="text-[10px] uppercase tracking-widest text-neutral-500 hover:text-white">{t('remove')}</button></div></div></article> }) : <p className="py-16 text-center text-sm text-neutral-500">{t('wishlistEmpty')}</p>}</div></aside></div>
+  const [addedId, setAddedId] = useState(null)
+
+  const addWishlistItem = (item) => {
+    addToCart({ ...item, price: getProductPrice(item) }, 1, { suppressBagOpen: true })
+    setAddedId(item.id)
+    window.setTimeout(() => setAddedId((current) => current === item.id ? null : current), 2000)
+  }
+
+  return <div className={`fixed inset-0 z-50 transition-opacity ${isWishlistOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}>
+    <button type="button" aria-label={t('closeOverlay')} onClick={() => setIsWishlistOpen(false)} className="absolute inset-0 bg-black/70" />
+    <aside className={`absolute inset-y-0 right-0 flex w-full flex-col bg-neutral-950 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] text-white shadow-2xl transition-transform sm:w-[400px] ${isWishlistOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <header className="flex shrink-0 items-center justify-between border-b border-neutral-800 pb-5">
+        <h2 className="font-serif text-2xl uppercase tracking-widest">{t('wishlistTitle')}</h2>
+        <button type="button" aria-label={t('closeOverlay')} onClick={() => setIsWishlistOpen(false)} className="flex min-h-11 min-w-11 items-center justify-center"><X strokeWidth={1.5} /></button>
+      </header>
+      <div className="mt-6 min-h-0 flex-1 space-y-5 overflow-y-auto">
+        {wishlistItems.length ? wishlistItems.map((item) => {
+          const image = item.main_image_url || item.image || item.images?.[0]
+          const price = getProductPrice(item)
+          const isAdded = addedId === item.id
+          return <article key={item.id} className="relative flex gap-4 border-b border-neutral-800 pb-5">
+            <Link to={`/product/${item.id}`} onClick={() => setIsWishlistOpen(false)} className="shrink-0"><img src={image} alt={item.name} className="h-24 w-20 object-cover transition-opacity hover:opacity-80" /></Link>
+            <div className="min-w-0 flex-1 pr-8">
+              <button type="button" aria-label={`${t('remove')} ${item.name}`} onClick={() => removeFromWishlist(item.id)} className="absolute right-0 top-0 flex min-h-11 min-w-11 items-center justify-center text-neutral-500 transition-colors hover:text-rose-300"><Trash2 size={16} strokeWidth={1.5} /></button>
+              <Link to={`/product/${item.id}`} onClick={() => setIsWishlistOpen(false)} className="font-serif hover:text-amber-300">{item.name}</Link>
+              <p className="mt-2 text-sm text-amber-400">{price.toLocaleString()} DH</p>
+              <button type="button" onClick={() => addWishlistItem(item)} disabled={isAdded} className={`mt-4 flex min-h-11 w-full items-center justify-center gap-2 px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-colors ${isAdded ? 'bg-emerald-700 text-white' : 'bg-amber-400 text-black hover:bg-amber-300'}`}>
+                {isAdded && <Check size={15} strokeWidth={1.5} />}{isAdded ? '✓ Ajouté au panier' : t('addToBagShort')}
+              </button>
+            </div>
+          </article>
+        }) : <p className="py-16 text-center text-sm text-neutral-500">{t('wishlistEmpty')}</p>}
+      </div>
+    </aside>
+  </div>
 }
