@@ -8,6 +8,7 @@ import Footer from './components/Footer'
 import Register from './pages/Register'
 import Checkout from './pages/Checkout'
 import Admin from './pages/Admin'
+import Account from './pages/Account'
 import BagDrawer from './components/BagDrawer'
 import { ConfigProvider } from './context/ConfigContext'
 import { CartProvider } from './context/CartContext'
@@ -41,6 +42,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/account" element={<Account />} />
           </Routes>
           <Footer />
             <BagDrawer />
