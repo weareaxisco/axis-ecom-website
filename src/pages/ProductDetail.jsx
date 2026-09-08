@@ -11,6 +11,8 @@ import SEOHead from '../components/SEOHead'
 import { Heart } from 'lucide-react'
 import { useWishlist } from '../context/WishlistContext'
 import { getProductPrice } from '../utils/productUtils'
+import ProductReviews from '../components/ProductReviews'
+import EnquiryModal from '../components/EnquiryModal'
 
 const metals = ['18k Rose Gold', '18k Yellow Gold', '18k White Gold', 'Platinum']
 
@@ -24,6 +26,7 @@ export default function ProductDetail() {
   const [size, setSize] = useState('52')
   const [guideOpen, setGuideOpen] = useState(false)
   const [open, setOpen] = useState('details')
+  const [enquiryOpen, setEnquiryOpen] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -69,13 +72,16 @@ export default function ProductDetail() {
               </div>
               {isRing && <div className="mt-6"><label htmlFor="ring-size" className="text-[10px] uppercase tracking-widest text-neutral-400">Ring Size</label><div className="mt-3 flex gap-2"><select id="ring-size" value={size} onChange={(event) => setSize(event.target.value)} className="flex-1 border border-neutral-800 bg-neutral-900 px-3 py-3 text-sm">{Array.from({ length: 8 }, (_, index) => 48 + index * 2).map((value) => <option key={value} value={value}>EU {value}</option>)}</select><button type="button" onClick={() => setGuideOpen(true)} className="border border-amber-500/50 px-3 text-[10px] uppercase tracking-widest text-amber-300">Find Your Size</button></div></div>}
               {product.onsite_only ? <><p className="mt-8 border border-amber-500/40 p-3 text-center text-[10px] uppercase tracking-widest text-amber-300">Exclusive Boutique Pickup</p><Link to="/concierge" className="mt-3 flex w-full items-center justify-center border border-amber-500 py-4 text-xs uppercase tracking-widest text-amber-300">Book Private Consultation</Link></> : <button type="button" onClick={() => addToCart(product, 1, { variant: `${metal}${isRing ? ` / EU ${size}` : ''}` })} className="mt-8 flex w-full items-center justify-center bg-amber-500 py-4 text-xs font-semibold uppercase tracking-widest text-neutral-950 hover:bg-amber-400">Add to Shopping Bag</button>}
+              <button type="button" onClick={() => setEnquiryOpen(true)} className="mt-3 flex w-full items-center justify-center border border-amber-500/50 py-4 text-xs uppercase tracking-widest text-amber-300 hover:border-amber-400">Inquire About Customization</button>
               <a href={`https://wa.me/${config.whatsapp_number}?text=${message}`} target="_blank" rel="noreferrer" className="mt-3 flex w-full items-center justify-center border border-neutral-700 py-4 text-xs uppercase tracking-widest hover:border-amber-400">Speak With a Jewelry Advisor</a>
               <div className="mt-10 border-y border-neutral-800">{accordion.map(([key, title, content]) => <div key={key} className="border-b border-neutral-800 last:border-0"><button type="button" onClick={() => setOpen(open === key ? null : key)} className="flex w-full items-center justify-between py-5 text-left text-[10px] uppercase tracking-[0.16em]">{title}{open === key ? <Minus size={15} /> : <><Plus size={15} /><ChevronDown size={12} /></>}</button>{open === key && <p className="pb-5 text-sm leading-7 text-neutral-400">{content}</p>}</div>)}</div>
             </section>
           </div>
+          <ProductReviews productId={product.id} />
         </div>
       </main>
       {guideOpen && <RingSizeGuideModal onClose={() => setGuideOpen(false)} />}
+      {enquiryOpen && <EnquiryModal product={product} onClose={() => setEnquiryOpen(false)} />}
     </>
   )
 }

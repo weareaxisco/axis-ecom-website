@@ -1,12 +1,13 @@
 import { RotateCcw, X } from 'lucide-react'
 
-const groups = [
+const defaultGroups = [
   ['Categories', 'category', ['High Jewelry', 'Fine Jewelry', 'Timepieces', 'Haute Horlogerie']],
   ['Metals & Materials', 'metal', ['18k Yellow Gold', '18k Rose Gold', '18k White Gold', 'Platinum']],
   ['Gemstones', 'gemstone', ['Diamonds', 'Emeralds', 'Sapphires', 'Rubies']],
 ]
 
-export default function FilterSidebar({ filters, onChange, onReset, mobile = false }) {
+export default function FilterSidebar({ filters, onChange, onReset, mobile = false, categoryOptions }) {
+  const groups = [[defaultGroups[0][0], defaultGroups[0][1], categoryOptions?.length ? categoryOptions : defaultGroups[0][2]], ...defaultGroups.slice(1)]
   const active = Object.entries(filters).flatMap(([key, values]) => Array.isArray(values) ? values.map((value) => ({ key, value })) : [])
   const toggle = (key, value) => onChange(key, filters[key].includes(value) ? filters[key].filter((item) => item !== value) : [...filters[key], value])
 

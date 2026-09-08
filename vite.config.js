@@ -9,14 +9,16 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/react-router')) return 'vendor-react'
+          if (id.includes('node_modules/react-dom')) return 'vendor-react-dom'
+          if (id.includes('node_modules/react-router')) return 'vendor-router'
+          if (id.includes('node_modules/react/')) return 'vendor-react'
           if (id.includes('node_modules/@supabase/supabase-js')) return 'vendor-supabase'
           if (id.includes('node_modules/lucide-react')) return 'vendor-icons'
           return undefined
         },
       },
     },
-    chunkSizeWarningLimit: 150,
+    chunkSizeWarningLimit: 250,
   },
   server: {
     allowedHosts: ['lunchbox-secular-baguette.ngrok-free.dev'],

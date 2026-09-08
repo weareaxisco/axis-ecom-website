@@ -1,18 +1,40 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 
-const categories = ['High Jewelry', 'Fine Jewelry', 'Timepieces', 'Haute Horlogerie']
-const collections = ['Ice Cube', 'Happy Sport', 'Alpine Eagle', "L'Élégance"]
-const initial = { name: '', category: categories[0], collection: collections[0], price_dh: '', images: '', description: '', material: '', stock: '0', onsite_only: false }
+const fallbackCategories = ['High Jewelry', 'Fine Jewelry', 'Timepieces', 'Haute Horlogerie']
+const fallbackCollections = ['Ice Cube', 'Happy Sport', 'Alpine Eagle', "L'Élégance"]
 
 export default function AdminAddProductModal({ onClose, onCreated }) {
-  const [form, setForm] = useState(initial)
+  const [categories, setCategories] = useState(fallbackCategories)
+  const [collections, setCollections] = useState(fallbackCollections)
+  const [categoryRecords, setCategoryRecords] = useState([])
+  const [collectionRecords, setCollectionRecords] = useState([])
+  const [form, setForm] = useState({ name: '', category: fallbackCategories[0], collection: fallbackCollections[0], price_dh: '', images: '', description: '', material: '', stock: '0', onsite_only: false })
   const [error, setError] = useState('')
+  useEffect(() => {
+    Promise.all([
+      supabase.from('categories').select('id, name_en').order('name_en'),
+      supabase.from('collections').select('id, name').order('name'),
+    ]).then(([categoryResult, collectionResult]) => {
+      if (!categoryResult.error && categoryResult.data?.length) {
+        setCategoryRecords(categoryResult.data)
+        const values = categoryResult.data.map((item) => item.name_en)
+        setCategories(values)
+        setForm((current) => ({ ...current, category: values.includes(current.category) ? current.category : values[0] }))
+      }
+      if (!collectionResult.error && collectionResult.data?.length) {
+        setCollectionRecords(collectionResult.data)
+        const values = collectionResult.data.map((item) => item.name)
+        setCollections(values)
+        setForm((current) => ({ ...current, collection: values.includes(current.collection) ? current.collection : values[0] }))
+      }
+    })
+  }, [])
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.type === 'checkbox' ? event.target.checked : event.target.value }))
   const submit = async (event) => {
     event.preventDefault()
-    const payload = { ...form, slug: form.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-'), price_dh: Number(form.price_dh), stock: Number(form.stock), images: form.images.split(/\r?\n|,/).map((value) => value.trim()).filter(Boolean) }
+    const payload = { ...form, category_id: categoryRecords.find((item) => item.name_en === form.category)?.id || null, collection_id: collectionRecords.find((item) => item.name === form.collection)?.id || null, slug: form.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-'), price_dh: Number(form.price_dh), stock: Number(form.stock), images: form.images.split(/\r?\n|,/).map((value) => value.trim()).filter(Boolean) }
     const { data, error: insertError } = await supabase.from('products').insert(payload).select().single()
     if (insertError) { setError(insertError.message); return }
     onCreated(data); onClose()
