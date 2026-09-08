@@ -31,7 +31,7 @@
 
 ## Catalog Architecture
 
-- **Admin Product Attributes & Taxonomy System**: Define database entities for `Attributes` and `AttributeValues`. Configure Admin Product Creation forms to query these taxonomies as standardized dropdowns for Category, Metal, Gender, Shape, and Novelty rather than manual text entry, keeping storefront drawer facets synchronized automatically. **Status: not implemented; the current form uses hardcoded category and collection arrays.**
+- **Admin Product Attributes & Taxonomy System**: Define database entities for `Attributes` and `AttributeValues`. Configure Admin Product Creation forms to query these taxonomies as standardized dropdowns for Category, Metal, Gender, Shape, and Novelty rather than manual text entry, keeping storefront drawer facets synchronized automatically. **Status: implemented for database-backed attribute records and admin selectors; storefront attribute facets remain a follow-up.**
 
 ## Remaining Backlog
 
@@ -46,3 +46,4 @@
 - [x] Add focused automated coverage for critical customer flows and verify the full test suite.
 - [x] Split vendor chunks with Vite manual chunking for the mobile performance target; existing lint warnings are non-blocking.
 - [x] Add admin appointment operations with status management.
+- [x] Integrate Ameex Sandbox parcel creation, tracking persistence, and signed status webhook handling.
