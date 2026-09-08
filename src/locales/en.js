@@ -41,6 +41,7 @@ export default {
   wishlistTitle: 'Wishlist',
   wishlistEmpty: 'Your wishlist is empty.',
   addToBagShort: 'Add to Bag',
+  alreadyInBag: 'In Bag',
   addToWishlist: 'Add',
   remove: 'Remove',
   loading: 'Loading...',

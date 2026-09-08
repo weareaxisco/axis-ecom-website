@@ -41,6 +41,7 @@ export default {
   wishlistTitle: 'Favoris',
   wishlistEmpty: 'Votre liste de favoris est vide.',
   addToBagShort: 'Ajouter au panier',
+  alreadyInBag: 'Déjà au panier',
   addToWishlist: 'Ajouter',
   remove: 'Supprimer',
   loading: 'Chargement...',

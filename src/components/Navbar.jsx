@@ -75,7 +75,7 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin
             <span>{t('language')}</span>
             <LanguageSwitcher />
           </div>
-          <button type="button" onClick={() => { onClose(); onWishlist() }} className="flex w-full items-center justify-between text-left">{t('favorites')} <span className="flex items-center gap-2"><Heart size={16} strokeWidth={1.25} />{wishlistCount}</span></button>
+          <button type="button" onClick={() => { onClose(); onWishlist() }} className="flex w-full items-center justify-between text-left">{t('favorites')} <span className="flex items-center gap-2"><span className="font-medium text-amber-400">{wishlistCount}</span><Heart size={16} strokeWidth={1.25} className="fill-amber-400 text-amber-400" /></span></button>
           <button type="button" onClick={() => { onClose(); onLogin() }} className="flex w-full items-center justify-between text-left">{t('signInAccount')} <User size={16} strokeWidth={1.25} /></button>
           <div className="space-y-1 border-t border-[var(--border-subtle)] pt-4 opacity-70">
             <p>{config.location_city} | {config.phone_number}</p>
