@@ -9,7 +9,9 @@ import Register from './pages/Register'
 import Checkout from './pages/Checkout'
 import Admin from './pages/Admin'
 import Account from './pages/Account'
+import Concierge from './pages/Concierge'
 import BagDrawer from './components/BagDrawer'
+import WhatsAppConcierge from './components/WhatsAppConcierge'
 import { ConfigProvider } from './context/ConfigContext'
 import { CartProvider } from './context/CartContext'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
@@ -43,9 +45,11 @@ function App() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/account" element={<Account />} />
+            <Route path="/concierge" element={<Concierge />} />
           </Routes>
           <Footer />
             <BagDrawer />
+            <WhatsAppConcierge />
           </div>
         </CartProvider>
       </ConfigProvider>
