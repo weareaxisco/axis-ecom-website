@@ -16,6 +16,7 @@ import SearchDrawer from './SearchDrawer'
 import DesktopSearchDropdown from './DesktopSearchDropdown'
 import LoginDrawer from './LoginDrawer'
 import { useCart } from '../context/CartContext'
+import LanguageSwitcher from './LanguageSwitcher'
 
 const navigationLinks = [
   'High Jewelry',
@@ -219,7 +220,8 @@ export default function Navbar() {
             </a>
 
             <div className="flex h-10 items-center gap-1">
-              <IconButton
+            <LanguageSwitcher />
+            <IconButton
                 label={`Switch to ${themeMode === 'dark' ? 'light' : 'dark'} mode`}
                 onClick={toggleTheme}
               >

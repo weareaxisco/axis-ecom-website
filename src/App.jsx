@@ -15,6 +15,7 @@ import BagDrawer from './components/BagDrawer'
 import WhatsAppConcierge from './components/WhatsAppConcierge'
 import { ConfigProvider } from './context/ConfigContext'
 import { CartProvider } from './context/CartContext'
+import { LanguageProvider } from './context/LanguageContext'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import './App.css'
 
@@ -32,6 +33,7 @@ function App() {
   return (
     <BrowserRouter>
       <ConfigProvider>
+        <LanguageProvider>
         <CartProvider>
           <ScrollToTop />
           <div className="min-h-screen overflow-x-clip bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300">
@@ -54,6 +56,7 @@ function App() {
             <WhatsAppConcierge />
           </div>
         </CartProvider>
+        </LanguageProvider>
       </ConfigProvider>
     </BrowserRouter>
   )
