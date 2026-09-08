@@ -96,6 +96,7 @@ create table if not exists public.site_config (
   contact_phone text not null default '+212 522 000 000',
   contact_address text not null default 'Casablanca, Morocco',
   currency_label text not null default 'DH',
+  calendar_api_url text not null default '',
   instagram_url text not null default '',
   tiktok_url text not null default '',
   whatsapp_number text not null default '',

@@ -107,6 +107,10 @@ export default function Admin() {
   const updateOnsiteOnly = async (id, onsiteOnly) => {
     if (!can('manage_products')) return
     setProducts((current) => current.map((product) => product.id === id ? { ...product, onsite_only: onsiteOnly } : product))
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+      setNotice('Updated local mock product.')
+      return
+    }
     const { error } = await supabase.from('products').update({ onsite_only: onsiteOnly }).eq('id', id)
     if (error) setNotice(`Unable to save product restriction: ${error.message}`)
   }

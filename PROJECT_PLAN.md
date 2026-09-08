@@ -91,3 +91,10 @@ Footer destinations, boutique configuration, social links, and global brand load
 - [x] Add the `/boutique` showroom page with responsive details and Google Maps embed.
 - [x] Add a dynamic global hydration and route-transition loader using the configured website name.
 - [ ] Expand remaining footer content pages (care guide, delivery/returns, story, craftsmanship, cookies, and modern slavery) with dedicated localized content and SEO metadata.
+
+## Next Sprint: Operations Resilience, Consent & Localization
+
+- [x] Fix the Admin inventory onsite-only switch styling and prevent Supabase UUID writes for local mock products.
+- [x] Add granular CNDP cookie personalization with required, analytics, and functional categories persisted in `maison_cookie_preferences`.
+- [x] Add configurable calendar webhook settings, iCal export, and confirmation/rescheduling synchronization for Admin appointments.
+- [ ] Complete the remaining full-site hardcoded-string audit across legacy Admin, legal, concierge, and storefront copy; newly added operations and consent labels are localized.

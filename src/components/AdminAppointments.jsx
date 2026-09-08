@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { useSiteConfigSettings } from '../context/SiteConfigContext'
 
 const statuses = ['requested', 'confirmed', 'rescheduled', 'completed', 'cancelled']
 
 export default function AdminAppointments({ onError }) {
+  const { siteConfig } = useSiteConfigSettings()
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
   const [rescheduling, setRescheduling] = useState(null)
@@ -25,6 +27,29 @@ export default function AdminAppointments({ onError }) {
     setAppointments((current) => current.map((item) => item.id === id ? { ...item, status } : item))
     const { error } = await supabase.from('appointments').update({ status }).eq('id', id)
     if (error) onError(error.message)
+    if (!error && (status === 'confirmed' || status === 'rescheduled')) {
+      const appointment = appointments.find((item) => item.id === id)
+      if (appointment) syncCalendar(appointment, status)
+    }
+  }
+
+  const syncCalendar = async (appointment, status = appointment.status) => {
+    if (!siteConfig.calendar_api_url) return
+    const response = await fetch(siteConfig.calendar_api_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...appointment, status }) })
+    if (!response.ok) onError(`Calendar sync failed (${response.status})`)
+  }
+
+  const exportIcal = (appointment) => {
+    const start = `${appointment.appointment_date.replaceAll('-', '')}T${appointment.time_slot.replace(':', '')}00`
+    const escape = (value) => String(value || '').replaceAll(',', '\\,').replaceAll(';', '\\;')
+    const ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Maison//Appointments//EN\r\nBEGIN:VEVENT\r\nUID:${appointment.id}@maison\r\nDTSTART:${start}\r\nDTEND:${start}\r\nSUMMARY:${escape(appointment.consultation_type)}\r\nLOCATION:${escape(appointment.boutique_location)}\r\nDESCRIPTION:${escape(`Guests: ${appointment.guests}`)}\r\nEND:VEVENT\r\nEND:VCALENDAR`
+    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `appointment-${appointment.id}.ics`
+    link.click()
+    URL.revokeObjectURL(url)
+    syncCalendar(appointment)
   }
 
   const openReschedule = (appointment) => {
@@ -47,6 +72,7 @@ export default function AdminAppointments({ onError }) {
     setAppointments((current) => current.map((item) => item.id === rescheduling.id
       ? { ...item, appointment_date: date, time_slot: time, status: 'rescheduled' }
       : item))
+    syncCalendar({ ...rescheduling, appointment_date: date, time_slot: time, status: 'rescheduled' }, 'rescheduled')
     setRescheduling(null)
   }
 
@@ -73,7 +99,7 @@ export default function AdminAppointments({ onError }) {
                   </select>
                 </td>
                 <td className="px-5 py-5">
-                  <button type="button" onClick={() => openReschedule(appointment)} className="border border-amber-500/50 px-3 py-2 text-[10px] uppercase tracking-widest text-amber-300">Reschedule</button>
+                  <div className="flex gap-2"><button type="button" onClick={() => openReschedule(appointment)} className="border border-amber-500/50 px-3 py-2 text-[10px] uppercase tracking-widest text-amber-300">Reschedule</button>{appointment.status === 'confirmed' && <button type="button" onClick={() => exportIcal(appointment)} className="border border-neutral-700 px-3 py-2 text-[10px] uppercase tracking-widest text-neutral-300">Export iCal / Sync</button>}</div>
                 </td>
               </tr>
             ))}
