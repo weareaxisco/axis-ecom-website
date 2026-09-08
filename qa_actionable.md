@@ -31,7 +31,7 @@ then reload and navigate repeatedly.
 - [ ] **QA-1.2-01 — Fix initial homepage startup errors and flashes.** The `/`
   route must load without caught errors, a blank/white flash, or visible
   startup glitches.
-- [ ] **QA-1.2-02 — Complete the Newsletter footer action.** The Newsletter
+- [x] **QA-1.2-02 — Complete the Newsletter footer action.** The Newsletter
   button must perform its intended action or be removed/replaced with a real
   destination; it must not be a dead control.
 - [ ] **QA-1.2-03 — Implement the intended unknown-route fallback.** An
