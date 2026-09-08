@@ -97,4 +97,4 @@ Footer destinations, boutique configuration, social links, and global brand load
 - [x] Fix the Admin inventory onsite-only switch styling and prevent Supabase UUID writes for local mock products.
 - [x] Add granular CNDP cookie personalization with required, analytics, and functional categories persisted in `maison_cookie_preferences`.
 - [x] Add configurable calendar webhook settings, iCal export, and confirmation/rescheduling synchronization for Admin appointments.
-- [ ] Complete the remaining full-site hardcoded-string audit across legacy Admin and storefront copy; legal, Concierge, feedback, footer, Careers, Boutique, and operations labels are now localized.
+- [ ] Complete the remaining full-site hardcoded-string audit across legacy Admin subcomponents and secondary storefront surfaces; legal, Concierge, feedback, footer, Careers, Boutique, Checkout, Search, Account, and core product labels are now localized.
