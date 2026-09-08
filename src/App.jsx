@@ -7,6 +7,7 @@ import SearchResults from './components/SearchResults'
 import Footer from './components/Footer'
 import Register from './pages/Register'
 import Checkout from './pages/Checkout'
+import Admin from './pages/Admin'
 import BagDrawer from './components/BagDrawer'
 import { ConfigProvider } from './context/ConfigContext'
 import { CartProvider } from './context/CartContext'
@@ -39,6 +40,7 @@ function App() {
             <Route path="/search" element={<SearchResults />} />
             <Route path="/register" element={<Register />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/admin" element={<Admin />} />
           </Routes>
           <Footer />
             <BagDrawer />
