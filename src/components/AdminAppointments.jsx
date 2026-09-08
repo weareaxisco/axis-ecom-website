@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useSiteConfigSettings } from '../context/SiteConfigContext'
+import { useLanguage } from '../context/LanguageContext'
 
 const statuses = ['requested', 'confirmed', 'rescheduled', 'completed', 'cancelled']
 
 export default function AdminAppointments({ onError }) {
+  const { t } = useLanguage()
   const { siteConfig } = useSiteConfigSettings()
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
@@ -36,7 +38,7 @@ export default function AdminAppointments({ onError }) {
   const syncCalendar = async (appointment, status = appointment.status) => {
     if (!siteConfig.calendar_api_url) return
     const response = await fetch(siteConfig.calendar_api_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...appointment, status }) })
-    if (!response.ok) onError(`Calendar sync failed (${response.status})`)
+    if (!response.ok) onError(`${t('calendarSyncFailed')} (${response.status})`)
   }
 
   const exportIcal = (appointment) => {
@@ -76,14 +78,14 @@ export default function AdminAppointments({ onError }) {
     setRescheduling(null)
   }
 
-  if (loading) return <p className="py-16 text-center text-sm text-neutral-500">Loading appointments...</p>
+  if (loading) return <p className="py-16 text-center text-sm text-neutral-500">{t('loadingAppointments')}</p>
 
   return (
     <>
       <div className="overflow-x-auto border border-neutral-800 bg-neutral-950/70">
         <table className="w-full min-w-[900px] text-left">
           <thead className="border-b border-neutral-800 text-[10px] uppercase tracking-widest text-neutral-500">
-            <tr>{['Boutique', 'Date', 'Time', 'Guests', 'Focus', 'Status', 'Actions'].map((heading) => <th key={heading} className="px-5 py-4">{heading}</th>)}</tr>
+            <tr>{[t('boutique'), t('date'), t('time'), t('guestsLabel'), t('focus'), t('adminStatus'), t('actions')].map((heading) => <th key={heading} className="px-5 py-4">{heading}</th>)}</tr>
           </thead>
           <tbody className="divide-y divide-neutral-800">
             {appointments.map((appointment) => (
@@ -99,29 +101,29 @@ export default function AdminAppointments({ onError }) {
                   </select>
                 </td>
                 <td className="px-5 py-5">
-                  <div className="flex gap-2"><button type="button" onClick={() => openReschedule(appointment)} className="border border-amber-500/50 px-3 py-2 text-[10px] uppercase tracking-widest text-amber-300">Reschedule</button>{appointment.status === 'confirmed' && <button type="button" onClick={() => exportIcal(appointment)} className="border border-neutral-700 px-3 py-2 text-[10px] uppercase tracking-widest text-neutral-300">Export iCal / Sync</button>}</div>
+                  <div className="flex gap-2"><button type="button" onClick={() => openReschedule(appointment)} className="border border-amber-500/50 px-3 py-2 text-[10px] uppercase tracking-widest text-amber-300">{t('reschedule')}</button>{appointment.status === 'confirmed' && <button type="button" onClick={() => exportIcal(appointment)} className="border border-neutral-700 px-3 py-2 text-[10px] uppercase tracking-widest text-neutral-300">{t('exportIcalSync')}</button>}</div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {!appointments.length && <p className="p-10 text-center text-sm text-neutral-500">No appointments found.</p>}
+        {!appointments.length && <p className="p-10 text-center text-sm text-neutral-500">{t('noAppointmentsFound')}</p>}
       </div>
       {rescheduling && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/80 p-4">
           <form onSubmit={saveReschedule} className="w-full max-w-md border border-neutral-800 bg-neutral-950 p-6 text-white">
             <div className="flex items-center justify-between">
-              <h2 className="font-serif text-xl uppercase tracking-widest">Reschedule Appointment</h2>
-              <button type="button" onClick={() => setRescheduling(null)} aria-label="Close reschedule dialog" className="text-neutral-400">×</button>
+              <h2 className="font-serif text-xl uppercase tracking-widest">{t('rescheduleAppointment')}</h2>
+              <button type="button" onClick={() => setRescheduling(null)} aria-label={t('close')} className="text-neutral-400">×</button>
             </div>
             <p className="mt-3 text-xs text-neutral-500">{rescheduling.boutique_location}</p>
-            <label className="mt-6 block text-[10px] uppercase tracking-widest text-neutral-400">Date
+            <label className="mt-6 block text-[10px] uppercase tracking-widest text-neutral-400">{t('date')}
               <input required type="date" value={date} onChange={(event) => setDate(event.target.value)} className="mt-2 w-full border border-neutral-800 bg-neutral-900 px-3 py-3 text-sm" />
             </label>
-            <label className="mt-4 block text-[10px] uppercase tracking-widest text-neutral-400">Time
+            <label className="mt-4 block text-[10px] uppercase tracking-widest text-neutral-400">{t('time')}
               <input required type="time" value={time} onChange={(event) => setTime(event.target.value)} className="mt-2 w-full border border-neutral-800 bg-neutral-900 px-3 py-3 text-sm" />
             </label>
-            <button type="submit" className="mt-6 w-full bg-amber-500 py-3 text-xs font-semibold uppercase tracking-widest text-black">Save Reschedule</button>
+            <button type="submit" className="mt-6 w-full bg-amber-500 py-3 text-xs font-semibold uppercase tracking-widest text-black">{t('saveReschedule')}</button>
           </form>
         </div>
       )}

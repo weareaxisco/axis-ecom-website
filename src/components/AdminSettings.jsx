@@ -3,8 +3,10 @@ import { supabase } from '../supabaseClient'
 import { useSiteConfigSettings } from '../context/SiteConfigContext'
 import { isSafeMapEmbedUrl } from '../utils/maps'
 import { validateSiteConfig } from '../utils/siteConfigValidation'
+import { useLanguage } from '../context/LanguageContext'
 
 export default function AdminSettings() {
+  const { t } = useLanguage()
   const { siteConfig, updateSiteConfig } = useSiteConfigSettings()
   const [form, setForm] = useState(siteConfig)
   const [message, setMessage] = useState('')
@@ -21,7 +23,7 @@ export default function AdminSettings() {
     const { error } = await supabase.from('site_config').upsert({ id: 1, ...form })
     if (error) { setMessage(error.message); return }
     updateSiteConfig(form)
-    setMessage('Site settings saved.')
+    setMessage(t('siteSettingsSaved'))
   }
   const input = 'mt-2 w-full border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm outline-none focus:border-amber-500'
   const validationErrors = validateSiteConfig(form)
