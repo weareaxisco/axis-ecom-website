@@ -16,7 +16,19 @@ export default function Concierge() {
   const submit = async (event) => {
     event.preventDefault()
     setError('')
-    const { error: insertError } = await supabase.from('appointments').insert({ location: form.location, appointment_date: form.date, appointment_time: form.time, guests: Number(form.guests), consultation_focus: form.focus })
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setError('Please sign in before requesting a private appointment.')
+      return
+    }
+    const { error: insertError } = await supabase.from('appointments').insert({
+      user_id: user.id,
+      boutique_location: form.location,
+      appointment_date: form.date,
+      time_slot: form.time,
+      consultation_type: form.focus,
+      guests: Number(form.guests),
+    })
     if (insertError) {
       setError(insertError.message)
       return

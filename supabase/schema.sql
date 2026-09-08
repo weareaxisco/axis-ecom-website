@@ -83,6 +83,7 @@ create table if not exists public.appointments (
   appointment_date date not null,
   time_slot text not null,
   consultation_type text not null,
+  guests integer not null default 1 check (guests between 1 and 4),
   status text not null default 'requested' check (status in ('requested', 'confirmed', 'completed', 'cancelled')),
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
