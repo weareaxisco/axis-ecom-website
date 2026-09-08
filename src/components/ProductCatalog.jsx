@@ -188,7 +188,6 @@ export default function ProductCatalog() {
       if (productResult.data?.length) {
         setProducts(productResult.data)
       } else {
-        console.warn('Supabase catalog returned no products; showing luxury fallback creations.')
         setProducts(mockProducts)
       }
       setLoading(false)
