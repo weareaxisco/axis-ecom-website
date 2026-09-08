@@ -42,7 +42,7 @@ export function CartProvider({ children }) {
   const removeFromCart = (cartKey) => updateCart((current) => current.filter((item) => item.cartKey !== cartKey))
   const updateQuantity = (cartKey, quantity) => updateCart((current) => current.map((item) => item.cartKey === cartKey ? { ...item, quantity: Math.max(1, quantity) } : item))
   const clearCart = () => updateCart(() => [])
-  const subtotal = useMemo(() => cartItems.reduce((total, item) => total + Number(item.price || 0) * item.quantity, 0), [cartItems])
+  const subtotal = useMemo(() => cartItems.reduce((total, item) => total + Number(item.price ?? item.price_dh ?? 0) * item.quantity, 0), [cartItems])
   const hasOnsiteOnly = useMemo(() => cartItems.some((item) => item.onsite_only === true), [cartItems])
   const value = useMemo(() => ({ cartItems, addToCart, removeFromCart, updateQuantity, clearCart, isBagOpen, setIsBagOpen, subtotal, hasOnsiteOnly }), [cartItems, isBagOpen, subtotal, hasOnsiteOnly])
 

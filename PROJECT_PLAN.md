@@ -15,9 +15,9 @@
 ## Current Sprint
 
 - [x] Cart, checkout, Ameex shipping, onsite-only pickup, admin base, RLS, and FR/EN i18n
-- [ ] Site Settings Management
-- [ ] Product Creation Form
-- [ ] Wishlist Drawer and Supabase synchronization
+- [x] Site Settings Management
+- [x] Product Creation Form
+- [x] Wishlist Drawer and Supabase synchronization, including clickable listings and add-to-bag actions
 
 ## Catalog Architecture
 
