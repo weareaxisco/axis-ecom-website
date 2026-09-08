@@ -98,6 +98,7 @@ export default function Navbar() {
   const [scrollY, setScrollY] = useState(0)
   const [scrollDirection, setScrollDirection] = useState('up')
   const [isMobileHeaderVisible, setIsMobileHeaderVisible] = useState(true)
+  const [isDesktopHeaderVisible, setIsDesktopHeaderVisible] = useState(true)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -105,19 +106,30 @@ export default function Navbar() {
 
   useEffect(() => {
     let lastScrollY = window.scrollY
+    let revealTimer
     const handleScroll = () => {
       const currentScrollY = window.scrollY
       setIsScrolled(currentScrollY > 20)
       setScrollY(currentScrollY)
       const nextDirection = currentScrollY < lastScrollY ? 'up' : 'down'
       setScrollDirection(nextDirection)
-      setIsMobileHeaderVisible(currentScrollY <= 20 || nextDirection === 'up')
+      const shouldShow = currentScrollY <= 20 || nextDirection === 'up'
+      setIsMobileHeaderVisible(shouldShow)
+      setIsDesktopHeaderVisible(shouldShow)
+      window.clearTimeout(revealTimer)
+      revealTimer = window.setTimeout(() => {
+        setIsMobileHeaderVisible(true)
+        setIsDesktopHeaderVisible(true)
+      }, 180)
       lastScrollY = currentScrollY
     }
 
     handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    return () => {
+      window.clearTimeout(revealTimer)
+      window.removeEventListener('scroll', handleScroll)
+    }
   }, [])
 
   useEffect(() => {
@@ -170,7 +182,7 @@ export default function Navbar() {
       <header
         data-scroll-y={scrollY}
         data-scroll-direction={scrollDirection}
-        className={`relative z-50 w-full border-b border-transparent bg-transparent text-[var(--text-primary)] transition-all duration-300 ease-out md:sticky md:top-0 md:z-50 md:bg-[var(--bg-primary)] ${
+        className={`relative z-50 w-full border-b border-transparent bg-transparent text-[var(--text-primary)] transition-all duration-300 ease-out md:sticky md:top-0 md:z-50 md:bg-[var(--bg-primary)] ${isDesktopHeaderVisible ? 'md:translate-y-0' : 'md:-translate-y-full'} ${
           isScrolled
             ? 'border-[var(--border-subtle)]/80 bg-[var(--bg-primary)]/90 shadow-sm backdrop-blur-md'
             : ''

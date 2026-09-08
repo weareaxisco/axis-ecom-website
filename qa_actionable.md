@@ -34,7 +34,7 @@ then reload and navigate repeatedly.
 - [x] **QA-1.2-02 — Complete the Newsletter footer action.** The Newsletter
   button must perform its intended action or be removed/replaced with a real
   destination; it must not be a dead control.
-- [ ] **QA-1.2-03 — Implement the intended unknown-route fallback.** An
+- [x] **QA-1.2-03 — Implement the intended unknown-route fallback.** An
   unknown URL must show a deliberate not-found/fallback view instead of a
   broken or blank application.
 
