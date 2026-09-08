@@ -5,6 +5,7 @@ import { useSiteConfig } from '../context/ConfigContext'
 import { supabase } from '../supabaseClient'
 import ProductCard from './ProductCard'
 import { mockProducts } from './ProductCatalog'
+import { useCart } from '../context/CartContext'
 
 const imageFallback =
   'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=1000'
@@ -18,6 +19,7 @@ function relatedName(value) {
 }
 
 export default function ProductDetailPage() {
+  const { addToCart } = useCart()
   const { id } = useParams()
   const navigate = useNavigate()
   const { config } = useSiteConfig()
@@ -93,6 +95,7 @@ export default function ProductDetailPage() {
             <h1 className="mt-4 font-serif text-2xl uppercase tracking-widest md:text-3xl">{name}</h1>
             <p className="mt-4 text-xs uppercase tracking-wider opacity-65">{product.subtitle || product.material || category}</p>
             <p className="mt-8 text-sm font-semibold tracking-wider text-[var(--text-primary)]">{Number.isFinite(price) ? `${price.toLocaleString()} ${config.currency_symbol || 'MAD'}` : 'Price on request'}</p>
+            <button type="button" onClick={() => addToCart(product)} className="mt-6 flex w-full items-center justify-center bg-[var(--accent-gold)] py-3.5 text-xs font-semibold uppercase tracking-widest text-[var(--bg-primary)] transition-opacity hover:opacity-85">Add to Shopping Bag</button>
             <a href={`https://wa.me/${config.whatsapp_number}?text=${encodeURIComponent(`Greetings, I would like to inquire about the ${name} listed on ${config.store_name}.`)}`} target="_blank" rel="noreferrer" className="mt-10 flex w-full items-center justify-center bg-black py-3.5 text-xs font-semibold uppercase tracking-widest text-white shadow-md transition-transform active:scale-[0.99] dark:bg-white dark:text-black">Contact Us / Boutique Appointment</a>
             <div className="mt-12 border-y border-[var(--border-subtle)]">
               {[

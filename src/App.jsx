@@ -6,7 +6,10 @@ import ProductDetailPage from './components/ProductDetailPage'
 import SearchResults from './components/SearchResults'
 import Footer from './components/Footer'
 import Register from './pages/Register'
+import Checkout from './pages/Checkout'
+import BagDrawer from './components/BagDrawer'
 import { ConfigProvider } from './context/ConfigContext'
+import { CartProvider } from './context/CartContext'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import './App.css'
 
@@ -24,8 +27,9 @@ function App() {
   return (
     <BrowserRouter>
       <ConfigProvider>
-        <ScrollToTop />
-        <div className="min-h-screen overflow-x-clip bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300">
+        <CartProvider>
+          <ScrollToTop />
+          <div className="min-h-screen overflow-x-clip bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300">
           <div className="fixed left-0 right-0 top-0 z-50">
             <Navbar />
           </div>
@@ -34,9 +38,12 @@ function App() {
             <Route path="/product/:id" element={<ProductDetailPage />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/checkout" element={<Checkout />} />
           </Routes>
           <Footer />
-        </div>
+            <BagDrawer />
+          </div>
+        </CartProvider>
       </ConfigProvider>
     </BrowserRouter>
   )

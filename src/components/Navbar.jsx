@@ -15,6 +15,7 @@ import { useSiteConfig } from '../context/ConfigContext'
 import SearchDrawer from './SearchDrawer'
 import DesktopSearchDropdown from './DesktopSearchDropdown'
 import LoginDrawer from './LoginDrawer'
+import { useCart } from '../context/CartContext'
 
 const navigationLinks = [
   'High Jewelry',
@@ -81,6 +82,7 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin
 
 export default function Navbar() {
   const { config, themeMode, toggleTheme } = useSiteConfig()
+  const { cartItems, setIsBagOpen } = useCart()
   const [isScrolled, setIsScrolled] = useState(false)
   const [scrollY, setScrollY] = useState(0)
   const [scrollDirection, setScrollDirection] = useState('up')
@@ -126,7 +128,7 @@ export default function Navbar() {
     }
   }, [isDrawerOpen, isSearchOpen])
 
-  const cartCount = config.cart_item_count ?? config.cart_count ?? 0
+  const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0)
   const toggleDesktopSearch = () => {
     setIsDrawerOpen(false)
     setIsSearchOpen((open) => !open)
@@ -162,7 +164,7 @@ export default function Navbar() {
               {config.store_name}
             </a>
             <div className="flex w-[60px] items-center justify-end">
-              <IconButton label="Shopping bag" className="relative">
+              <IconButton label="Shopping bag" className="relative" onClick={() => setIsBagOpen(true)}>
               <ShoppingBag strokeWidth={1.25} size={19} />
               {cartCount > 0 && <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-gold)] px-1 text-[9px] text-[var(--bg-primary)]">{cartCount}</span>}
               </IconButton>
@@ -235,7 +237,7 @@ export default function Navbar() {
                 <User strokeWidth={1.25} size={19} />
                 </span>
               </IconButton>
-              <IconButton label="Shopping bag" className="relative">
+              <IconButton label="Shopping bag" className="relative" onClick={() => setIsBagOpen(true)}>
                 <ShoppingBag strokeWidth={1.25} size={20} />
                 {cartCount > 0 && (
                   <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-gold)] px-1 text-[9px] text-[var(--bg-primary)]">
