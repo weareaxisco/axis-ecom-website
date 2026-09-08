@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { CalendarDays, Check, Mail, Star, X } from 'lucide-react'
 import { useSiteConfig } from '../context/ConfigContext'
 import { supabase } from '../supabaseClient'
+import { useLanguage } from '../context/LanguageContext'
 
 const imageFallback =
   'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=1000'
@@ -23,6 +24,7 @@ function getSpec(product, keys, fallback) {
 }
 
 export default function ProductDetailModal({ product, onClose }) {
+  const { t } = useLanguage()
   const { config } = useSiteConfig()
   const [activeImage, setActiveImage] = useState(product?.main_image_url || imageFallback)
   const [reviews, setReviews] = useState([])
@@ -83,7 +85,7 @@ export default function ProductDetailModal({ product, onClose }) {
 
   if (!product) return null
 
-  const productName = product.name || product.title || 'Untitled creation'
+  const productName = product.name || product.title || t('curatingCreation')
   const reference = product.reference_code || product.reference || product.id
   const price = Number(product.price)
   const whatsappMessage = `Greetings, I would like to inquire about the ${productName} (Ref: ${reference}) listed on ${config.store_name}.`
@@ -94,14 +96,14 @@ export default function ProductDetailModal({ product, onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/80 p-4 backdrop-blur-md md:p-8" role="dialog" aria-modal="true" aria-labelledby="product-detail-title">
       <button
         type="button"
-        aria-label="Close product details"
+        aria-label={t('close')}
         onClick={onClose}
         className="absolute inset-0 bg-black/80 backdrop-blur-md"
       />
       <div className="scrollbar-thin relative z-10 flex max-h-[90vh] w-full max-w-5xl flex-col overflow-y-auto rounded-none border border-[var(--border-subtle)] bg-[var(--surface-primary)] text-[var(--text-primary)] shadow-2xl md:flex-row">
         <button
           type="button"
-          aria-label="Close product details"
+          aria-label={t('close')}
           onClick={onClose}
           className="absolute right-4 top-4 z-20 inline-flex h-10 w-10 items-center justify-center border border-[var(--border-subtle)] bg-[var(--bg-primary)]/70 transition-all duration-300 ease-out hover:border-[var(--accent-gold)] hover:text-[var(--accent-gold)]"
         >
@@ -147,15 +149,15 @@ export default function ProductDetailModal({ product, onClose }) {
           </div>
 
           <p className="max-w-lg text-sm leading-8 opacity-75">
-            {product.description || `A considered expression from ${config.store_name}, crafted for a lifetime of occasions.`}
+            {product.description || `${t('signatureCreation')} ${config.store_name}.`}
           </p>
 
           <div className="border-y border-[var(--border-subtle)]">
             {[
-              ['Material', getSpec(product, ['material', 'materials'], 'Precious metal')],
-              ['Carat weight', getSpec(product, ['carat_weight', 'carat'], 'Available on request')],
+              [t('metal'), getSpec(product, ['material', 'materials'], t('preciousMetal'))],
+              ['Carat weight', getSpec(product, ['carat_weight', 'carat'], t('availableOnRequest'))],
               ['Reference', reference],
-              ['Origin', getSpec(product, ['origin', 'country_of_origin'], config.location_city)],
+              [t('origin'), getSpec(product, ['origin', 'country_of_origin'], config.location_city)],
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between gap-6 border-b border-[var(--border-subtle)] py-3 text-xs last:border-b-0">
                 <span className="uppercase tracking-[0.18em] opacity-60">{label}</span>
@@ -166,22 +168,22 @@ export default function ProductDetailModal({ product, onClose }) {
 
           <div className="space-y-3">
             <a href={whatsappUrl} target="_blank" rel="noreferrer" className="flex w-full items-center justify-center gap-3 bg-[var(--accent-gold)] px-6 py-4 text-center text-xs uppercase tracking-[0.18em] text-[var(--bg-primary)] transition-all duration-300 ease-out hover:opacity-85">
-              Inquire via Private Concierge
+              {t('inquirePrivateConcierge')}
             </a>
             <div className="grid grid-cols-2 gap-3">
               <a href={emailUrl} className="flex items-center justify-center gap-2 border border-[var(--border-subtle)] px-4 py-3 text-[10px] uppercase tracking-[0.15em] transition-all duration-300 ease-out hover:border-[var(--accent-gold)] hover:text-[var(--accent-gold)]">
-                <Mail size={15} strokeWidth={1.25} /> Email Concierge
+                <Mail size={15} strokeWidth={1.25} /> {t('emailConcierge')}
               </a>
               <a href={`mailto:${config.concierge_email || ''}?subject=${encodeURIComponent(`Appointment request: ${productName}`)}`} className="flex items-center justify-center gap-2 border border-[var(--border-subtle)] px-4 py-3 text-[10px] uppercase tracking-[0.15em] transition-all duration-300 ease-out hover:border-[var(--accent-gold)] hover:text-[var(--accent-gold)]">
-                <CalendarDays size={15} strokeWidth={1.25} /> Book Appointment
+                <CalendarDays size={15} strokeWidth={1.25} /> {t('bookAppointment')}
               </a>
             </div>
           </div>
 
           <section className="border-t border-[var(--border-subtle)] pt-6">
-            <h3 className="font-serif text-xl">Testimonials</h3>
+            <h3 className="font-serif text-xl">{t('testimonials')}</h3>
             {reviewsLoading ? (
-              <p className="mt-4 text-xs opacity-60">Curating testimonials...</p>
+              <p className="mt-4 text-xs opacity-60">{t('curatingTestimonials')}</p>
             ) : reviews.length ? (
               <div className="mt-5 space-y-5">
                 {reviews.map((review) => (
@@ -193,14 +195,14 @@ export default function ProductDetailModal({ product, onClose }) {
                     </div>
                     <p className="mt-3 text-sm leading-7 opacity-80">“{review.comment || review.content}”</p>
                     <footer className="mt-3 flex items-center gap-2 text-[10px] uppercase tracking-[0.15em] opacity-60">
-                      {review.reviewer_name || review.name || 'Private Client'}
-                      <span className="inline-flex items-center gap-1 text-[var(--accent-gold)]"><Check size={12} strokeWidth={1.25} /> Verified</span>
+                      {review.reviewer_name || review.name || t('privateClient')}
+                      <span className="inline-flex items-center gap-1 text-[var(--accent-gold)]"><Check size={12} strokeWidth={1.25} /> {t('verified')}</span>
                     </footer>
                   </blockquote>
                 ))}
               </div>
             ) : (
-              <p className="mt-4 text-sm leading-7 opacity-60">Be the first to leave a testimonial for this creation.</p>
+              <p className="mt-4 text-sm leading-7 opacity-60">{t('firstTestimonial')}</p>
             )}
           </section>
         </div>
