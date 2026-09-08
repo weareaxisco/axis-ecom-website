@@ -3,7 +3,7 @@ import { useCart } from '../context/CartContext'
 import { generateInvoice } from '../utils/generateInvoice'
 import { useLanguage } from '../context/LanguageContext'
 
-const money = (value) => `${Number(value || 0).toLocaleString()} MAD`
+const money = (value) => `${Number(value || 0).toLocaleString()} DH`
 const fallbackCities = [
   { city_id: 'casablanca', city_name: 'Casablanca', delivery_price_dh: 25, estimated_days: 1, region: 'Grand Casablanca-Settat' },
   { city_id: 'rab-sale-kenitra', city_name: 'Rabat / Salé / Kénitra', delivery_price_dh: 35, estimated_days: 2, region: 'Rabat-Salé-Kénitra' },
@@ -84,8 +84,8 @@ export default function Checkout() {
   return (
     <main className="min-h-screen bg-[var(--bg-primary)] px-4 pb-20 pt-36 text-[var(--text-primary)] md:px-10">
       <div className="mx-auto max-w-6xl">
-        <header className="text-center"><p className="text-[10px] uppercase tracking-[0.25em] text-amber-400">Maison de l'Élégance</p><h1 className="mt-3 font-serif text-4xl uppercase tracking-widest">Checkout</h1></header>
-        <div className="mx-auto mt-10 flex max-w-2xl items-center justify-between text-[10px] uppercase tracking-widest">{['Delivery', 'Payment', 'Confirmation'].map((label, index) => <div key={label} className={`flex items-center gap-2 ${step === index + 1 ? 'text-amber-400' : 'text-neutral-500'}`}><span className="flex h-7 w-7 items-center justify-center rounded-full border border-current">{index + 1}</span>{label}</div>)}</div>
+        <header className="text-center"><p className="text-[10px] uppercase tracking-[0.25em] text-amber-400">Maison de l'Élégance</p><h1 className="mt-3 font-serif text-4xl uppercase tracking-widest">{t('checkoutTitle')}</h1></header>
+        <div className="mx-auto mt-10 flex max-w-2xl items-center justify-between text-[10px] uppercase tracking-widest">{[t('deliveryStep'), t('paymentStep'), t('confirmationStep')].map((label, index) => <div key={label} className={`flex items-center gap-2 ${step === index + 1 ? 'text-amber-400' : 'text-neutral-500'}`}><span className="flex h-7 w-7 items-center justify-center rounded-full border border-current">{index + 1}</span>{label}</div>)}</div>
         <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_360px]">
           <section className="border-t border-neutral-800 pt-8">
             {step === 1 && <div className="space-y-6">

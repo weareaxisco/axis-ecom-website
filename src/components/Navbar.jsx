@@ -19,15 +19,7 @@ import { useCart } from '../context/CartContext'
 import LanguageSwitcher from './LanguageSwitcher'
 import { useWishlist } from '../context/WishlistContext'
 import { useSiteConfigSettings } from '../context/SiteConfigContext'
-
-const navigationLinks = [
-  'High Jewelry',
-  'Fine Jewelry',
-  'Timepieces',
-  'Collections',
-  'The Maison',
-  'Concierge',
-]
+import { useLanguage } from '../context/LanguageContext'
 
 function IconButton({ label, children, onClick, className = '' }) {
   return (
@@ -42,7 +34,15 @@ function IconButton({ label, children, onClick, className = '' }) {
   )
 }
 
-function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin }) {
+function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin, wishlistCount, onWishlist }) {
+  const { t } = useLanguage()
+  const mobileLinks = [
+    [t('highJewelry'), '/catalog?category=High%20Jewelry'],
+    [t('fineJewelry'), '/catalog?category=Fine%20Jewelry'],
+    [t('timepieces'), '/catalog?category=Timepieces'],
+    [t('menuTheMaison'), '/'],
+    [t('concierge'), '/concierge'],
+  ]
   return (
     <div className={`pointer-events-none fixed inset-0 z-40 md:hidden ${isOpen ? 'visible' : 'invisible'}`} role="dialog" aria-modal="true" aria-hidden={!isOpen}>
       <button
@@ -52,15 +52,15 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin
         className={`fixed bottom-0 left-0 right-0 top-[60px] z-30 h-[calc(100dvh-60px)] bg-black/75 backdrop-blur-md transition-opacity duration-300 ${isOpen ? 'visible pointer-events-auto opacity-100' : 'invisible pointer-events-none opacity-0'}`}
       />
       <aside className={`fixed bottom-0 left-0 top-[60px] z-40 flex h-auto w-full max-w-full transform flex-col overflow-y-auto bg-[var(--surface-primary)] px-0 pt-0 text-[var(--text-primary)] shadow-2xl transition-transform duration-300 ease-in-out sm:w-[400px] ${isOpen ? 'visible pointer-events-auto translate-x-0' : 'invisible pointer-events-none -translate-x-full'}`}>
-        <nav className="flex flex-1 flex-col" aria-label="Mobile navigation">
-          {navigationLinks.map((link) => (
+        <nav className="flex flex-1 flex-col" aria-label={t('navigation')}>
+          {mobileLinks.map(([label, href]) => (
             <a
-              key={link}
-              href="#"
+              key={href}
+              href={href}
               onClick={onClose}
               className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-5 text-sm uppercase tracking-[0.18em] transition-all duration-300 ease-out first:pt-4 hover:text-[var(--accent-gold)]"
             >
-              {link}
+              {label}
               <ChevronRight size={16} strokeWidth={1.25} />
             </a>
           ))}
@@ -68,14 +68,18 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin
 
         <div className="space-y-4 bg-[var(--bg-primary)]/30 p-4 text-[10px] uppercase tracking-[0.18em]">
           <button type="button" onClick={toggleTheme} className="flex w-full items-center justify-between">
-            Theme Toggle
+            {t('themeToggle')}
             {themeMode === 'dark' ? <Sun size={16} strokeWidth={1.25} /> : <Moon size={16} strokeWidth={1.25} />}
           </button>
-          <a href="#" onClick={onClose} className="flex items-center justify-between">Favorites <span className="flex items-center gap-2"><Heart size={16} strokeWidth={1.25} />{config.favorite_count ?? 0}</span></a>
-          <button type="button" onClick={() => { onClose(); onLogin() }} className="flex w-full items-center justify-between text-left">Sign In / Account <User size={16} strokeWidth={1.25} /></button>
+          <div className="flex items-center justify-between">
+            <span>{t('language')}</span>
+            <LanguageSwitcher />
+          </div>
+          <button type="button" onClick={() => { onClose(); onWishlist() }} className="flex w-full items-center justify-between text-left">{t('favorites')} <span className="flex items-center gap-2"><Heart size={16} strokeWidth={1.25} />{wishlistCount}</span></button>
+          <button type="button" onClick={() => { onClose(); onLogin() }} className="flex w-full items-center justify-between text-left">{t('signInAccount')} <User size={16} strokeWidth={1.25} /></button>
           <div className="space-y-1 border-t border-[var(--border-subtle)] pt-4 opacity-70">
             <p>{config.location_city} | {config.phone_number}</p>
-            <a href={`https://wa.me/${config.whatsapp_number}`}>Boutique Concierge</a>
+            <a href={`https://wa.me/${config.whatsapp_number}`}>{t('boutiqueConcierge')}</a>
           </div>
         </div>
       </aside>
@@ -89,6 +93,7 @@ export default function Navbar() {
   const brandName = siteConfig.site_name || config.store_name
   const { cartItems, setIsBagOpen } = useCart()
   const { wishlistItems, setIsWishlistOpen } = useWishlist()
+  const { t } = useLanguage()
   const [isScrolled, setIsScrolled] = useState(false)
   const [scrollY, setScrollY] = useState(0)
   const [scrollDirection, setScrollDirection] = useState('up')
@@ -162,7 +167,7 @@ export default function Navbar() {
         <div className={`fixed left-0 right-0 top-0 z-50 md:hidden transition-transform duration-300 ease-out ${isMobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
           <div className="relative z-50 flex h-[60px] w-full items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
             <div className="flex w-[60px] items-center justify-start">
-              <IconButton label={isDrawerOpen || isSearchOpen ? 'Close overlay' : 'Open navigation'} onClick={handleLeftIconClick}>
+              <IconButton label={isDrawerOpen || isSearchOpen ? t('closeOverlay') : t('openNavigation')} onClick={handleLeftIconClick}>
                 {isDrawerOpen || isSearchOpen ? <X className="h-5 w-5" strokeWidth={1.25} /> : <Menu className="h-5 w-5" strokeWidth={1.25} />}
               </IconButton>
             </div>
@@ -170,7 +175,7 @@ export default function Navbar() {
               {brandName}
             </a>
             <div className="flex w-[60px] items-center justify-end">
-              <IconButton label="Shopping bag" className="relative" onClick={() => setIsBagOpen(true)}>
+              <IconButton label={t('shoppingBag')} className="relative" onClick={() => setIsBagOpen(true)}>
               <ShoppingBag strokeWidth={1.25} size={19} />
               {cartCount > 0 && <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-gold)] px-1 text-[9px] text-[var(--bg-primary)]">{cartCount}</span>}
               </IconButton>
@@ -180,7 +185,7 @@ export default function Navbar() {
         <div className={`fixed left-0 right-0 top-[60px] z-20 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2 transition-opacity duration-300 md:hidden ${isMobileHeaderVisible && !isDrawerOpen && !isSearchOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
           <div className="relative">
             <Search size={16} strokeWidth={1.25} className="pointer-events-none absolute left-3 top-2.5 text-[var(--text-primary)] opacity-60" />
-            <input type="search" readOnly onClick={() => setIsSearchOpen(true)} onFocus={() => setIsSearchOpen(true)} placeholder="Search creations" className="relative z-20 w-full rounded-full bg-[var(--bg-primary)] py-2 pl-9 pr-4 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-primary)] placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]" />
+            <input type="search" readOnly onClick={() => setIsSearchOpen(true)} onFocus={() => setIsSearchOpen(true)} placeholder={t('search')} aria-label={t('search')} className="relative z-20 w-full rounded-full bg-[var(--bg-primary)] py-2 pl-9 pr-4 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-primary)] placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]" />
             </div>
         </div>
         <div className="mx-auto hidden max-w-7xl px-5 sm:px-8 md:block lg:px-10">
@@ -199,14 +204,14 @@ export default function Navbar() {
           <div className="relative flex h-[4.5rem] items-center justify-between">
             <div className="flex items-center gap-1">
               <IconButton
-                label="Open navigation"
+                label={t('openNavigation')}
                 className="md:hidden"
                 onClick={() => setIsDrawerOpen(true)}
               >
                 <Menu strokeWidth={1.25} size={21} />
               </IconButton>
               <div className="relative flex h-10 w-10 shrink-0 select-none items-center justify-center">
-                  <IconButton label={isSearchOpen ? 'Close search' : 'Search'} onClick={toggleDesktopSearch} className="relative h-9 w-9 shrink-0">
+                  <IconButton label={isSearchOpen ? t('closeSearch') : t('search')} onClick={toggleDesktopSearch} className="relative h-9 w-9 shrink-0">
                     <Search className={`absolute inset-0 m-auto h-5 w-5 transition-all duration-200 ease-out ${isSearchOpen ? 'scale-75 opacity-0' : 'scale-100 opacity-100'}`} strokeWidth={1.25} />
                     <X className={`absolute inset-0 m-auto h-5 w-5 transition-all duration-200 ease-out ${isSearchOpen ? 'scale-100 opacity-100' : 'scale-75 opacity-0'}`} strokeWidth={1.25} />
                   </IconButton>
@@ -236,16 +241,16 @@ export default function Navbar() {
                   <Moon strokeWidth={1.25} size={19} />
                 )}
               </IconButton>
-              <IconButton label="Wishlist" className="relative hidden sm:inline-flex" onClick={() => setIsWishlistOpen(true)}>
+              <IconButton label={t('wishlist')} className="relative hidden sm:inline-flex" onClick={() => setIsWishlistOpen(true)}>
                 <Heart strokeWidth={1.25} size={19} />
                 {wishlistItems.length > 0 && <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-gold)] px-1 text-[9px] text-[var(--bg-primary)]">{wishlistItems.length}</span>}
               </IconButton>
-              <IconButton label="Account" className="hidden sm:inline-flex">
+              <IconButton label={t('account')} className="hidden sm:inline-flex">
                 <span onClick={() => setIsLoginOpen(true)} className="flex h-full w-full items-center justify-center">
                 <User strokeWidth={1.25} size={19} />
                 </span>
               </IconButton>
-              <IconButton label="Shopping bag" className="relative" onClick={() => setIsBagOpen(true)}>
+              <IconButton label={t('shoppingBag')} className="relative" onClick={() => setIsBagOpen(true)}>
                 <ShoppingBag strokeWidth={1.25} size={20} />
                 {cartCount > 0 && (
                   <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-gold)] px-1 text-[9px] text-[var(--bg-primary)]">
@@ -257,10 +262,16 @@ export default function Navbar() {
           </div>
 
           <nav className="hidden h-12 items-center justify-center gap-8 lg:flex" aria-label="Main navigation">
-            {navigationLinks.map((link) => (
+            {[
+              [t('highJewelry'), '/catalog?category=High%20Jewelry'],
+              [t('fineJewelry'), '/catalog?category=Fine%20Jewelry'],
+              [t('timepieces'), '/catalog?category=Timepieces'],
+              [t('menuTheMaison'), '/'],
+              [t('concierge'), '/concierge'],
+            ].map(([link, href]) => (
               <a
                 key={link}
-                href="#"
+                href={href}
                 className="group relative flex h-full items-center text-[10px] uppercase tracking-[0.2em] opacity-80 transition-all duration-300 ease-out hover:text-[var(--accent-gold)] hover:opacity-100"
               >
                 {link}
@@ -277,6 +288,8 @@ export default function Navbar() {
         themeMode={themeMode}
         toggleTheme={toggleTheme}
         onLogin={() => setIsLoginOpen(true)}
+        wishlistCount={wishlistItems.length}
+        onWishlist={() => setIsWishlistOpen(true)}
       />
       <SearchDrawer
         isOpen={isSearchOpen}

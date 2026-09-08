@@ -2,12 +2,7 @@ import { useState } from 'react'
 import { ChevronDown, Heart, MessageCircle, Play } from 'lucide-react'
 import { useSiteConfig } from '../context/ConfigContext'
 import { useSiteConfigSettings } from '../context/SiteConfigContext'
-
-const sections = [
-  { title: 'Contact', links: ['Boutique Concierge', 'Find a boutique', 'Contact us'] },
-  { title: 'Service & Support', links: ['Delivery & returns', 'Care guide', 'Book an appointment'] },
-  { title: 'Our Maison', links: ['Our story', 'Craftsmanship', 'Careers'] },
-]
+import { useLanguage } from '../context/LanguageContext'
 
 function SectionLinks({ title, links, mobile = false }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -29,6 +24,12 @@ function SectionLinks({ title, links, mobile = false }) {
 export default function Footer() {
   const { config } = useSiteConfig()
   const { siteConfig } = useSiteConfigSettings()
+  const { t } = useLanguage()
+  const localizedSections = [
+    { title: t('contact'), links: [t('boutiqueConcierge'), t('findBoutique'), t('contactUs')] },
+    { title: t('serviceSupport'), links: [t('deliveryReturns'), t('careGuide'), t('bookAppointment')] },
+    { title: t('ourMaison'), links: [t('ourStory'), t('craftsmanship'), t('careers')] },
+  ]
   return (
     <footer className="border-t border-[var(--border-subtle)] bg-[var(--surface-primary)] text-[var(--text-primary)]">
       <div className="hidden border-b border-[var(--border-subtle)] px-8 py-3 text-[10px] uppercase tracking-widest opacity-70 md:flex md:justify-between">
@@ -36,7 +37,7 @@ export default function Footer() {
         <span className="flex gap-6"><button type="button">Enable high contrast</button><button type="button">Disable animations</button></span>
       </div>
       <div className="hidden mx-auto max-w-7xl grid-cols-4 gap-12 px-8 py-14 md:grid">
-        {sections.map((section) => <SectionLinks key={section.title} {...section} />)}
+        {localizedSections.map((section) => <SectionLinks key={section.title} {...section} />)}
         <div>
           <p className="mb-5 text-[10px] uppercase tracking-[0.2em]">Stay up to date</p>
           <p className="mb-5 text-xs opacity-70">Discover new creations and maison news.</p>
@@ -46,7 +47,7 @@ export default function Footer() {
       </div>
       <div className="md:hidden">
         <div className="border-b border-[var(--border-subtle)] px-4 py-3 text-[10px] uppercase tracking-widest opacity-60">Home / Collections / Fine Jewelry</div>
-        <div className="px-4">{sections.map((section) => <SectionLinks key={section.title} {...section} mobile />)}</div>
+        <div className="px-4">{localizedSections.map((section) => <SectionLinks key={section.title} {...section} mobile />)}</div>
         <div className="space-y-5 px-4 py-8">
           <button type="button" className="w-full border border-[var(--border-subtle)] py-3 text-[10px] uppercase tracking-widest">Subscribe to newsletter</button>
           <div className="flex justify-center gap-6"><Heart size={17} strokeWidth={1.25} /><MessageCircle size={17} strokeWidth={1.25} /><Play size={17} strokeWidth={1.25} /></div>

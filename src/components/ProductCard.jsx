@@ -34,7 +34,7 @@ export default function ProductCard({ product }) {
   )
   const gallery = images.length ? images : [cardImageFallback]
   const categoryName = getCategoryName(product)
-  const price = Number(product.price)
+  const price = Number(product.price ?? product.price_dh)
   const formattedPrice = Number.isFinite(price) ? price.toLocaleString() : '—'
   const isWishlisted = wishlistItems.some((item) => String(item.id) === String(product.id))
 
@@ -71,7 +71,7 @@ export default function ProductCard({ product }) {
       <div className="relative aspect-[3/4] w-full max-w-full overflow-hidden bg-[var(--surface-primary)]">
         {product.is_new && (
           <span className="absolute left-4 top-4 z-10 text-[10px] uppercase tracking-[0.2em] text-white">
-            New
+        {t('new')}
           </span>
         )}
         {gallery.map((image, index) => (
@@ -91,7 +91,7 @@ export default function ProductCard({ product }) {
 
         <button
           type="button"
-          aria-label={`${isWishlisted ? 'Remove' : 'Add'} ${product.name || 'creation'} to wishlist`}
+          aria-label={`${isWishlisted ? t('remove') : t('addToWishlist')} ${product.name || 'creation'} ${t('wishlist')}`}
           onClick={(event) => {
             event.stopPropagation()
             if (isWishlisted) removeFromWishlist(product.id)
@@ -165,7 +165,7 @@ export default function ProductCard({ product }) {
             onClick={() => navigate(`/product/${product.id}`)}
             className="absolute inset-x-0 flex h-10 items-center justify-center bg-black py-2.5 text-xs font-semibold uppercase tracking-widest text-white opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 dark:bg-white dark:text-black"
           >
-            Discover
+            {t('discover')}
           </button>
         </div>
         <p className="text-xs tracking-[0.08em] text-[var(--text-primary)] opacity-80">

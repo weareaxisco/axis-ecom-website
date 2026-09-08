@@ -18,6 +18,8 @@
 - [x] Site Settings Management
 - [x] Product Creation Form
 - [x] Wishlist Drawer and Supabase synchronization, including clickable listings and add-to-bag actions
+- [x] FR/EN coverage across customer and admin surfaces, including mobile navigation parity
+- [x] Responsive consistency pass for navigation, wishlist, catalog, account, checkout, and currency display
 
 ## Catalog Architecture
 
