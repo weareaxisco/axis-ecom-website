@@ -28,6 +28,7 @@ import { WishlistProvider } from './context/WishlistContext'
 import { SiteConfigProvider } from './context/SiteConfigContext'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import GlobalLoader from './components/GlobalLoader'
+import CookieConsent from './components/CookieConsent'
 import './App.css'
 
 function ScrollToTop() {
@@ -76,6 +77,7 @@ function App() {
             <BagDrawer />
             <WhatsAppConcierge />
             <WishlistDrawer />
+            <CookieConsent />
           </div>
         </CartProvider>
         </SiteConfigProvider>

@@ -29,7 +29,8 @@ export function AuthProvider({ children }) {
     return () => { active = false; listener.subscription.unsubscribe() }
   }, [])
 
-  const value = useMemo(() => ({ session, user, loading }), [session, user, loading])
+  const resendVerification = async (email) => supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: window.location.origin } })
+  const value = useMemo(() => ({ session, user, loading, resendVerification }), [session, user, loading])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
