@@ -97,7 +97,6 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [scrollY, setScrollY] = useState(0)
   const [scrollDirection, setScrollDirection] = useState('up')
-  const [isMobileHeaderVisible, setIsMobileHeaderVisible] = useState(true)
   const [isDesktopHeaderVisible, setIsDesktopHeaderVisible] = useState(true)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -109,9 +108,11 @@ export default function Navbar() {
     let revealTimer
     const handleScroll = () => {
       const currentScrollY = window.scrollY
+      const delta = currentScrollY - lastScrollY
+      if (Math.abs(delta) < 6 && currentScrollY > 20) return
       setIsScrolled(currentScrollY > 20)
       setScrollY(currentScrollY)
-      const nextDirection = currentScrollY < lastScrollY ? 'up' : 'down'
+      const nextDirection = delta < 0 ? 'up' : 'down'
       setScrollDirection(nextDirection)
       setIsDesktopHeaderVisible(currentScrollY <= 20 || nextDirection === 'up')
       lastScrollY = currentScrollY
@@ -128,24 +129,6 @@ export default function Navbar() {
   }, [])
 
   useEffect(() => {
-    let lastScrollY = window.scrollY
-    let revealTimer
-    const handleMobileScroll = () => {
-      const currentScrollY = window.scrollY
-      const direction = currentScrollY < lastScrollY ? 'up' : 'down'
-      setIsMobileHeaderVisible(currentScrollY <= 20 || direction === 'up')
-      lastScrollY = currentScrollY
-      window.clearTimeout(revealTimer)
-      revealTimer = window.setTimeout(() => setIsMobileHeaderVisible(true), 180)
-    }
-    window.addEventListener('scroll', handleMobileScroll, { passive: true })
-    return () => {
-      window.clearTimeout(revealTimer)
-      window.removeEventListener('scroll', handleMobileScroll)
-    }
-  }, [])
-
-  useEffect(() => {
     document.documentElement.style.setProperty('--header-height', '60px')
     document.documentElement.style.setProperty('--header-stack-height', '104px')
     return () => {
@@ -156,8 +139,8 @@ export default function Navbar() {
 
   useEffect(() => {
     document.documentElement.style.setProperty('--desktop-navbar-offset', isDesktopHeaderVisible ? '152px' : '0px')
-    document.documentElement.style.setProperty('--mobile-navbar-offset', isMobileHeaderVisible ? '104px' : '0px')
-  }, [isDesktopHeaderVisible, isMobileHeaderVisible])
+    document.documentElement.style.setProperty('--mobile-navbar-offset', '104px')
+  }, [isDesktopHeaderVisible])
 
   useEffect(() => {
     const isOverlayOpen = isDrawerOpen || isSearchOpen
@@ -206,7 +189,7 @@ export default function Navbar() {
             : ''
         }`}
       >
-        <div className={`fixed left-0 right-0 top-0 z-50 md:hidden transition-transform duration-200 ease-out ${isMobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+        <div className="fixed left-0 right-0 top-0 z-50 md:hidden">
           <div className="relative z-50 flex h-[60px] w-full items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
             <div className="flex w-[60px] items-center justify-start">
               <IconButton label={isDrawerOpen || isSearchOpen ? t('closeOverlay') : t('openNavigation')} onClick={handleLeftIconClick}>
@@ -224,7 +207,7 @@ export default function Navbar() {
             </div>
           </div>
         </div>
-        <div className={`fixed left-0 right-0 top-[60px] z-20 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2 transition-opacity duration-300 md:hidden ${isMobileHeaderVisible && !isDrawerOpen && !isSearchOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
+        <div className={`fixed left-0 right-0 top-[60px] z-20 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2 md:hidden ${!isDrawerOpen && !isSearchOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
           <div className="relative">
             <Search size={16} strokeWidth={1.25} className="pointer-events-none absolute left-3 top-2.5 text-[var(--text-primary)] opacity-60" />
             <input type="search" readOnly onClick={() => setIsSearchOpen(true)} onFocus={() => setIsSearchOpen(true)} placeholder={t('search')} aria-label={t('search')} className="relative z-20 w-full rounded-full bg-[var(--bg-primary)] py-2 pl-9 pr-4 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-primary)] placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]" />
