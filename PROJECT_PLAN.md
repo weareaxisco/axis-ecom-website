@@ -48,3 +48,20 @@
 - [x] Add admin appointment operations with status management.
 - [x] Integrate Ameex Sandbox parcel creation, tracking persistence, and signed status webhook handling.
 - [x] Add explicit, feature-flagged Ameex dispatch controls and responsive wishlist drawer actions without bag-drawer stacking.
+
+## Next Planned Sprint: Footer, Brand Experience & Maison Discoverability
+
+The existing footer component is present, but its navigation anchors currently use placeholder `#` targets, the International strip is not a required storefront destination, and the social icons are generic rather than admin-configurable. The following work is intentionally planned but not yet implemented:
+
+- [ ] Build routed footer content pages for Boutique Concierge, Find a Boutique, Contact Us, Delivery & Returns, Care Guide, Book an Appointment, Our Story, Craftsmanship, Careers, Privacy Policy, Cookies Policy, Terms, and Modern Slavery Act.
+- [ ] Replace every footer placeholder link with verified route links and add navigation/link tests so each destination resolves correctly on desktop and mobile.
+- [ ] Remove the International footer section and any related copy from the storefront.
+- [ ] Replace generic footer social icons with Instagram, TikTok, and WhatsApp icons using `lucide-react` or approved brand-safe icon assets, with accessible labels and touch targets.
+- [ ] Add admin-managed social link configuration (Instagram, TikTok, WhatsApp URL/phone) persisted through the white-label site configuration and reflected immediately in the footer.
+- [ ] Add a Find a Boutique page with an embedded Google Map, configurable map embed URL/location, address, coordinates, and directions link; provide an admin setting for changing the active boutique location without code changes.
+- [ ] Define the Google Maps integration boundary: prefer an embeddable map URL or Maps Embed configuration, document any API key/referrer restrictions, and keep credentials out of source control.
+- [ ] Add a global branded loading screen that displays the current configurable website/maison name and updates when the admin changes `site_name`; cover initial app boot and route/data loading transitions without trapping keyboard or screen-reader users.
+- [ ] Add responsive footer QA for accordion behavior, safe touch targets, keyboard focus, contrast, and social/map links across mobile and desktop breakpoints.
+- [ ] Add an admin preview/validation workflow for footer copy, social URLs, contact details, and boutique map settings before publishing.
+- [ ] Add localized FR/EN copy for all new pages, footer labels, careers content, legal pages, map directions, and loading-screen text.
+- [ ] Add SEO metadata, canonical routes, and appropriate noindex/legal handling for informational, careers, and policy pages.
