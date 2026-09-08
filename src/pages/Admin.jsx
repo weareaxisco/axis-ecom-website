@@ -25,16 +25,35 @@ const mockOrders = [
   { id: 'ORD-1002', customer_name: 'Youssef Bennani', city: 'Rabat', payment_method: 'CMI / Stripe', total_dh: 320000, status: 'in_preparation' },
 ]
 
-function LoginGate() {
+const adminRoles = ['super_admin', 'admin', 'staff_catalog', 'staff_orders']
+
+function LoginGate({ onAuthorized }) {
   const { t } = useLanguage()
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const submit = async (event) => {
     event.preventDefault()
-    const { error: signInError } = await supabase.auth.signInWithPassword(form)
-    if (signInError) setError(signInError.message)
+    setError('')
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword(form)
+      if (signInError || !data.user) throw signInError || new Error('Unable to sign in.')
+      const { data: profile, error: profileError } = await supabase.from('profiles').select('role, permissions').eq('id', data.user.id).maybeSingle()
+      if (profileError) throw profileError
+      console.error('[Admin auth] profile role:', profile?.role || 'missing')
+      if (!profile?.role || !adminRoles.includes(profile.role)) {
+        const accessError = 'Access Denied: Account lacks admin permissions'
+        console.error('[Admin auth] access denied:', { userId: data.user.id, role: profile?.role || null })
+        setError(accessError)
+        await supabase.auth.signOut()
+        return
+      }
+      onAuthorized({ ...data.user, role: profile.role, permissions: profile.permissions || {} })
+    } catch (authError) {
+      console.error('[Admin auth] sign-in failed:', authError)
+      setError(authError.message || 'Unable to sign in.')
+    }
   }
-  return <main className="flex min-h-screen items-center justify-center bg-neutral-950 px-4 text-white"><form onSubmit={submit} className="w-full max-w-sm border border-neutral-800 bg-neutral-900/70 p-8"><ShieldCheck className="text-amber-400" size={28} /><h1 className="mt-5 font-serif text-2xl uppercase tracking-widest">Maison Admin</h1><p className="mt-2 text-xs text-neutral-500">{t('secureConsole')}</p><label className="mt-8 block text-[10px] uppercase tracking-widest text-neutral-400">Email<input required type="email" value={form.email} onChange={(event) => { setForm((current) => ({ ...current, email: event.target.value })); setError('') }} className="mt-2 w-full border border-neutral-800 bg-neutral-950 px-4 py-3 outline-none focus:border-amber-500" /></label><label className="mt-4 block text-[10px] uppercase tracking-widest text-neutral-400">Password<input required type="password" value={form.password} onChange={(event) => { setForm((current) => ({ ...current, password: event.target.value })); setError('') }} className="mt-2 w-full border border-neutral-800 bg-neutral-950 px-4 py-3 outline-none focus:border-amber-500" /></label>{error && <p className="mt-2 text-xs text-rose-400">{error}</p>}<button type="submit" className="mt-6 w-full bg-amber-500 py-3 text-xs font-semibold uppercase tracking-widest text-black">{t('enterDashboard')}</button></form></main>
+  return <main className="flex min-h-screen items-center justify-center bg-neutral-950 px-4 text-white"><form onSubmit={submit} className="w-full max-w-sm border border-neutral-800 bg-neutral-900/70 p-8"><ShieldCheck className="text-amber-400" size={28} /><h1 className="mt-5 font-serif text-2xl uppercase tracking-widest">Maison Admin</h1><p className="mt-2 text-xs text-neutral-500">{t('secureConsole')}</p>{error && <div className="mb-4 rounded border border-red-800 bg-red-950/50 p-3 text-xs text-red-300">{error}</div>}<label className="mt-8 block text-[10px] uppercase tracking-widest text-neutral-400">Email<input required type="email" value={form.email} onChange={(event) => { setForm((current) => ({ ...current, email: event.target.value })); setError('') }} className="mt-2 w-full border border-neutral-800 bg-neutral-950 px-4 py-3 outline-none focus:border-amber-500" /></label><label className="mt-4 block text-[10px] uppercase tracking-widest text-neutral-400">Password<input required type="password" value={form.password} onChange={(event) => { setForm((current) => ({ ...current, password: event.target.value })); setError('') }} className="mt-2 w-full border border-neutral-800 bg-neutral-950 px-4 py-3 outline-none focus:border-amber-500" /></label><button type="submit" className="mt-6 w-full bg-amber-500 py-3 text-xs font-semibold uppercase tracking-widest text-black">{t('enterDashboard')}</button></form></main>
 }
 
 export default function Admin() {
@@ -46,15 +65,17 @@ export default function Admin() {
   const [loading, setLoading] = useState(true)
   const [notice, setNotice] = useState('')
   const [showProductModal, setShowProductModal] = useState(false)
+  const [authorizedUser, setAuthorizedUser] = useState(null)
 
-  const isAdmin = ['super_admin', 'admin', 'staff_catalog', 'staff_orders'].includes(user?.role)
-  const can = (permission) => user?.role === 'super_admin' || user?.role === 'admin' || user?.permissions?.[permission] === true
+  const activeUser = user || authorizedUser
+  const isAdmin = adminRoles.includes(activeUser?.role)
+  const can = (permission) => activeUser?.role === 'super_admin' || activeUser?.role === 'admin' || activeUser?.permissions?.[permission] === true
   const allowedTabs = [
     can('manage_orders') && 'orders',
     can('manage_products') && 'inventory',
     can('manage_appointments') && 'appointments',
     can('manage_settings') && 'settings',
-    ['super_admin', 'admin'].includes(user?.role) && 'staff',
+    ['super_admin', 'admin'].includes(activeUser?.role) && 'staff',
   ].filter(Boolean)
   const activeTab = allowedTabs.includes(tab) ? tab : allowedTabs[0]
   useEffect(() => {
@@ -121,10 +142,10 @@ export default function Admin() {
 
   const counts = useMemo(() => ({ products: products.length, orders: orders.length }), [products, orders])
   if (authLoading) return <main className="min-h-screen bg-neutral-950 p-20 text-center text-sm text-neutral-500">{t('loading')}</main>
-  if (!isAdmin) return <LoginGate />
+  if (!isAdmin) return <LoginGate onAuthorized={setAuthorizedUser} />
 
   return <main className="min-h-screen bg-neutral-950 px-4 pb-20 pt-12 text-white md:px-10"><div className="mx-auto max-w-7xl"><header className="flex flex-wrap items-end justify-between gap-6 border-b border-neutral-800 pb-8"><div><p className="text-[10px] uppercase tracking-[0.3em] text-amber-400">Maison de l'Élégance</p><h1 className="mt-3 font-serif text-4xl uppercase tracking-widest">Operations</h1></div><button type="button" onClick={() => supabase.auth.signOut()} className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-neutral-500 hover:text-amber-400"><LogOut size={15} /> Sign out</button></header>
-    <nav className="mt-8 flex flex-wrap gap-2 border-b border-neutral-800">{can('manage_orders') && <button type="button" onClick={() => setTab('orders')} className={`inline-flex items-center gap-2 border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'orders' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}><ShoppingBag size={15} /> {t('myOrders')} ({counts.orders})</button>}{can('manage_products') && <button type="button" onClick={() => setTab('inventory')} className={`inline-flex items-center gap-2 border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'inventory' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}><Package size={15} /> {t('inventory')} ({counts.products})</button>}{can('manage_appointments') && <button type="button" onClick={() => setTab('appointments')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'appointments' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Appointments</button>}{can('manage_settings') && <button type="button" onClick={() => setTab('settings')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'settings' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>{t('settings')}</button>}{['super_admin', 'admin'].includes(user?.role) && <button type="button" onClick={() => setTab('staff')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'staff' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Staff &amp; Permissions</button>}</nav>
+    <nav className="mt-8 flex flex-wrap gap-2 border-b border-neutral-800">{can('manage_orders') && <button type="button" onClick={() => setTab('orders')} className={`inline-flex items-center gap-2 border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'orders' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}><ShoppingBag size={15} /> {t('myOrders')} ({counts.orders})</button>}{can('manage_products') && <button type="button" onClick={() => setTab('inventory')} className={`inline-flex items-center gap-2 border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'inventory' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}><Package size={15} /> {t('inventory')} ({counts.products})</button>}{can('manage_appointments') && <button type="button" onClick={() => setTab('appointments')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'appointments' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Appointments</button>}{can('manage_settings') && <button type="button" onClick={() => setTab('settings')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'settings' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>{t('settings')}</button>}{    ['super_admin', 'admin'].includes(activeUser?.role) && <button type="button" onClick={() => setTab('staff')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'staff' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Staff &amp; Permissions</button>}</nav>
     {notice && <p className="mt-5 border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-300">{notice}</p>}
     <section className="mt-8">{activeTab === 'staff' ? <AdminStaff /> : activeTab === 'settings' ? <AdminSettings /> : activeTab === 'appointments' ? <AdminAppointments onError={handleAppointmentError} /> : loading ? <p className="py-16 text-center text-sm text-neutral-500">Loading operations data...</p> : activeTab === 'inventory' ? <AdminProductTable products={products} onToggleOnsiteOnly={updateOnsiteOnly} onAddProduct={() => setShowProductModal(true)} /> : <div className="overflow-x-auto border border-neutral-800 bg-neutral-950/70"><table className="w-full min-w-[900px] text-left"><thead className="border-b border-neutral-800 text-[10px] uppercase tracking-[0.2em] text-neutral-500"><tr>{['Order ID', 'Customer Name', 'City', 'Payment Method', 'Total (DH)', 'Status', 'Ameex Tracking'].map((heading) => <th key={heading} className="px-5 py-4">{heading}</th>)}</tr></thead><tbody className="divide-y divide-neutral-800/80">{orders.map((order) => <tr key={order.id} className="text-sm"><td className="px-5 py-5 font-mono text-amber-400">{order.id}</td><td className="px-5 py-5">{order.customer_name || order.customer?.name || '—'}</td><td className="px-5 py-5 text-neutral-400">{order.city || '—'}</td><td className="px-5 py-5 text-xs text-neutral-400">{order.payment_method || order.payment || '—'}</td><td className="px-5 py-5">{Number(order.total_dh ?? order.total ?? 0).toLocaleString()} DH</td>    <td className="px-5 py-5"><div className="flex flex-wrap gap-2"><select aria-label={`Update status for ${order.id}`} value={order.status === 'dispatched_ameex' ? 'in_preparation' : order.status} onChange={(event) => updateOrderStatus(order.id, event.target.value)} className="border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs outline-none focus:border-amber-500">{orderStatuses.filter((status) => status.value !== 'dispatched_ameex').map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}</select>{order.status !== 'dispatched_ameex' && <button type="button" disabled={!ameexDispatchEnabled} onClick={() => dispatchToAmeex(order)} className="border border-amber-400 px-3 py-2 text-[10px] uppercase tracking-wider text-amber-300 transition-colors hover:bg-amber-400 hover:text-black disabled:cursor-not-allowed disabled:opacity-40">Dispatch to Ameex</button>}</div></td><td className="px-5 py-5 text-xs font-mono text-neutral-400">{order.ameex_tracking_id || '—'}</td></tr>)}</tbody></table></div>}</section>{showProductModal && <AdminAddProductModal onClose={() => setShowProductModal(false)} onCreated={(product) => setProducts((current) => [product, ...current])} />}
   </div></main>
