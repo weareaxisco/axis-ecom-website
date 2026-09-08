@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useSiteConfigSettings } from '../context/SiteConfigContext'
+import { isSafeMapEmbedUrl } from '../utils/maps'
 
 export default function AdminSettings() {
   const { siteConfig, updateSiteConfig } = useSiteConfigSettings()
@@ -10,6 +11,10 @@ export default function AdminSettings() {
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
   const save = async (event) => {
     event.preventDefault()
+    if (form.map_embed_url && !isSafeMapEmbedUrl(form.map_embed_url)) {
+      setMessage('Use a secure Google Maps embed URL beginning with https://www.google.com/maps.')
+      return
+    }
     const { error } = await supabase.from('site_config').upsert({ id: 1, ...form })
     if (error) { setMessage(error.message); return }
     updateSiteConfig(form)

@@ -59,7 +59,7 @@ Footer destinations, boutique configuration, social links, and global brand load
 - [x] Replace generic footer social icons with Instagram, TikTok, and WhatsApp icons using approved accessible assets.
 - [x] Add admin-managed social link configuration (Instagram, TikTok, WhatsApp URL/phone) persisted through site configuration and reflected in the footer.
 - [x] Add a Boutique page with an embedded Google Map, configurable map URL/location, address, hours, and phone settings.
-- [ ] Define the Google Maps integration boundary: prefer an embeddable map URL or Maps Embed configuration, document any API key/referrer restrictions, and keep credentials out of source control.
+- [x] Define the Google Maps integration boundary: accept only secure Google Maps `/maps` URLs, use the embed configuration without API keys, and keep credentials out of source control.
 - [x] Add a global branded loading screen that displays the current configurable website/maison name during app hydration and route/data loading transitions.
 - [ ] Add responsive footer QA for accordion behavior, safe touch targets, keyboard focus, contrast, and social/map links across mobile and desktop breakpoints.
 - [ ] Add an admin preview/validation workflow for footer copy, social URLs, contact details, and boutique map settings before publishing.
