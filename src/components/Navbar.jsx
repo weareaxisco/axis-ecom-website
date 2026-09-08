@@ -109,6 +109,15 @@ export default function Navbar() {
     let revealTimer
     const handleScroll = () => {
       const currentScrollY = window.scrollY
+      const scrollDelta = currentScrollY - lastScrollY
+      if (Math.abs(scrollDelta) < 3 && currentScrollY > 20) {
+        window.clearTimeout(revealTimer)
+        revealTimer = window.setTimeout(() => {
+          setIsMobileHeaderVisible(true)
+          setIsDesktopHeaderVisible(true)
+        }, 220)
+        return
+      }
       setIsScrolled(currentScrollY > 20)
       setScrollY(currentScrollY)
       const nextDirection = currentScrollY < lastScrollY ? 'up' : 'down'
@@ -120,7 +129,7 @@ export default function Navbar() {
       revealTimer = window.setTimeout(() => {
         setIsMobileHeaderVisible(true)
         setIsDesktopHeaderVisible(true)
-      }, 180)
+      }, 220)
       lastScrollY = currentScrollY
     }
 

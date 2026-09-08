@@ -335,7 +335,7 @@ export default function ProductCatalog() {
           <h2 className="font-serif text-3xl tracking-wide md:text-5xl">{t('curatedCreations')}</h2>
           <div ref={filterBarRef} className={isSticky ? 'h-12 md:h-14' : 'h-14'}>
             <div
-              className={`relative mx-auto hidden w-full max-w-5xl border-y border-[var(--border-subtle)] bg-[var(--surface-primary)] transition-[top] duration-300 ease-in-out md:block ${
+              className={`relative mx-auto hidden w-full max-w-5xl border-y border-[var(--border-subtle)] bg-[var(--surface-primary)] md:transition-[top] md:duration-300 md:ease-in-out md:block ${
                 isSticky
                   ? 'sticky z-30 shadow-md top-[var(--mobile-navbar-offset)] md:top-[var(--desktop-navbar-offset)]'
                   : ''
@@ -411,7 +411,7 @@ export default function ProductCatalog() {
                 }}
                 className="relative mb-16"
               >
-                <div className="sticky top-[var(--mobile-navbar-offset)] z-30 border-b border-white/10 bg-[var(--surface-primary)] transition-[top] duration-300 ease-in-out md:top-[var(--desktop-navbar-offset)]">
+                <div className="sticky top-[var(--mobile-navbar-offset)] z-30 border-b border-white/10 bg-[var(--surface-primary)] md:top-[var(--desktop-navbar-offset)] md:transition-[top] md:duration-300 md:ease-in-out">
                   <div className="flex items-center justify-between px-4 py-3">
                     <h3 className="font-serif text-xs font-medium uppercase tracking-widest">{collection.title}</h3>
                     <div className="flex items-center gap-4">
