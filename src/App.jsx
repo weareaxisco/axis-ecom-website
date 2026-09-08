@@ -62,7 +62,7 @@ function App() {
           <GlobalLoader />
           <div className="min-h-screen overflow-x-clip bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300">
           <SEOHead />
-          <div className="fixed left-0 right-0 top-0 z-50">
+          <div className="relative z-50">
             <Navbar />
           </div>
           <Routes>

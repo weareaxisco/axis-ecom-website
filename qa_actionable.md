@@ -28,7 +28,7 @@ then reload and navigate repeatedly.
 
 ### 1.2 Routing and refresh smoke test
 
-- [ ] **QA-1.2-01 — Fix initial homepage startup errors and flashes.** The `/`
+- [x] **QA-1.2-01 — Fix initial homepage startup errors and flashes.** The `/`
   route must load without caught errors, a blank/white flash, or visible
   startup glitches.
 - [x] **QA-1.2-02 — Complete the Newsletter footer action.** The Newsletter
@@ -58,9 +58,9 @@ random path such as `/does-not-exist`.
 
 ### 2.1 Desktop shell
 
-- [ ] **QA-2.1-01 — Make the desktop header sticky.** Apply sticky positioning
+- [x] **QA-2.1-01 — Make the desktop header sticky.** Apply sticky positioning
   to the desktop navigation container with the intended top offset and z-index.
-- [ ] **QA-2.1-02 — Prevent loader/background hydration overlap.** The global
+- [x] **QA-2.1-02 — Prevent loader/background hydration overlap.** The global
   loader must fully cover underlying content until hydration is ready and must
   not flicker or reveal raw background DOM.
 
@@ -81,7 +81,7 @@ watching the first load and a hard refresh.
 
 ### 2.2 Mobile shell
 
-- [ ] **QA-2.2-01 — Make the mobile menu reliably open and close.** Verify
+- [x] **QA-2.2-01 — Make the mobile menu reliably open and close.** Verify
   menu state, visible close controls, Escape behavior, and route navigation.
 - [ ] **QA-2.2-02 — Add a close control to the mobile signup drawer/modal.** Add
   a prominent accessible X/close button and bind it to dismiss the overlay.

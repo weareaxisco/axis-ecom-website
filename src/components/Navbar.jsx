@@ -139,6 +139,18 @@ export default function Navbar() {
     }
   }, [isDrawerOpen, isSearchOpen])
 
+  useEffect(() => {
+    if (!isDrawerOpen && !isSearchOpen) return undefined
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsDrawerOpen(false)
+        setIsSearchOpen(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isDrawerOpen, isSearchOpen])
+
   const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0)
   const toggleDesktopSearch = () => {
     setIsDrawerOpen(false)
