@@ -193,10 +193,11 @@ create policy "admins manage orders" on public.orders for all to authenticated
 
 drop policy if exists "users manage their appointments" on public.appointments;
 drop policy if exists "admins read appointments" on public.appointments;
+drop policy if exists "admins manage appointments" on public.appointments;
 create policy "users manage their appointments" on public.appointments for all to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
-create policy "admins read appointments" on public.appointments for select to authenticated
-  using (public.is_admin());
+create policy "admins manage appointments" on public.appointments for all to authenticated
+  using (public.is_admin()) with check (public.is_admin());
 
 grant usage on schema public to anon, authenticated;
 grant select on public.products to anon, authenticated;

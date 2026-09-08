@@ -143,7 +143,7 @@ export default function DesktopSearchDropdown({
                     </div>
                     <h4 className="line-clamp-1 font-serif text-xs text-neutral-200 transition-colors group-hover:text-amber-300">{product.name}</h4>
                     <p className="mt-0.5 text-[10px] font-mono text-neutral-400">{product.category || product.category_name || product.material || 'Fine Jewelry'}</p>
-                    <p className="mt-0.5 text-[10px] font-mono text-amber-400">{product.price ? `${product.price} ${config.currency_symbol || 'MAD'}` : ''}</p>
+                    <p className="mt-0.5 text-[10px] font-mono text-amber-400">{product.price ?? product.price_dh ? `${product.price ?? product.price_dh} ${config.currency_symbol || 'MAD'}` : ''}</p>
                   </a>
                 ))}
               </div>

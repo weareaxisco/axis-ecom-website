@@ -5,6 +5,7 @@ import ProductCatalog from './components/ProductCatalog'
 import SearchResults from './components/SearchResults'
 import Footer from './components/Footer'
 import Register from './pages/Register'
+import Login from './pages/Login'
 import Checkout from './pages/Checkout'
 import Admin from './pages/Admin'
 import Account from './pages/Account'
@@ -54,6 +55,7 @@ function App() {
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/account" element={<Account />} />

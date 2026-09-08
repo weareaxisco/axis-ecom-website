@@ -64,7 +64,7 @@ export default function Catalog() {
         (!filters.maxPrice || price <= Number(filters.maxPrice)) &&
         (!filters.exclusive || product.onsite_only === true)
     })
-    return [...filtered].sort((a, b) => sort === 'price-desc' ? Number(b.price) - Number(a.price) : sort === 'price-asc' ? Number(a.price) - Number(b.price) : sort === 'newest' ? Number(b.display_order || 0) - Number(a.display_order || 0) : 0)
+    return [...filtered].sort((a, b) => sort === 'price-desc' ? Number(b.price ?? b.price_dh ?? 0) - Number(a.price ?? a.price_dh ?? 0) : sort === 'price-asc' ? Number(a.price ?? a.price_dh ?? 0) - Number(b.price ?? b.price_dh ?? 0) : sort === 'newest' ? Number(b.display_order || 0) - Number(a.display_order || 0) : 0)
   }, [filters, products, sort])
 
   const activeBadges = [...filters.category, ...filters.metal, ...filters.gemstone]

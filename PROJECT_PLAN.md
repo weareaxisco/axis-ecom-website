@@ -42,3 +42,5 @@
 - [ ] Finish taxonomy-driven product creation and filter values using database-backed attributes rather than hardcoded options.
 - [ ] Add focused automated coverage for language switching, mobile wishlist actions, admin settings, product creation, and appointment submission.
 - [ ] Resolve non-blocking lint warnings and split oversized vendor chunks for the mobile performance target.
+- [x] Add a dedicated `/login` route for account redirects and direct authentication.
+- [x] Add admin appointment operations with status management.
