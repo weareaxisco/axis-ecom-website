@@ -17,6 +17,8 @@ import SEOHead from './components/SEOHead'
 import { ConfigProvider } from './context/ConfigContext'
 import { CartProvider } from './context/CartContext'
 import { LanguageProvider } from './context/LanguageContext'
+import { AuthProvider } from './context/AuthContext'
+import { WishlistProvider } from './context/WishlistContext'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import './App.css'
 
@@ -35,6 +37,8 @@ function App() {
     <BrowserRouter>
       <ConfigProvider>
         <LanguageProvider>
+        <AuthProvider>
+        <WishlistProvider>
         <CartProvider>
           <ScrollToTop />
           <div className="min-h-screen overflow-x-clip bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300">
@@ -58,6 +62,8 @@ function App() {
             <WhatsAppConcierge />
           </div>
         </CartProvider>
+        </WishlistProvider>
+        </AuthProvider>
         </LanguageProvider>
       </ConfigProvider>
     </BrowserRouter>

@@ -34,6 +34,7 @@ $$;
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text,
+  role text not null default 'customer' check (role in ('customer', 'admin')),
   phone text check (phone is null or phone ~ '^\+212\s?[67][0-9]{2}[-\s]?[0-9]{6}$'),
   city text,
   address text,

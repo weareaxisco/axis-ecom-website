@@ -1,0 +1,18 @@
+export default {
+  highJewelry: 'High Jewelry',
+  fineJewelry: 'Fine Jewelry',
+  timepieces: 'Timepieces',
+  concierge: 'Concierge',
+  exploreHighJewelry: 'Explore High Jewelry',
+  privateConcierge: 'Private Concierge',
+  addToBag: 'Add to Shopping Bag',
+  checkout: 'Checkout',
+  yourBag: 'Your Bag',
+  emptyBag: 'Your bag is empty',
+  subtotal: 'Subtotal',
+  continueShopping: 'Continue Shopping',
+  delivery: 'Complimentary Delivery across Morocco',
+  priceInDh: 'Price in DH',
+  cod: 'Cash on Delivery',
+  reviewOrder: 'Review Order',
+}

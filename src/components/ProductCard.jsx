@@ -3,6 +3,8 @@ import { ChevronLeft, ChevronRight, Heart } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useSiteConfig } from '../context/ConfigContext'
 import ImageWithSkeleton from './ImageWithSkeleton'
+import { useWishlist } from '../context/WishlistContext'
+import { useLanguage } from '../context/LanguageContext'
 
 const cardImageFallback =
   'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=1000'
@@ -20,10 +22,11 @@ function replaceWithFallback(event) {
 
 export default function ProductCard({ product }) {
   const { config } = useSiteConfig()
+  const { t } = useLanguage()
+  const { wishlistItems, addToWishlist, removeFromWishlist } = useWishlist()
   const navigate = useNavigate()
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
-  const [isWishlisted, setIsWishlisted] = useState(false)
   const [timerKey, setTimerKey] = useState(0)
   const images = useMemo(
     () => [...new Set([product.main_image_url, product.hover_image_url].filter(Boolean))],
@@ -33,6 +36,7 @@ export default function ProductCard({ product }) {
   const categoryName = getCategoryName(product)
   const price = Number(product.price)
   const formattedPrice = Number.isFinite(price) ? price.toLocaleString() : '—'
+  const isWishlisted = wishlistItems.some((item) => String(item.id) === String(product.id))
 
   useEffect(() => {
     setActiveImageIndex(0)
@@ -87,10 +91,11 @@ export default function ProductCard({ product }) {
 
         <button
           type="button"
-          aria-label={`Add ${product.name || 'creation'} to wishlist`}
+          aria-label={`${isWishlisted ? 'Remove' : 'Add'} ${product.name || 'creation'} to wishlist`}
           onClick={(event) => {
             event.stopPropagation()
-            setIsWishlisted((current) => !current)
+            if (isWishlisted) removeFromWishlist(product.id)
+            else addToWishlist(product)
           }}
           className="absolute right-4 top-4 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/30 p-2 backdrop-blur-md transition-transform duration-300 ease-out hover:scale-110"
         >
@@ -164,7 +169,7 @@ export default function ProductCard({ product }) {
           </button>
         </div>
         <p className="text-xs tracking-[0.08em] text-[var(--text-primary)] opacity-80">
-          {formattedPrice} {config.currency_symbol || 'MAD'}
+          {t('priceInDh')}: {formattedPrice} {config.currency_symbol || 'MAD'}
         </p>
       </div>
       <div className="space-y-1 p-3 text-left md:hidden">
@@ -175,7 +180,7 @@ export default function ProductCard({ product }) {
           {product.collection_name || product.name || categoryName}
         </p>
         <p className="mt-1 text-xs font-semibold text-[var(--text-primary)]">
-          {formattedPrice} {config.currency_symbol || 'MAD'}
+          {t('priceInDh')}: {formattedPrice} {config.currency_symbol || 'MAD'}
         </p>
         <button
           type="button"

@@ -1,0 +1,18 @@
+export default {
+  highJewelry: 'Haute Joaillerie',
+  fineJewelry: 'Joaillerie',
+  timepieces: 'Horlogerie',
+  concierge: 'Concierge',
+  exploreHighJewelry: 'Découvrir la Haute Joaillerie',
+  privateConcierge: 'Conciergerie privée',
+  addToBag: 'Ajouter au panier',
+  checkout: 'Acheter',
+  yourBag: 'Votre panier',
+  emptyBag: 'Votre panier est vide',
+  subtotal: 'Sous-total',
+  continueShopping: 'Continuer vos achats',
+  delivery: 'Livraison gratuite au Maroc',
+  priceInDh: 'Prix en DH',
+  cod: 'Paiement à la livraison',
+  reviewOrder: 'Vérifier la commande',
+}

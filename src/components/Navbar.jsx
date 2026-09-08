@@ -17,6 +17,7 @@ import DesktopSearchDropdown from './DesktopSearchDropdown'
 import LoginDrawer from './LoginDrawer'
 import { useCart } from '../context/CartContext'
 import LanguageSwitcher from './LanguageSwitcher'
+import { useWishlist } from '../context/WishlistContext'
 
 const navigationLinks = [
   'High Jewelry',
@@ -84,6 +85,7 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin
 export default function Navbar() {
   const { config, themeMode, toggleTheme } = useSiteConfig()
   const { cartItems, setIsBagOpen } = useCart()
+  const { wishlistItems } = useWishlist()
   const [isScrolled, setIsScrolled] = useState(false)
   const [scrollY, setScrollY] = useState(0)
   const [scrollDirection, setScrollDirection] = useState('up')
@@ -231,8 +233,9 @@ export default function Navbar() {
                   <Moon strokeWidth={1.25} size={19} />
                 )}
               </IconButton>
-              <IconButton label="Wishlist" className="hidden sm:inline-flex">
+              <IconButton label="Wishlist" className="relative hidden sm:inline-flex" onClick={() => window.location.assign('/account?tab=wishlist')}>
                 <Heart strokeWidth={1.25} size={19} />
+                {wishlistItems.length > 0 && <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-gold)] px-1 text-[9px] text-[var(--bg-primary)]">{wishlistItems.length}</span>}
               </IconButton>
               <IconButton label="Account" className="hidden sm:inline-flex">
                 <span onClick={() => setIsLoginOpen(true)} className="flex h-full w-full items-center justify-center">

@@ -1,11 +1,13 @@
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { useSiteConfig } from '../context/ConfigContext'
+import { useLanguage } from '../context/LanguageContext'
 
 const fallbackHeroImage =
   'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=2400&q=90'
 
 export default function Hero() {
   const { config, loading } = useSiteConfig()
+  const { t } = useLanguage()
   const heroImage = config.hero_image_url || fallbackHeroImage
   const headline = config.hero_title || config.store_name
   const description =
@@ -42,7 +44,7 @@ export default function Hero() {
             href="#high-jewelry"
             className="group inline-flex items-center gap-3 border border-[var(--accent-gold)] bg-[var(--accent-gold)] px-8 py-4 text-xs uppercase tracking-[0.2em] text-[var(--bg-primary)] transition-all duration-300 ease-out hover:bg-transparent hover:text-[var(--accent-gold)]"
           >
-            Explore High Jewelry
+            {t('exploreHighJewelry')}
             <ArrowRight
               aria-hidden="true"
               size={16}
@@ -56,7 +58,7 @@ export default function Hero() {
             rel={config.whatsapp_number ? 'noreferrer' : undefined}
             className="border-b border-[var(--accent-gold)]/70 pb-1 text-xs uppercase tracking-[0.2em] text-[var(--accent-gold)] transition-all duration-300 ease-out hover:border-[var(--accent-gold)]"
           >
-            Private Concierge
+            {t('privateConcierge')}
           </a>
         </div>
       </div>

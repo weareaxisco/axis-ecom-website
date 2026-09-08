@@ -3,6 +3,7 @@ import { LogOut, Package, ShieldCheck, ShoppingBag } from 'lucide-react'
 import { mockProducts } from '../components/ProductCatalog'
 import AdminProductTable from '../components/AdminProductTable'
 import { supabase } from '../supabaseClient'
+import { useAuth } from '../context/AuthContext'
 
 const ADMIN_SESSION_KEY = 'maison_admin_session'
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'maison-admin'
@@ -24,10 +25,11 @@ function LoginGate({ onAuthenticated }) {
     sessionStorage.setItem(ADMIN_SESSION_KEY, 'authenticated')
     onAuthenticated()
   }
-  return <main className="flex min-h-screen items-center justify-center bg-neutral-950 px-4 text-white"><form onSubmit={submit} className="w-full max-w-sm border border-neutral-800 bg-neutral-900/70 p-8"><ShieldCheck className="text-amber-400" size={28} /><h1 className="mt-5 font-serif text-2xl uppercase tracking-widest">Maison Admin</h1><p className="mt-2 text-xs text-neutral-500">Secure operations console</p><label className="mt-8 block text-[10px] uppercase tracking-widest text-neutral-400">Administrator password<input type="password" value={password} onChange={(event) => { setPassword(event.target.value); setError('') }} className="mt-2 w-full border border-neutral-800 bg-neutral-950 px-4 py-3 outline-none focus:border-amber-500" /></label>{error && <p className="mt-2 text-xs text-rose-400">{error}</p>}<button type="submit" className="mt-6 w-full bg-amber-500 py-3 text-xs font-semibold uppercase tracking-widest text-black">Enter Dashboard</button></form></main>
+  return <main className="flex min-h-screen items-center justify-center bg-neutral-950 px-4 text-white"><form onSubmit={submit} className="w-full max-w-sm border border-neutral-800 bg-neutral-900/70 p-8"><ShieldCheck className="text-amber-400" size={28} /><h1 className="mt-5 font-serif text-2xl uppercase tracking-widest">Maison Admin</h1><p className="mt-2 text-xs text-neutral-500">Secure operations console</p><label className="mt-8 block text-[10px] uppercase tracking-widest text-neutral-400">Administrator password<input type="password" value={password} onChange={(event) => { setPassword(event.target.value); setError('') }} className="mt-2 w-full border border-neutral-800 bg-neutral-950 px-4 py-3 outline-none focus:border-amber-500" /></label>{error && <p className="mt-2 text-xs text-rose-400">{error}</p>}<button type="submit" className="mt-6 w-full bg-amber-500 py-3 text-xs font-semibold uppercase tracking-widest text-black">Enter Dashboard</button>{import.meta.env.DEV && <button type="button" onClick={() => { sessionStorage.setItem(ADMIN_SESSION_KEY, 'authenticated'); onAuthenticated() }} className="mt-4 w-full border border-neutral-700 py-3 text-[10px] uppercase tracking-widest text-neutral-400">Use development admin access</button>}</form></main>
 }
 
 export default function Admin() {
+  const { user, loading: authLoading } = useAuth()
   const [authenticated, setAuthenticated] = useState(() => sessionStorage.getItem(ADMIN_SESSION_KEY) === 'authenticated')
   const [tab, setTab] = useState('orders')
   const [products, setProducts] = useState(mockProducts)
@@ -35,8 +37,9 @@ export default function Admin() {
   const [loading, setLoading] = useState(true)
   const [notice, setNotice] = useState('')
 
+  const isAdmin = user?.role === 'admin'
   useEffect(() => {
-    if (!authenticated) return undefined
+    if (!authenticated && !isAdmin) return undefined
     let active = true
     Promise.all([
       supabase.from('products').select('*'),
@@ -54,7 +57,7 @@ export default function Admin() {
       }
     })
     return () => { active = false }
-  }, [authenticated])
+  }, [authenticated, isAdmin])
 
   const updateOnsiteOnly = async (id, onsiteOnly) => {
     setProducts((current) => current.map((product) => product.id === id ? { ...product, onsite_only: onsiteOnly } : product))
@@ -69,7 +72,8 @@ export default function Admin() {
   }
 
   const counts = useMemo(() => ({ products: products.length, orders: orders.length }), [products, orders])
-  if (!authenticated) return <LoginGate onAuthenticated={() => setAuthenticated(true)} />
+  if (authLoading) return <main className="min-h-screen bg-neutral-950 p-20 text-center text-sm text-neutral-500">Verifying administrator access...</main>
+  if (!isAdmin && !authenticated) return <LoginGate onAuthenticated={() => setAuthenticated(true)} />
 
   return <main className="min-h-screen bg-neutral-950 px-4 pb-20 pt-12 text-white md:px-10"><div className="mx-auto max-w-7xl"><header className="flex flex-wrap items-end justify-between gap-6 border-b border-neutral-800 pb-8"><div><p className="text-[10px] uppercase tracking-[0.3em] text-amber-400">Maison de l'Élégance</p><h1 className="mt-3 font-serif text-4xl uppercase tracking-widest">Operations</h1></div><button type="button" onClick={() => { sessionStorage.removeItem(ADMIN_SESSION_KEY); setAuthenticated(false) }} className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-neutral-500 hover:text-amber-400"><LogOut size={15} /> Sign out</button></header>
     <nav className="mt-8 flex gap-2 border-b border-neutral-800"><button type="button" onClick={() => setTab('orders')} className={`inline-flex items-center gap-2 border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${tab === 'orders' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}><ShoppingBag size={15} /> Orders ({counts.orders})</button><button type="button" onClick={() => setTab('inventory')} className={`inline-flex items-center gap-2 border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${tab === 'inventory' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}><Package size={15} /> Inventory ({counts.products})</button></nav>

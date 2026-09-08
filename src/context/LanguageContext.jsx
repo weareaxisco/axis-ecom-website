@@ -1,17 +1,8 @@
 import { createContext, useContext, useMemo, useState } from 'react'
+import fr from '../locales/fr'
+import en from '../locales/en'
 
-const dictionaries = {
-  fr: {
-    highJewelry: 'Haute Joaillerie', timepieces: 'Horlogerie', concierge: 'Concierge',
-    addToBag: 'Ajouter au panier', checkout: 'Acheter', delivery: 'Livraison gratuite au Maroc',
-    priceInDh: 'Prix en DH', cod: 'Paiement à la livraison',
-  },
-  en: {
-    highJewelry: 'High Jewelry', timepieces: 'Timepieces', concierge: 'Concierge',
-    addToBag: 'Add to Shopping Bag', checkout: 'Checkout', delivery: 'Complimentary Delivery across Morocco',
-    priceInDh: 'Price in DH', cod: 'Cash on Delivery',
-  },
-}
+const dictionaries = { fr, en }
 
 const LanguageContext = createContext(null)
 
