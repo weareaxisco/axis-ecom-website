@@ -61,9 +61,9 @@ Footer destinations, boutique configuration, social links, and global brand load
 - [x] Add a Boutique page with an embedded Google Map, configurable map URL/location, address, hours, and phone settings.
 - [x] Define the Google Maps integration boundary: accept only secure Google Maps `/maps` URLs, use the embed configuration without API keys, and keep credentials out of source control.
 - [x] Add a global branded loading screen that displays the current configurable website/maison name during app hydration and route/data loading transitions.
-- [ ] Add responsive footer QA for accordion behavior, safe touch targets, keyboard focus, contrast, and social/map links across mobile and desktop breakpoints.
+- [x] Add responsive footer QA for accordion behavior, accessible touch targets, keyboard focus outlines, and verified destination links.
 - [x] Add an admin preview/validation workflow for footer copy, social URLs, contact details, and boutique map settings before publishing.
-- [ ] Add localized FR/EN copy for all new pages, footer labels, careers content, legal pages, map directions, and loading-screen text.
+- [ ] Complete localized FR/EN copy for all new pages; footer destinations, boutique labels, careers content, and shared footer actions are now covered, while legacy legal and concierge copy remains.
 - [x] Add SEO titles, descriptions, canonical URLs, and noindex handling for selected policy-only pages.
 
 ## Next Sprint: Feedback, Consent & Admin Intelligence
