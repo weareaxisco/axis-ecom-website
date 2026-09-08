@@ -220,7 +220,7 @@ export default function ProductCatalog() {
       Object.entries(collectionRefs.current).forEach(([collectionId, section]) => {
         if (!section) return
         const stickyOffset = nextDirection === 'up'
-          ? 104
+          ? (window.innerWidth >= 768 ? 152 : 104)
           : 0
         nextCollectionProgress[collectionId] = calculateCollectionProgress(section, stickyOffset)
       })
@@ -325,8 +325,6 @@ export default function ProductCatalog() {
     })
   }, [collectionFilters, visibleProducts])
 
-  const isNavbarVisible = scrollDirection === 'up' || scrollY <= 20
-
   return (
     <section id="high-jewelry" className="bg-[var(--bg-primary)] px-4 py-20 text-[var(--text-primary)] md:px-12 md:py-28">
       <div className="mx-auto max-w-7xl">
@@ -339,7 +337,7 @@ export default function ProductCatalog() {
             <div
               className={`relative mx-auto hidden w-full max-w-5xl border-y border-[var(--border-subtle)] bg-[var(--surface-primary)] transition-[top] duration-300 ease-in-out md:block ${
                 isSticky
-                  ? `sticky z-30 shadow-md ${scrollDirection === 'up' ? 'top-14' : 'top-0'}`
+                  ? 'sticky z-30 shadow-md top-[var(--mobile-navbar-offset)] md:top-[var(--desktop-navbar-offset)]'
                   : ''
               }`}
             >
@@ -413,7 +411,7 @@ export default function ProductCatalog() {
                 }}
                 className="relative mb-16"
               >
-                <div className={`sticky z-30 border-b border-white/10 bg-[var(--surface-primary)] transition-[top] duration-300 ease-in-out ${isNavbarVisible ? 'top-[var(--header-stack-height)] md:top-0' : 'top-0'}`}>
+                <div className="sticky top-[var(--mobile-navbar-offset)] z-30 border-b border-white/10 bg-[var(--surface-primary)] transition-[top] duration-300 ease-in-out md:top-[var(--desktop-navbar-offset)]">
                   <div className="flex items-center justify-between px-4 py-3">
                     <h3 className="font-serif text-xs font-medium uppercase tracking-widest">{collection.title}</h3>
                     <div className="flex items-center gap-4">

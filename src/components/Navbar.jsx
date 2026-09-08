@@ -142,6 +142,11 @@ export default function Navbar() {
   }, [])
 
   useEffect(() => {
+    document.documentElement.style.setProperty('--desktop-navbar-offset', isDesktopHeaderVisible ? '152px' : '0px')
+    document.documentElement.style.setProperty('--mobile-navbar-offset', isMobileHeaderVisible ? '104px' : '0px')
+  }, [isDesktopHeaderVisible, isMobileHeaderVisible])
+
+  useEffect(() => {
     const isOverlayOpen = isDrawerOpen || isSearchOpen
     document.documentElement.style.overflow = isOverlayOpen ? 'hidden' : ''
     document.body.style.overflow = isOverlayOpen ? 'hidden' : ''
