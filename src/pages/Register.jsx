@@ -78,8 +78,8 @@ export default function Register() {
           <Mail className="mx-auto text-amber-400" size={38} strokeWidth={1.1} />
           <p className="mt-8 text-[11px] uppercase tracking-[0.25em] text-amber-400">{t('welcomeMaison')}</p>
           <h1 className="mt-4 font-serif text-3xl uppercase tracking-widest">{t('verifyEmail')}</h1>
-          <p className="mt-6 text-sm leading-7 text-neutral-300">An email was sent to <strong className="text-white">{form.email}</strong></p>
-          <p className="mt-2 text-xs leading-6 text-neutral-500">Please follow the link in the email to activate your account.</p>
+          <p className="mt-6 text-sm leading-7 text-neutral-300">{t('emailSentTo')} <strong className="text-white">{form.email}</strong></p>
+          <p className="mt-2 text-xs leading-6 text-neutral-500">{t('verificationInstructions')}</p>
           <button type="button" onClick={() => { window.location.href = 'mailto:' }} className="mt-8 inline-flex items-center justify-center gap-2 border border-amber-500 bg-amber-500 px-6 py-3 text-[11px] font-semibold uppercase tracking-widest text-black transition-colors hover:bg-transparent hover:text-amber-400">
             {t('openEmailApp')}
           </button>
@@ -104,16 +104,16 @@ export default function Register() {
           </fieldset>
           <div className="grid gap-5 sm:grid-cols-2">
             {['firstName', 'lastName'].map((field) => <label key={field}><span className={labelClass}>{field === 'firstName' ? t('firstName') : t('lastName')}</span><input required value={form[field]} onChange={updateField(field)} className={inputClass} /><ErrorSlot message={errors[field]} /></label>)}
-            <label><span className={labelClass}>Email</span><input type="email" value={form.email} onChange={updateField('email')} className={inputClass} /><ErrorSlot message={errors.email} /></label>
-            <label><span className={labelClass}>Country / region</span><select value={form.country} onChange={updateField('country')} className={inputClass}><option>Morocco (+212)</option></select><ErrorSlot /></label>
-            <label><span className={labelClass}>Phone</span><input type="tel" value={form.phone} onChange={updateField('phone')} placeholder="+212 6XX-XXXXXX" className={inputClass} /><small className="block text-xs text-neutral-500">Format: +212 6XX-XXXXXX / +212 7XX-XXXXXX</small><ErrorSlot message={errors.phone} /></label>
-            <label><span className={labelClass}>Password</span><div className="relative"><input type={showPassword ? 'text' : 'password'} value={form.password} onChange={updateField('password')} className={`${inputClass} pr-12`} /><button type="button" aria-label="Toggle password visibility" onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-3 text-neutral-400 hover:text-amber-400">{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div><ErrorSlot message={errors.password} /></label>
+            <label><span className={labelClass}>{t('email')}</span><input type="email" value={form.email} onChange={updateField('email')} className={inputClass} /><ErrorSlot message={errors.email} /></label>
+            <label><span className={labelClass}>{t('countryRegionLabel')}</span><select value={form.country} onChange={updateField('country')} className={inputClass}><option>Morocco (+212)</option></select><ErrorSlot /></label>
+            <label><span className={labelClass}>{t('phone')}</span><input type="tel" value={form.phone} onChange={updateField('phone')} placeholder="+212 6XX-XXXXXX" className={inputClass} /><small className="block text-xs text-neutral-500">{t('phoneFormatHint')}</small><ErrorSlot message={errors.phone} /></label>
+            <label><span className={labelClass}>{t('password')}</span><div className="relative"><input type={showPassword ? 'text' : 'password'} value={form.password} onChange={updateField('password')} className={`${inputClass} pr-12`} /><button type="button" aria-label={t('togglePassword')} onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-3 text-neutral-400 hover:text-amber-400">{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div><ErrorSlot message={errors.password} /></label>
           </div>
-          <label className="flex gap-3 text-xs leading-relaxed text-neutral-400"><input type="checkbox" required className="mt-1 accent-amber-500" />I consent to the processing of my personal data under Moroccan Law 09-08 and CNDP requirements.</label>
+          <label className="flex gap-3 text-xs leading-relaxed text-neutral-400"><input type="checkbox" required className="mt-1 accent-amber-500" />{t('consentCndp')}</label>
           {submitError && <p className="border border-rose-500/30 bg-rose-950/20 p-3 text-xs text-rose-300">{submitError}</p>}
-          <button type="submit" className="w-full border border-amber-500 bg-amber-500 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-black transition-colors hover:bg-transparent hover:text-amber-400">Create account</button>
+          <button type="submit" className="w-full border border-amber-500 bg-amber-500 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-black transition-colors hover:bg-transparent hover:text-amber-400">{t('createAccountAction')}</button>
         </form>
-        <div className="mt-16 border-t border-[var(--border-subtle)] py-8 text-center"><h2 className="font-serif text-lg uppercase tracking-widest">Subscribe to our newsletter</h2><div className="mx-auto mt-5 flex max-w-md border-b border-[var(--border-subtle)]"><input type="email" placeholder="Your email address" className="min-w-0 flex-1 bg-transparent py-3 text-sm outline-none" /><button type="button" className="text-[10px] uppercase tracking-widest text-[var(--accent-gold)]">Sign up</button></div></div>
+        <div className="mt-16 border-t border-[var(--border-subtle)] py-8 text-center"><h2 className="font-serif text-lg uppercase tracking-widest">{t('newsletterTitle')}</h2><div className="mx-auto mt-5 flex max-w-md border-b border-[var(--border-subtle)]"><input type="email" placeholder={t('emailAddressPlaceholder')} className="min-w-0 flex-1 bg-transparent py-3 text-sm outline-none" /><button type="button" className="text-[10px] uppercase tracking-widest text-[var(--accent-gold)]">{t('signUp')}</button></div></div>
       </div>
     </main>
   )
