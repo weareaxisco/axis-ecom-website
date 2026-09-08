@@ -106,6 +106,14 @@ create table if not exists public.site_config (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.analytics_events (
+  id uuid primary key default gen_random_uuid(),
+  event_name text not null check (event_name in ('page_view', 'add_to_cart', 'begin_checkout', 'purchase')),
+  visitor_id text not null,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
 alter table public.site_config enable row level security;
 drop policy if exists "Public can read site settings" on public.site_config;
 create policy "Public can read site settings" on public.site_config for select using (true);

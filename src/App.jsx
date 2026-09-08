@@ -29,6 +29,7 @@ import { SiteConfigProvider } from './context/SiteConfigContext'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import GlobalLoader from './components/GlobalLoader'
 import CookieConsent from './components/CookieConsent'
+import { trackEvent } from './utils/analytics'
 import MaisonInformation from './pages/MaisonInformation'
 import './App.css'
 
@@ -37,6 +38,7 @@ function ScrollToTop() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
+    trackEvent('page_view', { path: pathname }).catch(() => {})
   }, [pathname])
 
   return null

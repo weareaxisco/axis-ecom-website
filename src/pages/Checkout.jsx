@@ -3,6 +3,7 @@ import { useCart } from '../context/CartContext'
 import { generateInvoice } from '../utils/generateInvoice'
 import { useLanguage } from '../context/LanguageContext'
 import { getProductPrice } from '../utils/productUtils'
+import { trackEvent } from '../utils/analytics'
 
 const money = (value) => `${Number(value || 0).toLocaleString()} DH`
 const fallbackCities = [
@@ -79,6 +80,8 @@ export default function Checkout() {
     }
     if (step === 1 && fulfillment === 'onsite' && (!form.pickupDate || !form.pickupTime)) return
     setPhoneError('')
+    if (step === 1) trackEvent('begin_checkout', { items: cartItems.length, value: total }).catch(() => {})
+    if (step === 2) trackEvent('purchase', { items: cartItems.length, value: total, payment }).catch(() => {})
     setStep((current) => current + 1)
   }
 

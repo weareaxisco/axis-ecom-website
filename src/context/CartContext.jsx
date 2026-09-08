@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import { getProductPrice } from '../utils/productUtils'
+import { trackEvent } from '../utils/analytics'
 
 const CartContext = createContext(null)
 const storageKey = 'maison_cart_items'
@@ -38,6 +39,7 @@ export function CartProvider({ children }) {
       }]
     })
     if (!options.suppressBagOpen) setIsBagOpen(true)
+    trackEvent('add_to_cart', { product_id: product.id, quantity }).catch(() => {})
   }, [updateCart])
   const isInCart = useCallback((id) => cartItems.some((item) => String(item.id) === String(id)), [cartItems])
 

@@ -73,7 +73,7 @@ Footer destinations, boutique configuration, social links, and global brand load
 - [x] Add CNDP cookie consent choices and consent-gated GA4 script loading.
 - [x] Add GA4 tracking ID configuration in Admin Settings.
 - [x] Add permission-scoped Admin Analytics dashboard with revenue, AOV, order velocity, regional distribution, and activity feed.
-- [ ] Add event/session instrumentation for a true cart conversion-rate metric; order-only data cannot produce a reliable conversion denominator.
+- [x] Add visitor/session event instrumentation for page views, checkout starts, purchases, and Admin conversion-rate reporting.
 - [x] Add strict staff workspace routing logic and focused permission coverage for catalog, order, and appointment workspaces.
 
 ## Next Sprint: Elevated Administration & Staff RBAC
@@ -97,4 +97,4 @@ Footer destinations, boutique configuration, social links, and global brand load
 - [x] Fix the Admin inventory onsite-only switch styling and prevent Supabase UUID writes for local mock products.
 - [x] Add granular CNDP cookie personalization with required, analytics, and functional categories persisted in `maison_cookie_preferences`.
 - [x] Add configurable calendar webhook settings, iCal export, and confirmation/rescheduling synchronization for Admin appointments.
-- [ ] Complete the remaining full-site hardcoded-string audit across legacy Admin, legal, concierge, and storefront copy; newly added operations and consent labels are localized.
+- [ ] Complete the remaining full-site hardcoded-string audit across legacy Admin, legal, and storefront copy; Concierge, feedback, footer, Careers, Boutique, and operations labels are now localized.
