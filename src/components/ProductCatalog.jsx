@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient'
 import ProductCard from './ProductCard'
 import SortFilterDrawer, { createInitialSelection } from './SortFilterDrawer'
 import { getProductPrice } from '../utils/productUtils'
+import { useLanguage } from '../context/LanguageContext'
 
 const calculateCollectionProgress = (sectionElement, stickyOffset, headerHeight = 44) => {
   if (!sectionElement) return 0
@@ -15,11 +16,7 @@ const calculateCollectionProgress = (sectionElement, stickyOffset, headerHeight 
 }
 
 const filterOptions = ['All', 'High Jewelry', 'Rings', 'Bracelets', 'Timepieces']
-const sortOptions = [
-  { value: 'featured', label: 'Featured' },
-  { value: 'low', label: 'Price: Low to High' },
-  { value: 'high', label: 'Price: High to Low' },
-]
+const sortOptions = ['featured', 'low', 'high']
 
 export const mockProducts = [
   {
@@ -138,8 +135,11 @@ function ProductSkeleton() {
 }
 
 export default function ProductCatalog() {
+  const { t } = useLanguage()
   const [products, setProducts] = useState([])
   const [activeFilter, setActiveFilter] = useState('All')
+  const filterLabels = { All: t('all'), 'High Jewelry': t('highJewelry'), Rings: t('rings'), Bracelets: t('bracelets'), Timepieces: t('timepieces') }
+  const sortLabels = { featured: t('featured'), low: t('priceLowHigh'), high: t('priceHighLow') }
   const [sortOrder, setSortOrder] = useState('featured')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -333,9 +333,9 @@ export default function ProductCatalog() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-12 text-center">
           <p className="mb-3 text-[10px] uppercase tracking-[0.3em] text-[var(--accent-gold)]">
-            The Collection
+            {t('theCollection')}
           </p>
-          <h2 className="font-serif text-3xl tracking-wide md:text-5xl">Curated Creations</h2>
+          <h2 className="font-serif text-3xl tracking-wide md:text-5xl">{t('curatedCreations')}</h2>
           <div ref={filterBarRef} className={isSticky ? 'h-12 md:h-14' : 'h-14'}>
             <div
               className={`relative mx-auto hidden w-full max-w-5xl border-y border-[var(--border-subtle)] bg-[var(--surface-primary)] transition-[top] duration-300 ease-in-out md:block ${
@@ -357,7 +357,7 @@ export default function ProductCatalog() {
                           : 'text-[var(--text-primary)] opacity-60 hover:text-[var(--text-primary)]'
                       }`}
                     >
-                      {filter}
+                      {filterLabels[filter] || filter}
                     </button>
                   ))}
                 </div>
@@ -369,7 +369,7 @@ export default function ProductCatalog() {
                 onClick={() => setIsSortOpen((open) => !open)}
                 className="flex items-center gap-1 border-b-2 border-transparent px-2 py-1 text-[11px] font-medium uppercase leading-none tracking-[0.18em] text-[var(--text-primary)] opacity-60 transition-colors duration-200 hover:text-[var(--text-primary)] md:text-xs"
               >
-                {sortOptions.find((option) => option.value === sortOrder)?.label}
+                {sortLabels[sortOrder]}
                 <ChevronDown
                   size={12}
                   strokeWidth={1.25}
@@ -380,16 +380,16 @@ export default function ProductCatalog() {
                 <div className="absolute right-0 z-30 mt-2 w-48 border border-[var(--border-subtle)] bg-[var(--surface-primary)] py-2 shadow-2xl backdrop-blur-md">
                   {sortOptions.map((option) => (
                     <button
-                      key={option.value}
+                      key={option}
                       type="button"
                       role="menuitem"
                       onClick={() => {
-                        setSortOrder(option.value)
+                        setSortOrder(option)
                         setIsSortOpen(false)
                       }}
                       className="w-full cursor-pointer px-4 py-2 text-left text-xs uppercase tracking-wider text-[var(--text-primary)] transition-colors hover:bg-[var(--accent-gold)]/10 hover:text-[var(--accent-gold)]"
                     >
-                      {option.label}
+                      {sortLabels[option]}
                     </button>
                   ))}
                 </div>
@@ -421,7 +421,7 @@ export default function ProductCatalog() {
                       <span className="text-[10px] tracking-wider text-neutral-400">({collection.products.length})</span>
                       <button
                         type="button"
-                        aria-label={`Filter ${collection.title}`}
+                        aria-label={`${t('filter')} ${collection.title}`}
                         onClick={() => {
                           setTargetCollectionId(collection.id)
                           setIsFilterDrawerOpen(true)
@@ -448,19 +448,19 @@ export default function ProductCatalog() {
           </div>
         ) : (
           <div className="border border-[var(--border-subtle)] px-6 py-20 text-center">
-            <p className="font-serif text-xl">No creations found matching your selection</p>
+            <p className="font-serif text-xl">{t('noCreationsFound')}</p>
             <button
               type="button"
               onClick={resetFilters}
               className="mt-6 border-b border-[var(--accent-gold)] pb-1 text-[10px] uppercase tracking-[0.2em] text-[var(--accent-gold)]"
             >
-              Reset filters
+              {t('resetFilters')}
             </button>
           </div>
         )}
         {error && products.length === 0 && !loading && (
           <p className="mt-6 text-center text-xs opacity-60">
-            Catalog inventory is being refreshed. Please return shortly.
+            {t('catalogRefreshing')}
           </p>
         )}
       </div>

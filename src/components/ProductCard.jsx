@@ -78,7 +78,7 @@ export default function ProductCard({ product }) {
           <ImageWithSkeleton
             key={`${image}-${index}`}
             src={image}
-            alt={index === 0 ? product.name || 'Jewelry creation' : ''}
+            alt={index === 0 ? product.name || t('jewelryCreation') : ''}
             aria-hidden={index !== 0}
             onError={replaceWithFallback}
             className={`absolute inset-0 h-full w-full transition-all duration-700 ease-out ${
@@ -114,7 +114,7 @@ export default function ProductCard({ product }) {
           <>
             <button
               type="button"
-              aria-label="Previous product image"
+              aria-label={t('previousProductImage')}
               onClick={(event) => {
                 event.stopPropagation()
                 changeImage(-1)
@@ -125,7 +125,7 @@ export default function ProductCard({ product }) {
             </button>
             <button
               type="button"
-              aria-label="Next product image"
+              aria-label={t('nextProductImage')}
               onClick={(event) => {
                 event.stopPropagation()
                 changeImage(1)
