@@ -7,6 +7,7 @@ export default {
   privateConcierge: 'Conciergerie privée',
   addToBag: 'Ajouter au panier',
   checkout: 'Acheter',
+  proceedCheckout: 'Passer à la caisse',
   yourBag: 'Votre panier',
   emptyBag: 'Votre panier est vide',
   subtotal: 'Sous-total',

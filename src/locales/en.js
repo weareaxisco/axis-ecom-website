@@ -7,6 +7,7 @@ export default {
   privateConcierge: 'Private Concierge',
   addToBag: 'Add to Shopping Bag',
   checkout: 'Checkout',
+  proceedCheckout: 'Proceed to Checkout',
   yourBag: 'Your Bag',
   emptyBag: 'Your bag is empty',
   subtotal: 'Subtotal',

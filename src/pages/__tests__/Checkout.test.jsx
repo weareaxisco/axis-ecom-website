@@ -2,13 +2,14 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { CartProvider } from '../../context/CartContext'
 import Checkout from '../Checkout'
+import { LanguageProvider } from '../../context/LanguageContext'
 
 function renderCheckout() {
-  return render(<MemoryRouter><CartProvider><Checkout /></CartProvider></MemoryRouter>)
+  return render(<MemoryRouter><LanguageProvider><CartProvider><Checkout /></CartProvider></LanguageProvider></MemoryRouter>)
 }
 
 describe('Checkout', () => {
-  beforeEach(() => window.localStorage.clear())
+  beforeEach(() => { window.localStorage.clear(); window.localStorage.setItem('maison_language', 'en') })
 
   it('defaults to Casablanca and supports Moroccan city selection', () => {
     renderCheckout()

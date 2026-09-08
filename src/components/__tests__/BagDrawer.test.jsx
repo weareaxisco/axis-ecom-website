@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { CartProvider, useCart } from '../../context/CartContext'
 import BagDrawer from '../BagDrawer'
+import { LanguageProvider } from '../../context/LanguageContext'
 
 function OpenBag({ children }) {
   const { addToCart } = useCart()
@@ -13,10 +14,10 @@ function LocationProbe() {
 }
 
 describe('BagDrawer', () => {
-  beforeEach(() => window.localStorage.clear())
+  beforeEach(() => { window.localStorage.clear(); window.localStorage.setItem('maison_language', 'en') })
 
   it('renders thumbnails, quantities, and the subtotal when opened', () => {
-    render(<MemoryRouter><CartProvider><OpenBag><BagDrawer /></OpenBag></CartProvider></MemoryRouter>)
+    render(<MemoryRouter><LanguageProvider><CartProvider><OpenBag><BagDrawer /></OpenBag></CartProvider></LanguageProvider></MemoryRouter>)
 
     fireEvent.click(screen.getByRole('button', { name: 'Seed bag' }))
 
@@ -27,7 +28,7 @@ describe('BagDrawer', () => {
   })
 
   it('navigates to checkout and closes the drawer', () => {
-    render(<MemoryRouter initialEntries={['/']}><CartProvider><OpenBag><BagDrawer /><Routes><Route path="*" element={<LocationProbe />} /></Routes></OpenBag></CartProvider></MemoryRouter>)
+    render(<MemoryRouter initialEntries={['/']}><LanguageProvider><CartProvider><OpenBag><BagDrawer /><Routes><Route path="*" element={<LocationProbe />} /></Routes></OpenBag></CartProvider></LanguageProvider></MemoryRouter>)
 
     fireEvent.click(screen.getByRole('button', { name: 'Seed bag' }))
     fireEvent.click(screen.getByRole('button', { name: 'Proceed to Checkout' }))

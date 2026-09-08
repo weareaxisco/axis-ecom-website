@@ -24,7 +24,7 @@ export default function BagDrawer() {
         <footer className="border-t border-neutral-800 p-6">
           <div className="flex justify-between text-sm uppercase tracking-widest"><span>{t('subtotal')}</span><span>{money(subtotal)}</span></div>
           {hasOnsiteOnly ? <p className="mt-3 border border-amber-500/40 bg-amber-500/5 p-3 text-xs leading-5 text-amber-300">This exclusive creation requires private boutique pickup at our Flagship Store.</p> : <p className="mt-3 text-xs text-amber-400">{t('delivery')}</p>}
-          <button type="button" disabled={!cartItems.length} onClick={() => { setIsBagOpen(false); navigate('/checkout') }} className="mt-6 w-full bg-amber-500 py-4 text-xs font-semibold uppercase tracking-widest text-black disabled:cursor-not-allowed disabled:opacity-40">{t('checkout')}</button>
+          <button type="button" disabled={!cartItems.length} onClick={() => { setIsBagOpen(false); navigate('/checkout') }} className="mt-6 w-full bg-amber-500 py-4 text-xs font-semibold uppercase tracking-widest text-black disabled:cursor-not-allowed disabled:opacity-40">{t('proceedCheckout')}</button>
           <button type="button" onClick={() => setIsBagOpen(false)} className="mt-3 w-full border border-neutral-700 py-3 text-[10px] uppercase tracking-widest hover:border-amber-400">{t('continueShopping')}</button>
         </footer>
       </aside>
