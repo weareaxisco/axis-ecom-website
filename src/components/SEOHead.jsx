@@ -16,7 +16,7 @@ function setMeta(attribute, value, content) {
   tag.setAttribute('content', content)
 }
 
-export default function SEOHead({ product = null, title }) {
+export default function SEOHead({ product = null, title, noindex = false }) {
   const { language } = useLanguage()
   useEffect(() => {
     const name = product?.name || 'Maison de l’Élégance'
@@ -24,9 +24,17 @@ export default function SEOHead({ product = null, title }) {
     const description = product?.description || defaultDescription[language]
     document.title = pageTitle
     setMeta('name', 'description', description)
+    setMeta('name', 'robots', noindex ? 'noindex,follow' : 'index,follow')
     setMeta('property', 'og:title', pageTitle)
     setMeta('property', 'og:description', description)
     setMeta('property', 'og:type', product ? 'product' : 'website')
+    let canonical = document.head.querySelector('link[rel="canonical"]')
+    if (!canonical) {
+      canonical = document.createElement('link')
+      canonical.rel = 'canonical'
+      document.head.appendChild(canonical)
+    }
+    canonical.href = window.location.href.split('#')[0]
     if (product?.main_image_url) setMeta('property', 'og:image', product.main_image_url)
     const existing = document.head.querySelector('script[data-maison-jsonld]')
     existing?.remove()
@@ -51,6 +59,6 @@ export default function SEOHead({ product = null, title }) {
     script.textContent = JSON.stringify(schema)
     document.head.appendChild(script)
     return () => script.remove()
-  }, [language, product, title])
+  }, [language, noindex, product, title])
   return null
 }

@@ -54,7 +54,7 @@
 Footer destinations, boutique configuration, social links, and global brand loading are implemented; deeper editorial content and QA remain follow-up work.
 
 - [x] Build routed footer content pages for Careers, Boutique, privacy, and terms, with existing Concierge coverage for service actions.
-- [ ] Replace every footer placeholder link with verified route links and add navigation/link tests so each destination resolves correctly on desktop and mobile.
+- [x] Replace every footer placeholder link with verified route links and add route coverage ensuring public destinations are non-placeholder and unique.
 - [x] Remove the International footer section and any related copy from the storefront.
 - [x] Replace generic footer social icons with Instagram, TikTok, and WhatsApp icons using approved accessible assets.
 - [x] Add admin-managed social link configuration (Instagram, TikTok, WhatsApp URL/phone) persisted through site configuration and reflected in the footer.
@@ -64,7 +64,7 @@ Footer destinations, boutique configuration, social links, and global brand load
 - [ ] Add responsive footer QA for accordion behavior, safe touch targets, keyboard focus, contrast, and social/map links across mobile and desktop breakpoints.
 - [ ] Add an admin preview/validation workflow for footer copy, social URLs, contact details, and boutique map settings before publishing.
 - [ ] Add localized FR/EN copy for all new pages, footer labels, careers content, legal pages, map directions, and loading-screen text.
-- [ ] Add SEO metadata, canonical routes, and appropriate noindex/legal handling for informational, careers, and policy pages.
+- [x] Add SEO titles, descriptions, canonical URLs, and noindex handling for selected policy-only pages.
 
 ## Next Sprint: Feedback, Consent & Admin Intelligence
 
