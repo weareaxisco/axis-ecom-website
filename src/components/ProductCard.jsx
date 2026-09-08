@@ -5,6 +5,7 @@ import { useSiteConfig } from '../context/ConfigContext'
 import ImageWithSkeleton from './ImageWithSkeleton'
 import { useWishlist } from '../context/WishlistContext'
 import { useLanguage } from '../context/LanguageContext'
+import { getProductPrice } from '../utils/productUtils'
 
 const cardImageFallback =
   'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=1000'
@@ -34,8 +35,7 @@ export default function ProductCard({ product }) {
   )
   const gallery = images.length ? images : [cardImageFallback]
   const categoryName = getCategoryName(product)
-  const price = Number(product.price ?? product.price_dh)
-  const formattedPrice = Number.isFinite(price) ? price.toLocaleString() : '—'
+  const formattedPrice = getProductPrice(product).toLocaleString()
   const isWishlisted = wishlistItems.some((item) => String(item.id) === String(product.id))
 
   useEffect(() => {

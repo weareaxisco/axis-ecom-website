@@ -1,18 +1,78 @@
-function escapeHtml(value) {
-  return String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[character])
+import { getProductPrice } from './productUtils'
+
+function pdfText(value) {
+  return String(value ?? '')
+    .replace(/\\/g, '\\\\')
+    .replace(/\(/g, '\\(')
+    .replace(/\)/g, '\\)')
+}
+
+function money(value) {
+  return `${Number(value || 0).toLocaleString('en-US')} DH`
+}
+
+function createPdf(lines) {
+  const content = [
+    'BT',
+    '/F1 11 Tf',
+    '50 780 Td',
+    ...lines.flatMap((line, index) => [`(${pdfText(line)}) Tj`, ...(index < lines.length - 1 ? ['0 -16 Td'] : [])]),
+    'ET',
+  ].join('\n')
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+    `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
+  ]
+  let pdf = '%PDF-1.4\n'
+  const offsets = [0]
+  objects.forEach((object, index) => {
+    offsets.push(pdf.length)
+    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`
+  })
+  const xrefOffset = pdf.length
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`
+  offsets.slice(1).forEach((offset) => { pdf += `${String(offset).padStart(10, '0')} 00000 n \n` })
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`
+  return new Blob([pdf], { type: 'application/pdf' })
 }
 
 export function generateInvoice(order = {}) {
   const items = order.items || order.cartItems || []
-  const subtotal = Number(order.subtotal ?? items.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 1), 0))
+  const subtotal = Number(order.subtotal ?? items.reduce((sum, item) => sum + getProductPrice(item) * Number(item.quantity || 1), 0))
   const delivery = Number(order.shippingFee ?? order.delivery_fee ?? 0)
-  const invoiceNumber = order.invoiceNumber || `MDE-${String(order.id || Date.now()).slice(-8)}`
-  const rows = items.map((item) => `<tr><td>${escapeHtml(item.name || 'Maison creation')}</td><td>${item.quantity || 1}</td><td>${Number(item.price || 0).toLocaleString()} DH</td><td>${(Number(item.price || 0) * Number(item.quantity || 1)).toLocaleString()} DH</td></tr>`).join('')
-  const html = `<!doctype html><html><head><title>Invoice ${invoiceNumber}</title><style>body{font-family:Georgia,serif;color:#171717;margin:48px;line-height:1.5}header{border-bottom:2px solid #c5a059;padding-bottom:20px}h1{letter-spacing:4px;font-weight:400}small{color:#666}section{margin-top:28px}.meta{display:flex;justify-content:space-between}table{width:100%;border-collapse:collapse;margin-top:18px}th,td{text-align:left;border-bottom:1px solid #ddd;padding:10px}th{font-size:11px;text-transform:uppercase;letter-spacing:1px}tfoot td{font-weight:bold}footer{margin-top:70px;border-top:1px solid #ddd;padding-top:14px;font:11px Arial;color:#666}</style></head><body><header><h1>MAISON DE L'ÉLÉGANCE</h1><small>Haute Joaillerie &amp; Horlogerie</small></header><section class="meta"><div><strong>Invoice #</strong><br>${escapeHtml(invoiceNumber)}<br><strong>Date</strong><br>${escapeHtml(order.date || new Date().toLocaleDateString('fr-MA'))}</div><div><strong>ICE</strong><br>${escapeHtml(order.ice || 'À compléter par la Maison')}<br><strong>IF</strong><br>${escapeHtml(order.taxId || 'À compléter par la Maison')}</div></section><section><strong>Customer</strong><br>${escapeHtml(order.customerName || order.fullName || '—')}<br>${escapeHtml(order.address || '—')}<br>${escapeHtml(order.city || 'Morocco')}<br>Ameex: ${escapeHtml(order.tracking_reference || order.trackingReference || '—')}</section><table><thead><tr><th>Creation</th><th>Qty</th><th>Unit price</th><th>Total</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="3">Subtotal</td><td>${subtotal.toLocaleString()} DH</td></tr><tr><td colspan="3">Ameex delivery</td><td>${delivery ? `${delivery.toLocaleString()} DH` : 'Complimentary'}</td></tr><tr><td colspan="3">Total</td><td>${(subtotal + delivery).toLocaleString()} DH</td></tr></tfoot></table><footer>CNDP — Vos données personnelles sont traitées conformément à la Loi 09-08 relative à la protection des personnes physiques à l'égard du traitement des données à caractère personnel.</footer></body></html>`
-  const invoiceWindow = window.open('', '_blank', 'noopener,noreferrer')
-  if (!invoiceWindow) throw new Error('Please allow pop-ups to print your invoice.')
-  invoiceWindow.document.write(html)
-  invoiceWindow.document.close()
-  invoiceWindow.focus()
-  invoiceWindow.print()
+  const total = subtotal + delivery
+  const invoiceNumber = order.invoiceNumber || `MDL-${String(order.id || Date.now()).slice(-8)}`
+  const lines = [
+    "MAISON DE L'ELEGANCE",
+    'Haute Joaillerie & Horlogerie',
+    '',
+    `Invoice # ${invoiceNumber}`,
+    `Date: ${order.date || new Date().toLocaleDateString('fr-MA')}`,
+    `ICE: ${order.ice || 'A completer par la Maison'}`,
+    `IF: ${order.taxId || 'A completer par la Maison'}`,
+    '',
+    `Customer: ${order.customerName || order.fullName || '-'}`,
+    `Address: ${order.address || '-'}`,
+    `City: ${order.city || 'Morocco'}`,
+    `Ameex tracking: ${order.tracking_reference || order.trackingReference || '-'}`,
+    '',
+    'ITEMS',
+    ...items.map((item) => `${item.name || 'Maison creation'} x${item.quantity || 1} @ ${money(getProductPrice(item))} = ${money(getProductPrice(item) * Number(item.quantity || 1))}`),
+    '',
+    `Subtotal: ${money(subtotal)}`,
+    `Ameex delivery: ${delivery ? money(delivery) : 'Complimentary'}`,
+    'Tax: Included in listed prices',
+    `TOTAL: ${money(total)}`,
+    '',
+    'CNDP - Personal data processed under Moroccan Law 09-08.',
+  ]
+  const blob = createPdf(lines)
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `Invoice_${invoiceNumber}.pdf`
+  link.click()
+  URL.revokeObjectURL(link.href)
 }

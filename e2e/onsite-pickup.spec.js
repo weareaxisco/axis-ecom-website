@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test'
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('maison_language', 'en'))
+})
+
 test('onsite-only creations force boutique pickup at checkout', async ({ page }) => {
   await page.goto('/product/mock-ice-cube-ring')
   await page.evaluate(() => localStorage.setItem('maison_cart_items', JSON.stringify([{ id: 'onsite-test', cartKey: 'onsite-test', name: 'Private Creation', price: 500000, quantity: 1, onsite_only: true }])))

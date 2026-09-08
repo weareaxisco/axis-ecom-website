@@ -3,6 +3,7 @@ import { ChevronDown, Filter } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import ProductCard from './ProductCard'
 import SortFilterDrawer, { createInitialSelection } from './SortFilterDrawer'
+import { getProductPrice } from '../utils/productUtils'
 
 const calculateCollectionProgress = (sectionElement, stickyOffset, headerHeight = 44) => {
   if (!sectionElement) return 0
@@ -274,8 +275,8 @@ export default function ProductCatalog() {
     })
 
     return [...filtered].sort((first, second) => {
-      if (sortOrder === 'low') return Number(first.price) - Number(second.price)
-      if (sortOrder === 'high') return Number(second.price) - Number(first.price)
+      if (sortOrder === 'low') return getProductPrice(first) - getProductPrice(second)
+      if (sortOrder === 'high') return getProductPrice(second) - getProductPrice(first)
       return Number(first.display_order ?? first.sort_order ?? 0) - Number(second.display_order ?? second.sort_order ?? 0)
     })
   }, [activeFilter, collectionFilters, products, sortOrder])

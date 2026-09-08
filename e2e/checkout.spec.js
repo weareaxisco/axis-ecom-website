@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test'
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('maison_language', 'en'))
+})
+
 test('customer can open the bag, choose Ameex city pricing, and select COD', async ({ page }) => {
   await page.goto('/product/mock-ice-cube-ring')
   await page.getByRole('button', { name: /add to shopping bag/i }).click()

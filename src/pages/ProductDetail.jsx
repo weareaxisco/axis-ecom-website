@@ -10,6 +10,7 @@ import RingSizeGuideModal from '../components/RingSizeGuideModal'
 import SEOHead from '../components/SEOHead'
 import { Heart } from 'lucide-react'
 import { useWishlist } from '../context/WishlistContext'
+import { getProductPrice } from '../utils/productUtils'
 
 const metals = ['18k Rose Gold', '18k Yellow Gold', '18k White Gold', 'Platinum']
 
@@ -39,7 +40,7 @@ export default function ProductDetail() {
 
   const name = product.name || product.title || 'Maison creation'
   const isWishlisted = wishlistItems.some((item) => String(item.id) === String(product.id))
-  const basePrice = Number(product.price ?? product.price_dh ?? 0)
+  const basePrice = getProductPrice(product)
   const price = basePrice + (metal === 'Platinum' ? 25000 : metal === '18k Yellow Gold' ? 5000 : 0)
   const isRing = String(product.category || product.category_name || '').toLowerCase().includes('ring')
   const message = encodeURIComponent(`Bonjour, I would like to inquire about ${name} (Ref: ${product.id}).`)

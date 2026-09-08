@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Check, LoaderCircle } from 'lucide-react'
+import { getProductPrice } from '../utils/productUtils'
 
 const money = (value) => `${Number(value || 0).toLocaleString()} DH`
 
@@ -36,7 +37,7 @@ export default function AdminProductTable({ products, onToggleOnsiteOnly, onAddP
               <td className="px-5 py-4"><img src={product.main_image_url || product.image || product.images?.[0]} alt="" className="h-14 w-12 object-cover" /></td>
               <td className="px-5 py-4 font-serif">{product.name || product.title}</td>
               <td className="px-5 py-4 text-xs text-neutral-400">{product.category_name || product.category || 'Uncategorized'}</td>
-              <td className="px-5 py-4 text-amber-400">{money(product.price ?? product.price_dh)}</td>
+              <td className="px-5 py-4 text-amber-400">{money(getProductPrice(product))}</td>
               <td className="px-5 py-4 text-xs uppercase tracking-widest">{product.in_stock === false || product.stock === 0 ? 'No' : 'Yes'}</td>
               <td className="px-5 py-4">
                 <button type="button" role="switch" aria-checked={Boolean(product.onsite_only)} aria-label={`Onsite only for ${product.name}`} disabled={savingId === product.id} onClick={() => handleToggle(product)} className={`relative h-6 w-11 rounded-full transition-colors ${product.onsite_only ? 'bg-amber-500' : 'bg-neutral-700'} disabled:opacity-50`}>

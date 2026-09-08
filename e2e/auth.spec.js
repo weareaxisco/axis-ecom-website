@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test'
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('maison_language', 'en'))
+})
+
 test('registration validates Moroccan phone format and CNDP consent', async ({ page }) => {
   await page.goto('/register')
   await page.getByLabel('First name').fill('Amine')
