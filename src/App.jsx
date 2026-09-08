@@ -13,6 +13,7 @@ import Catalog from './pages/Catalog'
 import ProductDetail from './pages/ProductDetail'
 import BagDrawer from './components/BagDrawer'
 import WhatsAppConcierge from './components/WhatsAppConcierge'
+import SEOHead from './components/SEOHead'
 import { ConfigProvider } from './context/ConfigContext'
 import { CartProvider } from './context/CartContext'
 import { LanguageProvider } from './context/LanguageContext'
@@ -37,6 +38,7 @@ function App() {
         <CartProvider>
           <ScrollToTop />
           <div className="min-h-screen overflow-x-clip bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300">
+          <SEOHead />
           <div className="fixed left-0 right-0 top-0 z-50">
             <Navbar />
           </div>

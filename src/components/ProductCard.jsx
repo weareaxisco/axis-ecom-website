@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, Heart } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useSiteConfig } from '../context/ConfigContext'
+import ImageWithSkeleton from './ImageWithSkeleton'
 
 const cardImageFallback =
   'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=1000'
@@ -70,13 +71,13 @@ export default function ProductCard({ product }) {
           </span>
         )}
         {gallery.map((image, index) => (
-          <img
+          <ImageWithSkeleton
             key={`${image}-${index}`}
             src={image}
             alt={index === 0 ? product.name || 'Jewelry creation' : ''}
             aria-hidden={index !== 0}
             onError={replaceWithFallback}
-            className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ease-out ${
+            className={`absolute inset-0 h-full w-full transition-all duration-700 ease-out ${
               activeImageIndex === index
                 ? 'scale-100 opacity-100 group-hover:scale-[1.03]'
                 : 'scale-100 opacity-0'
