@@ -182,7 +182,7 @@ export default function Navbar() {
       <header
         data-scroll-y={scrollY}
         data-scroll-direction={scrollDirection}
-        className={`relative z-50 w-full border-b border-transparent bg-transparent text-[var(--text-primary)] transition-all duration-300 ease-out md:sticky md:top-0 md:z-50 md:bg-[var(--bg-primary)] ${isDesktopHeaderVisible ? 'md:translate-y-0' : 'md:-translate-y-full'} ${
+        className={`relative z-50 w-full border-b border-transparent bg-transparent text-[var(--text-primary)] transition-all duration-300 ease-out md:fixed md:left-0 md:right-0 md:top-0 md:z-50 md:bg-[var(--bg-primary)] ${isDesktopHeaderVisible ? 'md:translate-y-0' : 'md:-translate-y-full'} ${
           isScrolled
             ? 'border-[var(--border-subtle)]/80 bg-[var(--bg-primary)]/90 shadow-sm backdrop-blur-md'
             : ''
