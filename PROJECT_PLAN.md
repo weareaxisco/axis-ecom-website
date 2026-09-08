@@ -74,7 +74,7 @@ Footer destinations, boutique configuration, social links, and global brand load
 - [x] Add GA4 tracking ID configuration in Admin Settings.
 - [x] Add permission-scoped Admin Analytics dashboard with revenue, AOV, order velocity, regional distribution, and activity feed.
 - [ ] Add event/session instrumentation for a true cart conversion-rate metric; order-only data cannot produce a reliable conversion denominator.
-- [ ] Add strict staff workspace routing tests and mutation-permission integration tests.
+- [x] Add strict staff workspace routing logic and focused permission coverage for catalog, order, and appointment workspaces.
 
 ## Next Sprint: Elevated Administration & Staff RBAC
 

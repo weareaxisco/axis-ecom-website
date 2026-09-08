@@ -11,6 +11,7 @@ import AdminAppointments from '../components/AdminAppointments'
 import AdminStaff from '../components/AdminStaff'
 import { ameexDispatchEnabled, createSandboxParcel } from '../services/ameexApi'
 import AdminAnalytics from '../components/AdminAnalytics'
+import { adminRoles, getAllowedAdminTabs, getPrimaryAdminWorkspace, hasAdminPermission } from '../utils/adminAccess'
 
 const orderStatuses = [
   { value: 'pending_confirmation', label: 'Pending Confirmation' },
@@ -25,8 +26,6 @@ const mockOrders = [
   { id: 'ORD-1001', customer_name: 'Nadia El Mansouri', city: 'Casablanca', payment_method: 'COD', total_dh: 185000, status: 'pending_confirmation' },
   { id: 'ORD-1002', customer_name: 'Youssef Bennani', city: 'Rabat', payment_method: 'CMI / Stripe', total_dh: 320000, status: 'in_preparation' },
 ]
-
-const adminRoles = ['super_admin', 'admin', 'staff_catalog', 'staff_orders']
 
 function LoginGate({ onAuthorized }) {
   const { t } = useLanguage()
@@ -70,19 +69,14 @@ export default function Admin() {
 
   const activeUser = user || authorizedUser
   const isAdmin = adminRoles.includes(activeUser?.role)
-  const can = (permission) => activeUser?.role === 'super_admin' || activeUser?.role === 'admin' || activeUser?.permissions?.[permission] === true
-  const allowedTabs = [
-    can('manage_orders') && 'analytics',
-    can('manage_orders') && 'orders',
-    can('manage_products') && 'inventory',
-    can('manage_appointments') && 'appointments',
-    can('manage_settings') && 'settings',
-    ['super_admin', 'admin'].includes(activeUser?.role) && 'staff',
-  ].filter(Boolean)
-  const activeTab = allowedTabs.includes(tab) ? tab : allowedTabs[0]
+  const can = (permission) => hasAdminPermission(activeUser, permission)
+  const allowedTabs = getAllowedAdminTabs(activeUser)
+  const allowedTabsKey = allowedTabs.join('|')
+  const primaryWorkspace = getPrimaryAdminWorkspace(activeUser)
+  const activeTab = allowedTabs.includes(tab) ? tab : primaryWorkspace
   useEffect(() => {
-    if (isAdmin && !allowedTabs.includes(tab)) setTab(allowedTabs[0] || 'orders')
-  }, [isAdmin, tab, activeUser?.role, activeUser?.permissions])
+    if (isAdmin && !allowedTabsKey.split('|').includes(tab)) setTab(primaryWorkspace || 'orders')
+  }, [isAdmin, tab, primaryWorkspace, allowedTabsKey])
   useEffect(() => {
     if (!isAdmin) return undefined
     let active = true
