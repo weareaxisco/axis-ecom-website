@@ -109,28 +109,14 @@ export default function Navbar() {
     let revealTimer
     const handleScroll = () => {
       const currentScrollY = window.scrollY
-      const scrollDelta = currentScrollY - lastScrollY
-      if (Math.abs(scrollDelta) < 3 && currentScrollY > 20) {
-        window.clearTimeout(revealTimer)
-        revealTimer = window.setTimeout(() => {
-          setIsMobileHeaderVisible(true)
-          setIsDesktopHeaderVisible(true)
-        }, 220)
-        return
-      }
       setIsScrolled(currentScrollY > 20)
       setScrollY(currentScrollY)
       const nextDirection = currentScrollY < lastScrollY ? 'up' : 'down'
       setScrollDirection(nextDirection)
-      const shouldShow = currentScrollY <= 20 || nextDirection === 'up'
-      setIsMobileHeaderVisible(shouldShow)
-      setIsDesktopHeaderVisible(shouldShow)
-      window.clearTimeout(revealTimer)
-      revealTimer = window.setTimeout(() => {
-        setIsMobileHeaderVisible(true)
-        setIsDesktopHeaderVisible(true)
-      }, 220)
+      setIsDesktopHeaderVisible(currentScrollY <= 20 || nextDirection === 'up')
       lastScrollY = currentScrollY
+      window.clearTimeout(revealTimer)
+      revealTimer = window.setTimeout(() => setIsDesktopHeaderVisible(true), 220)
     }
 
     handleScroll()
@@ -138,6 +124,24 @@ export default function Navbar() {
     return () => {
       window.clearTimeout(revealTimer)
       window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY
+    let revealTimer
+    const handleMobileScroll = () => {
+      const currentScrollY = window.scrollY
+      const direction = currentScrollY < lastScrollY ? 'up' : 'down'
+      setIsMobileHeaderVisible(currentScrollY <= 20 || direction === 'up')
+      lastScrollY = currentScrollY
+      window.clearTimeout(revealTimer)
+      revealTimer = window.setTimeout(() => setIsMobileHeaderVisible(true), 180)
+    }
+    window.addEventListener('scroll', handleMobileScroll, { passive: true })
+    return () => {
+      window.clearTimeout(revealTimer)
+      window.removeEventListener('scroll', handleMobileScroll)
     }
   }, [])
 
@@ -202,7 +206,7 @@ export default function Navbar() {
             : ''
         }`}
       >
-        <div className={`fixed left-0 right-0 top-0 z-50 md:hidden transition-transform duration-300 ease-out ${isMobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+        <div className={`fixed left-0 right-0 top-0 z-50 md:hidden transition-transform duration-200 ease-out ${isMobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
           <div className="relative z-50 flex h-[60px] w-full items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
             <div className="flex w-[60px] items-center justify-start">
               <IconButton label={isDrawerOpen || isSearchOpen ? t('closeOverlay') : t('openNavigation')} onClick={handleLeftIconClick}>
