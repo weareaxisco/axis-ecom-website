@@ -90,7 +90,7 @@ Footer destinations, boutique configuration, social links, and global brand load
 - [x] Add admin-configurable Instagram, TikTok, WhatsApp, boutique hours, image, address, and Google Maps embed settings.
 - [x] Add the `/boutique` showroom page with responsive details and Google Maps embed.
 - [x] Add a dynamic global hydration and route-transition loader using the configured website name.
-- [ ] Expand remaining footer content pages (care guide, delivery/returns, story, craftsmanship, cookies, and modern slavery) with dedicated localized content and SEO metadata.
+- [x] Expand remaining footer content pages (care guide, delivery/returns, story, craftsmanship, cookies, and modern slavery) with dedicated localized content and page titles.
 
 ## Next Sprint: Operations Resilience, Consent & Localization
 

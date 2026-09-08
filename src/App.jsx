@@ -29,6 +29,7 @@ import { SiteConfigProvider } from './context/SiteConfigContext'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import GlobalLoader from './components/GlobalLoader'
 import CookieConsent from './components/CookieConsent'
+import MaisonInformation from './pages/MaisonInformation'
 import './App.css'
 
 function ScrollToTop() {
@@ -72,6 +73,12 @@ function App() {
             <Route path="/legal/privacy" element={<LegalPrivacy />} />
             <Route path="/legal/terms" element={<LegalTerms />} />
             <Route path="/boutique" element={<Boutique />} />
+            <Route path="/care-guide" element={<MaisonInformation page="care" />} />
+            <Route path="/delivery-returns" element={<MaisonInformation page="delivery" />} />
+            <Route path="/our-story" element={<MaisonInformation page="story" />} />
+            <Route path="/craftsmanship" element={<MaisonInformation page="craftsmanship" />} />
+            <Route path="/legal/cookies" element={<MaisonInformation page="cookies" />} />
+            <Route path="/legal/modern-slavery" element={<MaisonInformation page="slavery" />} />
           </Routes>
           <Footer />
             <BagDrawer />
