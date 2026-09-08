@@ -12,6 +12,10 @@ import Account from './pages/Account'
 import Concierge from './pages/Concierge'
 import Catalog from './pages/Catalog'
 import ProductDetail from './pages/ProductDetail'
+import Careers from './pages/Careers'
+import LegalPrivacy from './pages/LegalPrivacy'
+import LegalTerms from './pages/LegalTerms'
+import Boutique from './pages/Boutique'
 import BagDrawer from './components/BagDrawer'
 import WhatsAppConcierge from './components/WhatsAppConcierge'
 import WishlistDrawer from './components/WishlistDrawer'
@@ -23,6 +27,7 @@ import { AuthProvider } from './context/AuthContext'
 import { WishlistProvider } from './context/WishlistContext'
 import { SiteConfigProvider } from './context/SiteConfigContext'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import GlobalLoader from './components/GlobalLoader'
 import './App.css'
 
 function ScrollToTop() {
@@ -45,6 +50,7 @@ function App() {
         <SiteConfigProvider>
         <CartProvider>
           <ScrollToTop />
+          <GlobalLoader />
           <div className="min-h-screen overflow-x-clip bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300">
           <SEOHead />
           <div className="fixed left-0 right-0 top-0 z-50">
@@ -61,6 +67,10 @@ function App() {
             <Route path="/account" element={<Account />} />
             <Route path="/concierge" element={<Concierge />} />
             <Route path="/catalog" element={<Catalog />} />
+            <Route path="/careers" element={<Careers />} />
+            <Route path="/legal/privacy" element={<LegalPrivacy />} />
+            <Route path="/legal/terms" element={<LegalTerms />} />
+            <Route path="/boutique" element={<Boutique />} />
           </Routes>
           <Footer />
             <BagDrawer />

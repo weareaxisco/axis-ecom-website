@@ -96,6 +96,12 @@ create table if not exists public.site_config (
   contact_phone text not null default '+212 522 000 000',
   contact_address text not null default 'Casablanca, Morocco',
   currency_label text not null default 'DH',
+  instagram_url text not null default '',
+  tiktok_url text not null default '',
+  whatsapp_number text not null default '',
+  map_embed_url text not null default '',
+  opening_hours text not null default 'Monday - Saturday, 10:00 - 19:00',
+  boutique_image_url text not null default '',
   updated_at timestamptz not null default now()
 );
 

@@ -72,3 +72,12 @@ The existing footer component is present, but its navigation anchors currently u
 - [x] Add `super_admin`, `admin`, `staff_catalog`, and `staff_orders` roles with granular `manage_products`, `manage_orders`, `manage_appointments`, and `manage_settings` permissions.
 - [x] Add a protected Staff & Permissions admin tab and secure staff-account creation through a Supabase Edge Function using the service role server-side.
 - [x] Restrict admin navigation and data mutations by staff permissions and enforce matching Supabase RLS policies.
+
+## Next Sprint: Footer Destinations, Boutique & Brand Loading
+
+- [x] Add Careers, CNDP privacy, and terms-of-sale destination pages.
+- [x] Replace footer placeholders with verified React Router destinations and remove the International strip.
+- [x] Add admin-configurable Instagram, TikTok, WhatsApp, boutique hours, image, address, and Google Maps embed settings.
+- [x] Add the `/boutique` showroom page with responsive details and Google Maps embed.
+- [x] Add a dynamic global hydration and route-transition loader using the configured website name.
+- [ ] Expand remaining footer content pages (care guide, delivery/returns, story, craftsmanship, cookies, and modern slavery) with dedicated localized content and SEO metadata.
