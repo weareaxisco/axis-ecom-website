@@ -36,12 +36,12 @@ export default function LoginDrawer({ isOpen, onClose, onSuccess }) {
   }
 
   return (
-    <div className={`fixed inset-0 z-[60] transition-opacity duration-300 ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} aria-hidden={!isOpen}>
-      <button type="button" aria-label={t('closeLogin')} onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-      <aside className={`absolute inset-0 flex h-full w-full max-w-md transform flex-col border border-amber-500/30 bg-neutral-950 p-6 text-[var(--text-primary)] shadow-2xl transition-transform duration-300 md:inset-y-0 md:left-auto md:right-0 md:border-y-0 md:border-r-0 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-5">
+    <div className={`fixed inset-0 z-[90] transition-opacity duration-300 ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} aria-hidden={!isOpen}>
+      <button type="button" aria-label={t('closeLogin')} onClick={onClose} className="absolute inset-0 top-[60px] bg-black/70 backdrop-blur-sm md:inset-0" />
+      <aside className={`absolute inset-x-0 bottom-0 top-[60px] flex h-[calc(100dvh-60px)] w-full max-w-md transform flex-col border border-amber-500/30 bg-neutral-950 p-6 text-[var(--text-primary)] shadow-2xl transition-transform duration-300 md:inset-y-0 md:left-auto md:right-0 md:h-full md:border-y-0 md:border-r-0 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="relative z-50 flex items-center justify-between border-b border-[var(--border-subtle)] pb-5">
           <h2 className="font-serif text-xl uppercase tracking-widest">{t('login')}</h2>
-          <button type="button" aria-label={t('closeLogin')} onClick={onClose} className="p-2 opacity-70 hover:text-[var(--accent-gold)]"><X size={20} strokeWidth={1.25} /></button>
+          <button type="button" aria-label={t('closeLogin')} onClick={onClose} className="p-2 opacity-70 hover:text-[var(--accent-gold)]"><X size={22} strokeWidth={1.25} /></button>
         </div>
         <form className="mt-10 space-y-5" onSubmit={validate}>
           <label className="block text-[11px] font-medium uppercase tracking-widest text-neutral-400">{t('email')}<input type="email" value={email} onChange={(event) => { setEmail(event.target.value); setErrors((current) => ({ ...current, email: '' })) }} className="mt-1.5 w-full rounded-none border border-neutral-800 bg-neutral-900/60 px-4 py-3 text-sm text-neutral-200 outline-none transition-all focus:border-amber-500/70 focus:bg-neutral-900" /><span className="block min-h-[18px] pt-1 text-[11px] text-rose-400">{errors.email || ''}</span></label>

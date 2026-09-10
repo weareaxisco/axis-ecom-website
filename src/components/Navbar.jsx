@@ -42,6 +42,7 @@ function IconButton({ label, children, onClick, className = '' }) {
 
 function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin, wishlistCount, onWishlist, user, isAdmin }) {
   const { t } = useLanguage()
+  const [signedOut, setSignedOut] = useState(false)
   const mobileLinks = [
     [t('highJewelry'), '/catalog?category=High%20Jewelry'],
     [t('fineJewelry'), '/catalog?category=Fine%20Jewelry'],
@@ -83,9 +84,9 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin
           </div>
           <button type="button" onClick={() => { onClose(); onWishlist() }} className="flex w-full items-center justify-between text-left">{t('favorites')} <span className="flex items-center gap-2"><span className="font-medium text-amber-400">{wishlistCount}</span><Heart size={16} strokeWidth={1.25} className="fill-amber-400 text-amber-400" /></span></button>
           {user ? (
-            <div className="flex w-full items-center justify-between text-left">
-              <a href="/account" onClick={onClose} className="flex items-center gap-2 hover:text-[var(--accent-gold)]"><User size={16} strokeWidth={1.25} /> {t('myAccount')}</a>
-              <button type="button" aria-label={t('signOut')} onClick={() => { onClose(); supabase.auth.signOut() }} className="text-[var(--text-primary)] transition-colors hover:text-[var(--accent-gold)]"><LogOut size={16} strokeWidth={1.25} /></button>
+            <div className="grid w-full grid-cols-2 gap-2">
+              <a href="/account" onClick={onClose} className="inline-flex items-center justify-center gap-2 border border-[var(--border-subtle)] px-2 py-3 text-center hover:border-[var(--accent-gold)] hover:text-[var(--accent-gold)]"><User size={16} strokeWidth={1.25} /> {t('myAccount')}</a>
+              <button type="button" onClick={async () => { await supabase.auth.signOut(); setSignedOut(true) }} className="inline-flex items-center justify-center gap-2 border border-[var(--border-subtle)] px-2 py-3 text-center opacity-70 transition-colors hover:border-[var(--accent-gold)] hover:text-[var(--accent-gold)]"><LogOut size={16} strokeWidth={1.25} /> {t('signOut')}</button>
             </div>
           ) : (
             <button type="button" onClick={() => { onClose(); onLogin() }} className="flex w-full items-center justify-between text-left">{t('signInAccount')} <User size={16} strokeWidth={1.25} /></button>
@@ -95,6 +96,7 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin
             <p>{config.location_city} | {config.phone_number}</p>
             <a href={`https://wa.me/${config.whatsapp_number}`}>{t('boutiqueConcierge')}</a>
           </div>
+          {signedOut && <p role="status" className="text-[10px] text-amber-400">{t('signOut')}</p>}
         </div>
       </aside>
     </div>
@@ -159,7 +161,7 @@ export default function Navbar() {
   }, [isDesktopHeaderVisible])
 
   useEffect(() => {
-    const isOverlayOpen = isDrawerOpen || isSearchOpen
+    const isOverlayOpen = isDrawerOpen || isSearchOpen || isLoginOpen
     document.documentElement.style.overflow = isOverlayOpen ? 'hidden' : ''
     document.body.style.overflow = isOverlayOpen ? 'hidden' : ''
     return () => {
@@ -186,7 +188,9 @@ export default function Navbar() {
     setIsSearchOpen((open) => !open)
   }
   const handleLeftIconClick = () => {
-    if (isSearchOpen) {
+    if (isLoginOpen) {
+      setIsLoginOpen(false)
+    } else if (isSearchOpen) {
       setIsSearchOpen(false)
     } else if (isDrawerOpen) {
       setIsDrawerOpen(false)
@@ -207,10 +211,10 @@ export default function Navbar() {
       >
         {createPortal(<>
         <div className="fixed left-0 right-0 top-0 z-[60] md:hidden">
-          <div className="relative z-[80] flex h-[60px] w-full items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
+          <div className="relative z-[110] flex h-[60px] w-full items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
             <div className="flex w-[60px] items-center justify-start">
-              <IconButton label={isDrawerOpen || isSearchOpen ? t('closeOverlay') : t('openNavigation')} onClick={handleLeftIconClick} className="relative z-[90]">
-                {isDrawerOpen || isSearchOpen ? <X className="h-5 w-5" strokeWidth={1.25} /> : <Menu className="h-5 w-5" strokeWidth={1.25} />}
+              <IconButton label={isDrawerOpen || isSearchOpen || isLoginOpen ? t('closeOverlay') : t('openNavigation')} onClick={handleLeftIconClick} className="relative z-[120]">
+                {isDrawerOpen || isSearchOpen || isLoginOpen ? <X className="h-5 w-5" strokeWidth={1.25} /> : <Menu className="h-5 w-5" strokeWidth={1.25} />}
               </IconButton>
             </div>
             <a href="/" className="pointer-events-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 truncate px-2 text-center font-serif text-sm tracking-widest">
