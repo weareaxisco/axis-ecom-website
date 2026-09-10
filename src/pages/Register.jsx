@@ -114,7 +114,7 @@ export default function Register() {
           {submitError && <p className="border border-rose-500/30 bg-rose-950/20 p-3 text-xs text-rose-300">{submitError}</p>}
           <button type="submit" className="w-full border border-amber-500 bg-amber-500 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-black transition-colors hover:bg-transparent hover:text-amber-400">{t('createAccountAction')}</button>
         </form>
-        <p className="mt-8 text-center text-xs text-neutral-500">{t('alreadyHaveAccount')} <Link to="/login" className="text-amber-400">{t('login')}</Link></p>
+        <div className="mt-8 border-t border-neutral-800 pt-6 text-center"><p className="text-[10px] uppercase tracking-widest text-neutral-500">{t('needToLogIn')}</p><Link to="/login" className="mt-3 inline-flex border border-amber-500 px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-amber-400 transition-colors hover:bg-amber-500 hover:text-black">{t('login')}</Link></div>
         <div className="mt-16 border-t border-[var(--border-subtle)] py-8 text-center"><h2 className="font-serif text-lg uppercase tracking-widest">{t('newsletterTitle')}</h2><div className="mx-auto mt-5 flex max-w-md border-b border-[var(--border-subtle)]"><input type="email" placeholder={t('emailAddressPlaceholder')} className="min-w-0 flex-1 bg-transparent py-3 text-sm outline-none" /><button type="button" className="text-[10px] uppercase tracking-widest text-[var(--accent-gold)]">{t('signUp')}</button></div></div>
       </div>
     </main>

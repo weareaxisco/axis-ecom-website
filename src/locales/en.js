@@ -150,6 +150,7 @@ export default {
   delete: 'Delete',
   productDeleted: 'Product deleted successfully',
   alreadyHaveAccount: 'Already have an account?',
+  needToLogIn: 'Need to log in?',
   addNewCreation: 'Add New Creation',
   noProductsFound: 'No products found.',
   noAppointmentsFound: 'No appointments found.',

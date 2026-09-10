@@ -150,6 +150,7 @@ export default {
   delete: 'Supprimer',
   productDeleted: 'Produit supprimé avec succès',
   alreadyHaveAccount: 'Vous avez déjà un compte ?',
+  needToLogIn: 'Besoin de vous connecter ?',
   addNewCreation: 'Ajouter une création',
   noProductsFound: 'Aucun produit trouvé.',
   noAppointmentsFound: 'Aucun rendez-vous trouvé.',
