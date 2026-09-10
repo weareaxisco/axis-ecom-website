@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Search, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
@@ -27,7 +27,12 @@ export default function SearchDrawer({ isOpen, onClose }) {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [products, setProducts] = useState([])
+  const drawerRef = useRef(null)
   const debouncedQuery = useDebounce(query.trim().toLowerCase(), 300)
+
+  useLayoutEffect(() => {
+    if (!isOpen && drawerRef.current?.contains(document.activeElement)) document.activeElement.blur()
+  }, [isOpen])
 
   useEffect(() => {
     if (!isOpen || products.length) return undefined
@@ -70,12 +75,12 @@ export default function SearchDrawer({ isOpen, onClose }) {
   }, [debouncedQuery, products])
 
   return (
-    <div className={`fixed inset-0 z-40 block transition-opacity duration-300 ease-in-out md:hidden ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} aria-hidden={!isOpen}>
+    <div ref={drawerRef} inert={!isOpen} className={`fixed inset-0 z-40 block transition-opacity duration-300 ease-in-out md:hidden ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} aria-hidden={!isOpen}>
       <button type="button" aria-label="Close search" onClick={onClose} className={`fixed inset-0 z-30 bg-black/60 transition-opacity duration-300 ease-in-out ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} />
       <aside className={`search-drawer fixed bottom-0 left-0 top-[60px] z-40 flex h-auto w-full max-w-full transform flex-col overflow-y-auto border-r border-white/10 bg-[var(--surface-primary,#121212)] text-[var(--text-primary,#ffffff)] shadow-2xl transition-transform duration-300 ease-in-out sm:w-[400px] ${isOpen ? 'pointer-events-auto translate-x-0' : 'pointer-events-none -translate-x-full'}`}>
         <div className="search-input-wrapper m-4 flex items-center gap-2 bg-[var(--bg-primary)] px-3 py-3">
           <Search size={17} strokeWidth={1.25} className="opacity-60" />
-          <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search creations" className="min-w-0 flex-1 bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-primary)] placeholder:opacity-40" />
+          <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search creations" aria-label="Search creations" className="min-w-0 flex-1 bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-primary)] placeholder:opacity-40" />
           {query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')}><X size={15} strokeWidth={1.25} /></button>}
         </div>
         <div className="flex-1 overflow-y-auto px-6">
