@@ -84,17 +84,24 @@ export default function AdminProductTable({ products, onToggleOnsiteOnly, onAddP
   }
 
   return <div className="relative">
-    {selectedIds.length > 0 && <div className="sticky top-2 z-20 mb-4 flex flex-wrap items-center gap-3 border border-amber-500/40 bg-neutral-900 px-4 py-3 text-xs shadow-xl">
+    <div className={`fixed bottom-8 left-1/2 z-50 flex -translate-x-1/2 items-center gap-4 rounded-full border border-amber-500/50 bg-neutral-900/95 px-6 py-3 text-xs shadow-2xl backdrop-blur-md transition-all duration-300 ${selectedIds.length ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-24 opacity-0'}`}>
       <span className="font-semibold uppercase tracking-widest text-amber-300">{selectedIds.length} selected</span>
       <select value={bulkTag} onChange={(event) => setBulkTag(event.target.value)} className="border border-neutral-700 bg-neutral-950 px-3 py-2 text-xs text-white">{tags.map((tag) => <option key={tag}>{tag}</option>)}</select>
       <button type="button" disabled={bulkBusy} onClick={applyTag} className="border border-amber-500 px-3 py-2 uppercase tracking-widest text-amber-300 disabled:opacity-50">{bulkBusy ? 'Saving…' : 'Assign Tag'}</button>
       <button type="button" disabled={bulkBusy} onClick={deleteSelected} className="inline-flex items-center gap-1 border border-rose-500/60 px-3 py-2 uppercase tracking-widest text-rose-300 disabled:opacity-50"><Trash2 size={14} /> Delete Selected</button>
-    </div>}
-    <button type="button" onClick={onAddProduct} className="mb-5 bg-amber-500 px-5 py-3 text-xs font-semibold uppercase tracking-widest text-black">+ {t('addNewCreation')}</button>
+    </div>
     <div className="sticky top-0 z-10 border border-neutral-800 bg-neutral-950/95 p-3 backdrop-blur">
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1"><Search size={16} className="absolute left-3 top-3 text-neutral-500" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search title, SKU, category or specifications" className="w-full border border-neutral-800 bg-neutral-900 py-2.5 pl-9 pr-3 text-xs text-white outline-none focus:border-amber-500" /></div>
-        <button type="button" onClick={() => setFiltersOpen((open) => !open)} className="inline-flex items-center gap-2 border border-neutral-800 px-3 py-2.5 text-[10px] uppercase tracking-widest text-neutral-300 md:hidden">Filters <ChevronDown size={14} /></button>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="relative min-w-0 flex-1"><Search size={16} className="absolute left-3 top-3 text-neutral-500" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search title, SKU, category or specifications" className="w-full border border-neutral-800 bg-neutral-900 py-2.5 pl-9 pr-3 text-xs text-white outline-none focus:border-amber-500" /></div>
+          <button type="button" onClick={() => setFiltersOpen((open) => !open)} className="inline-flex shrink-0 items-center gap-2 border border-neutral-800 px-3 py-2.5 text-[10px] uppercase tracking-widest text-neutral-300">Filters <ChevronDown size={14} /></button>
+        </div>
+        <div className="flex items-center gap-2 md:shrink-0">
+          <label className="flex flex-1 items-center justify-center gap-2 whitespace-nowrap border border-neutral-800 px-3 py-2.5 text-[10px] uppercase tracking-widest text-neutral-400">Rows:
+            <select value={pageSize} onChange={(event) => setPageSize(event.target.value === 'all' ? 'all' : Number(event.target.value))} className="bg-transparent text-xs text-white outline-none">{pageOptions.map((size) => <option key={size} value={size}>{size}</option>)}<option value="all">All</option></select>
+          </label>
+          <button type="button" onClick={onAddProduct} className="flex-1 whitespace-nowrap bg-amber-500 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-widest text-black md:flex-none">+ {t('addNewCreation')}</button>
+        </div>
       </div>
       <div className={`${filtersOpen ? 'grid' : 'hidden'} mt-3 gap-3 md:grid md:grid-cols-2`}>
         <label className="text-[10px] uppercase tracking-widest text-neutral-500">Category<select value={category} onChange={(event) => setCategory(event.target.value)} className="mt-1 w-full border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs text-white"><option value="all">All categories</option>{categories.map((item) => <option key={item}>{item}</option>)}</select></label>
@@ -114,6 +121,6 @@ export default function AdminProductTable({ products, onToggleOnsiteOnly, onAddP
       </table>
       {!visibleProducts.length && <p className="p-10 text-center text-sm text-neutral-500">{t('noProductsFound')}</p>}
     </div>
-    <div className="flex flex-wrap items-center justify-between gap-3 py-4 text-xs text-neutral-400"><label className="flex items-center gap-2 uppercase tracking-widest">Rows<select value={pageSize} onChange={(event) => setPageSize(event.target.value === 'all' ? 'all' : Number(event.target.value))} className="border border-neutral-800 bg-neutral-900 px-2 py-2 text-white">{pageOptions.map((size) => <option key={size} value={size}>{size}</option>)}<option value="all">All</option></select></label><div className="flex items-center gap-2"><button type="button" disabled={page <= 1 || pageSize === 'all'} onClick={() => setPage((current) => current - 1)} className="border border-neutral-800 px-3 py-2 disabled:opacity-40">Previous</button><span>Page {page} of {pageCount}</span><button type="button" disabled={page >= pageCount || pageSize === 'all'} onClick={() => setPage((current) => current + 1)} className="border border-neutral-800 px-3 py-2 disabled:opacity-40">Next</button></div></div>
+    <div className="flex items-center justify-center gap-4 border-t border-neutral-800 py-4 text-xs uppercase tracking-widest text-neutral-400"><button type="button" disabled={page <= 1 || pageSize === 'all'} onClick={() => setPage((current) => current - 1)} className="border border-neutral-800 px-3 py-2 disabled:opacity-40">Previous</button><span>Page {page} of {pageCount}</span><button type="button" disabled={page >= pageCount || pageSize === 'all'} onClick={() => setPage((current) => current + 1)} className="border border-neutral-800 px-3 py-2 disabled:opacity-40">Next</button></div>
   </div>
 }
