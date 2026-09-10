@@ -213,8 +213,8 @@ export default function Navbar() {
         <div className="fixed left-0 right-0 top-0 z-[60] md:hidden">
           <div className="relative z-[110] flex h-[60px] w-full items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
             <div className="flex w-[60px] items-center justify-start">
-              <IconButton label={isDrawerOpen || isSearchOpen || isLoginOpen ? t('closeOverlay') : t('openNavigation')} onClick={handleLeftIconClick} className="relative z-[120]">
-                {isDrawerOpen || isSearchOpen || isLoginOpen ? <X className="h-5 w-5" strokeWidth={1.25} /> : <Menu className="h-5 w-5" strokeWidth={1.25} />}
+              <IconButton label={t('openNavigation')} onClick={handleLeftIconClick} className="relative z-[120]">
+                <Menu className="h-5 w-5" strokeWidth={1.25} />
               </IconButton>
             </div>
             <a href="/" className="pointer-events-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 truncate px-2 text-center font-serif text-sm tracking-widest">

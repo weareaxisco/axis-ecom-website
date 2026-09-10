@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { LoaderCircle } from 'lucide-react'
+import { Edit3, LoaderCircle, Trash2 } from 'lucide-react'
 import { getProductPrice } from '../utils/productUtils'
 import { useLanguage } from '../context/LanguageContext'
 
 const money = (value) => `${Number(value || 0).toLocaleString()} DH`
 
-export default function AdminProductTable({ products, onToggleOnsiteOnly, onAddProduct }) {
+export default function AdminProductTable({ products, onToggleOnsiteOnly, onAddProduct, onEditProduct, onDeleteProduct }) {
   const [savingId, setSavingId] = useState(null)
   const { t } = useLanguage()
 
@@ -31,6 +31,7 @@ export default function AdminProductTable({ products, onToggleOnsiteOnly, onAddP
             <th className="px-5 py-4">{t('priceDh')}</th>
             <th className="px-5 py-4">{t('inStock')}</th>
             <th className="px-5 py-4">{t('onsiteOnly')}</th>
+            <th className="px-5 py-4">{t('actions')}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-800/80">
@@ -48,6 +49,12 @@ export default function AdminProductTable({ products, onToggleOnsiteOnly, onAddP
                   <span className="ml-3 whitespace-nowrap text-[10px] font-mono uppercase tracking-wider text-neutral-400">{product.onsite_only ? t('pickup') : t('deliveryLabel')}</span>
                   {savingId === product.id && <LoaderCircle className="ml-2 animate-spin text-amber-400" size={15} />}
                 </label>
+              </td>
+              <td className="px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <button type="button" onClick={() => onEditProduct(product)} className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-amber-300 hover:text-amber-200"><Edit3 size={14} /> {t('edit')}</button>
+                  <button type="button" onClick={() => onDeleteProduct(product)} className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-rose-300 hover:text-rose-200"><Trash2 size={14} /> {t('delete')}</button>
+                </div>
               </td>
             </tr>
           ))}
