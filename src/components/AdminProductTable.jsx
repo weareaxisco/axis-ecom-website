@@ -25,12 +25,12 @@ export default function AdminProductTable({ products, onToggleOnsiteOnly, onAddP
       <table className="w-full min-w-[760px] text-left">
         <thead className="border-b border-neutral-800 text-[10px] uppercase tracking-[0.2em] text-neutral-500">
           <tr>
-            <th className="px-5 py-4">Image</th>
-            <th className="px-5 py-4">Name</th>
-            <th className="px-5 py-4">Category</th>
-            <th className="px-5 py-4">Price (DH)</th>
-            <th className="px-5 py-4">In Stock</th>
-            <th className="px-5 py-4">Onsite Only</th>
+            <th className="px-5 py-4">{t('image')}</th>
+            <th className="px-5 py-4">{t('name')}</th>
+            <th className="px-5 py-4">{t('category')}</th>
+            <th className="px-5 py-4">{t('priceDh')}</th>
+            <th className="px-5 py-4">{t('inStock')}</th>
+            <th className="px-5 py-4">{t('onsiteOnly')}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-800/80">
@@ -38,9 +38,9 @@ export default function AdminProductTable({ products, onToggleOnsiteOnly, onAddP
             <tr key={product.id} className="text-sm text-neutral-200">
               <td className="px-5 py-4"><img src={product.main_image_url || product.image || product.images?.[0]} alt="" className="h-14 w-12 object-cover" /></td>
               <td className="px-5 py-4 font-serif">{product.name || product.title}</td>
-              <td className="px-5 py-4 text-xs text-neutral-400">{product.category_name || product.category || 'Uncategorized'}</td>
+              <td className="px-5 py-4 text-xs text-neutral-400">{product.category_name || product.category || t('uncategorized')}</td>
               <td className="px-5 py-4 text-amber-400">{money(getProductPrice(product))}</td>
-              <td className="px-5 py-4 text-xs uppercase tracking-widest">{product.in_stock === false || product.stock === 0 ? 'No' : 'Yes'}</td>
+              <td className="px-5 py-4 text-xs uppercase tracking-widest">{product.in_stock === false || product.stock === 0 ? t('no') : t('yes')}</td>
               <td className="px-5 py-4">
                 <label className="relative inline-flex cursor-pointer items-center">
                   <input type="checkbox" checked={Boolean(product.onsite_only)} onChange={() => handleToggle(product)} disabled={savingId === product.id} className="peer sr-only" />

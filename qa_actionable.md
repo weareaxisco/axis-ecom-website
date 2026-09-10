@@ -83,9 +83,9 @@ watching the first load and a hard refresh.
 
 - [x] **QA-2.2-01 — Make the mobile menu reliably open and close.** Verify
   menu state, visible close controls, Escape behavior, and route navigation.
-- [ ] **QA-2.2-02 — Add a close control to the mobile signup drawer/modal.** Add
+- [x] **QA-2.2-02 — Add a close control to the mobile signup drawer/modal.** Add
   a prominent accessible X/close button and bind it to dismiss the overlay.
-- [ ] **QA-2.2-03 — Restrict the WhatsApp floating action to approved routes.**
+- [x] **QA-2.2-03 — Restrict the WhatsApp floating action to approved routes.**
   Use a route whitelist or equivalent configuration rather than rendering it
   globally.
 
@@ -106,17 +106,17 @@ Escape, tap the overlay, and inspect several public/admin routes.
 
 ### 2.3 Theme and brand configuration
 
-- [ ] **QA-2.3-01 — Apply light-theme tokens across all surfaces.** Search,
+- [x] **QA-2.3-01 — Apply light-theme tokens across all surfaces.** Search,
   Concierge, WhatsApp, cart, wishlist, checkout, and every admin screen must
   respond to the active light theme rather than remaining dark.
-- [ ] **QA-2.3-02 — Apply dark-theme tokens consistently.** Verify all the
+- [x] **QA-2.3-02 — Apply dark-theme tokens consistently.** Verify all the
   same surfaces remain readable and use the configured dark tokens.
-- [ ] **QA-2.3-03 — Stabilize maison-name hydration.** A changed maison name
+- [x] **QA-2.3-03 — Stabilize maison-name hydration.** A changed maison name
   must not flicker between the new value and a cached fallback in the loader.
-- [ ] **QA-2.3-04 — Synchronize the WhatsApp number from site configuration.**
+- [x] **QA-2.3-04 — Synchronize the WhatsApp number from site configuration.**
   Changing the phone number in Admin Settings must update the floating
   WhatsApp destination as well as the footer.
-- [ ] **QA-2.3-05 — Preserve the active admin tab after refresh.** Store the
+- [x] **QA-2.3-05 — Preserve the active admin tab after refresh.** Store the
   selected tab in URL parameters or session storage and restore it on reload.
 
 <details>
@@ -137,10 +137,10 @@ the phone, click WhatsApp, select a non-default admin tab, and refresh.
 
 ## 3. Localization and language persistence
 
-- [ ] **QA-3-01 — Localize Admin Inventory and Analysis.** Extract table
+- [x] **QA-3-01 — Localize Admin Inventory and Analysis.** Extract table
   headers, metrics, labels, and content into the translation dictionaries and
   render them through the language hook.
-- [ ] **QA-3-02 — Localize the mobile product filter drawer.** Translate all
+- [x] **QA-3-02 — Localize the mobile product filter drawer.** Translate all
   labels and options dynamically in English and French.
 
 <details>
@@ -162,12 +162,12 @@ Admin Inventory/Analysis tabs, then switch back to English.
 
 ### 4.1 Home page
 
-- [ ] **QA-4.1-01 — Consolidate the hero CTA.** Render one primary
+- [x] **QA-4.1-01 — Consolidate the hero CTA.** Render one primary
   “Discover Now”/“Découvrir” button linking to `/catalog`; remove competing
   hero actions unless intentionally reapproved.
-- [ ] **QA-4.1-02 — Enable natural mobile carousel swiping.** Correct touch
+- [x] **QA-4.1-02 — Enable natural mobile carousel swiping.** Correct touch
   event propagation so horizontal swipes work without first tapping a card.
-- [ ] **QA-4.1-03 — Repair the second carousel slide asset.** Replace the
+- [x] **QA-4.1-03 — Repair the second carousel slide asset.** Replace the
   invalid image source with a valid asset and verify it loads in both themes.
 
 <details>
@@ -189,13 +189,13 @@ and inspect every carousel slide.
 
 ### 5.1 Catalog rendering
 
-- [ ] **QA-5.1-01 — Render structured fallback products when Supabase is empty
+- [x] **QA-5.1-01 — Render structured fallback products when Supabase is empty
   or unavailable.** Populate the catalog state with valid mock creations on
   empty responses and network errors.
-- [ ] **QA-5.1-02 — Prevent UUID writes for mock products.** Ensure fallback
+- [x] **QA-5.1-02 — Prevent UUID writes for mock products.** Ensure fallback
   product interactions never send mock IDs to UUID database columns and show a
   clear local-update message where applicable.
-- [ ] **QA-5.1-03 — Remove the initial hydration white flash.** Refactor the
+- [x] **QA-5.1-03 — Remove the initial hydration white flash.** Refactor the
   root/loading styles so the configured background and loader appear before
   underlying unrendered DOM can flash.
 

@@ -3,12 +3,24 @@ import { useLocation, useParams } from 'react-router-dom'
 import { useSiteConfig } from '../context/ConfigContext'
 import { useSiteConfigSettings } from '../context/SiteConfigContext'
 
+const whatsappRoutes = [
+  '/',
+  '/catalog',
+  '/checkout',
+  '/account',
+  '/concierge',
+  '/boutique',
+]
+
 export default function WhatsAppConcierge() {
   const location = useLocation()
   const { id } = useParams()
   const { config } = useSiteConfig()
   const { siteConfig } = useSiteConfigSettings()
-  const phone = (siteConfig.contact_phone || config.whatsapp_number || '212600000000').replace(/\D/g, '')
+  const isApprovedRoute = whatsappRoutes.includes(location.pathname)
+    || location.pathname.startsWith('/product/')
+  if (!isApprovedRoute) return null
+  const phone = (siteConfig.whatsapp_number || config.whatsapp_number || siteConfig.contact_phone || '212600000000').replace(/\D/g, '')
   let message = 'Bonjour Maison de l’Élégance, I would like to speak with a personal jewelry advisor.'
   if (location.pathname.startsWith('/product/')) message = `Bonjour, I would like to inquire about creation ${id} (Ref: ${id}).`
   if (location.pathname.startsWith('/checkout') || location.pathname.startsWith('/account')) message = 'Bonjour, I need assistance regarding my order.'

@@ -164,17 +164,24 @@ export default function ProductCatalog() {
     async function fetchCatalog() {
       setLoading(true)
       setError(null)
-
-      const [categoryResult, collectionResult] = await Promise.all([
-        supabase.from('categories').select('*'),
-        supabase.from('collections').select('*'),
-      ])
-      let productResult = await supabase
-        .from('products')
-        .select('*, categories(*), collections(*)')
-
-      if (productResult.error) {
-        productResult = await supabase.from('products').select('*')
+      let categoryResult
+      let collectionResult
+      let productResult
+      try {
+        ;[categoryResult, collectionResult] = await Promise.all([
+          supabase.from('categories').select('*'),
+          supabase.from('collections').select('*'),
+        ])
+        productResult = await supabase
+          .from('products')
+          .select('*, categories(*), collections(*)')
+        if (productResult.error) {
+          productResult = await supabase.from('products').select('*')
+        }
+      } catch (requestError) {
+        productResult = { data: null, error: requestError }
+        categoryResult = { error: requestError }
+        collectionResult = { error: requestError }
       }
 
       if (!isMounted) return
@@ -208,6 +215,10 @@ export default function ProductCatalog() {
     }
 
     const updateScrollState = () => {
+      if (window.innerWidth < 768) {
+        scrollFrameRef.current = null
+        return
+      }
       const currentScrollY = window.scrollY
       const nearTop = currentScrollY <= 20
       const scrollingUp = currentScrollY < lastScrollYRef.current
@@ -411,7 +422,7 @@ export default function ProductCatalog() {
                 }}
                 className="relative mb-16"
               >
-                <div className="sticky top-[var(--mobile-navbar-offset)] z-30 border-b border-white/10 bg-[var(--surface-primary)] md:top-[var(--desktop-navbar-offset)] md:transition-[top] md:duration-300 md:ease-in-out">
+                <div className="mobile-collection-sticky sticky top-[var(--mobile-navbar-offset)] z-30 border-b border-white/10 bg-[var(--surface-primary)] md:top-[var(--desktop-navbar-offset)] md:transition-[top] md:duration-300 md:ease-in-out">
                   <div className="flex items-center justify-between px-4 py-3">
                     <h3 className="font-serif text-xs font-medium uppercase tracking-widest">{collection.title}</h3>
                     <div className="flex items-center gap-4">
@@ -431,7 +442,7 @@ export default function ProductCatalog() {
                   </div>
                   <div
                     aria-hidden="true"
-                    className="absolute bottom-0 left-0 right-0 h-[2px] origin-left bg-[var(--accent-gold)] will-change-transform"
+                    className="absolute bottom-0 left-0 right-0 hidden h-[2px] origin-left bg-[var(--accent-gold)] will-change-transform md:block"
                     style={{ transform: `scaleX(${collectionProgress[collection.id] || 0})` }}
                   />
                 </div>

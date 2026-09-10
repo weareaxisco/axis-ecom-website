@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   Heart,
+  LogOut,
   Menu,
   Moon,
   Search,
@@ -10,6 +12,7 @@ import {
   User,
   X,
   ChevronRight,
+  Settings,
 } from 'lucide-react'
 import { useSiteConfig } from '../context/ConfigContext'
 import SearchDrawer from './SearchDrawer'
@@ -20,6 +23,9 @@ import LanguageSwitcher from './LanguageSwitcher'
 import { useWishlist } from '../context/WishlistContext'
 import { useSiteConfigSettings } from '../context/SiteConfigContext'
 import { useLanguage } from '../context/LanguageContext'
+import { useAuth } from '../context/AuthContext'
+import { adminRoles } from '../utils/adminAccess'
+import { supabase } from '../supabaseClient'
 
 function IconButton({ label, children, onClick, className = '' }) {
   return (
@@ -34,7 +40,7 @@ function IconButton({ label, children, onClick, className = '' }) {
   )
 }
 
-function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin, wishlistCount, onWishlist }) {
+function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin, wishlistCount, onWishlist, user, isAdmin }) {
   const { t } = useLanguage()
   const mobileLinks = [
     [t('highJewelry'), '/catalog?category=High%20Jewelry'],
@@ -66,7 +72,7 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin
           ))}
         </nav>
 
-        <div className="space-y-4 bg-[var(--bg-primary)]/30 p-4 text-[10px] uppercase tracking-[0.18em]">
+        <div className="space-y-4 bg-[var(--bg-primary)]/30 p-4 text-xs font-mono uppercase tracking-wider">
           <button type="button" onClick={toggleTheme} className="flex w-full items-center justify-between">
             {t('themeToggle')}
             {themeMode === 'dark' ? <Sun size={16} strokeWidth={1.25} /> : <Moon size={16} strokeWidth={1.25} />}
@@ -76,7 +82,15 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin
             <LanguageSwitcher />
           </div>
           <button type="button" onClick={() => { onClose(); onWishlist() }} className="flex w-full items-center justify-between text-left">{t('favorites')} <span className="flex items-center gap-2"><span className="font-medium text-amber-400">{wishlistCount}</span><Heart size={16} strokeWidth={1.25} className="fill-amber-400 text-amber-400" /></span></button>
-          <button type="button" onClick={() => { onClose(); onLogin() }} className="flex w-full items-center justify-between text-left">{t('signInAccount')} <User size={16} strokeWidth={1.25} /></button>
+          {user ? (
+            <div className="flex w-full items-center justify-between text-left">
+              <a href="/account" onClick={onClose} className="flex items-center gap-2 hover:text-[var(--accent-gold)]">{t('myAccount')} <User size={16} strokeWidth={1.25} /></a>
+              <button type="button" aria-label={t('signOut')} onClick={() => { onClose(); supabase.auth.signOut() }} className="text-[var(--text-primary)] transition-colors hover:text-[var(--accent-gold)]"><LogOut size={16} strokeWidth={1.25} /></button>
+            </div>
+          ) : (
+            <button type="button" onClick={() => { onClose(); onLogin() }} className="flex w-full items-center justify-between text-left">{t('signInAccount')} <User size={16} strokeWidth={1.25} /></button>
+          )}
+          {isAdmin && <a href="/admin" onClick={onClose} className="flex w-full items-center justify-between border-t border-[var(--border-subtle)] pt-4">{t('adminDashboard')} <Settings size={16} strokeWidth={1.25} /></a>}
           <div className="space-y-1 border-t border-[var(--border-subtle)] pt-4 opacity-70">
             <p>{config.location_city} | {config.phone_number}</p>
             <a href={`https://wa.me/${config.whatsapp_number}`}>{t('boutiqueConcierge')}</a>
@@ -94,6 +108,8 @@ export default function Navbar() {
   const { cartItems, setIsBagOpen } = useCart()
   const { wishlistItems, setIsWishlistOpen } = useWishlist()
   const { t } = useLanguage()
+  const { user } = useAuth()
+  const isAdmin = adminRoles.includes(user?.role)
   const [isScrolled, setIsScrolled] = useState(false)
   const [scrollY, setScrollY] = useState(0)
   const [scrollDirection, setScrollDirection] = useState('up')
@@ -189,7 +205,8 @@ export default function Navbar() {
             : ''
         }`}
       >
-        <div className="fixed left-0 right-0 top-0 z-50 md:hidden">
+        {createPortal(<>
+        <div className="fixed left-0 right-0 top-0 z-[60] md:hidden">
           <div className="relative z-50 flex h-[60px] w-full items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
             <div className="flex w-[60px] items-center justify-start">
               <IconButton label={isDrawerOpen || isSearchOpen ? t('closeOverlay') : t('openNavigation')} onClick={handleLeftIconClick}>
@@ -207,12 +224,13 @@ export default function Navbar() {
             </div>
           </div>
         </div>
-        <div className={`fixed left-0 right-0 top-[60px] z-20 h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2 md:hidden ${!isDrawerOpen && !isSearchOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
+        <div className={`fixed left-0 right-0 top-[60px] z-[59] h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2 md:hidden ${!isDrawerOpen && !isSearchOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
           <div className="relative">
             <Search size={16} strokeWidth={1.25} className="pointer-events-none absolute left-3 top-2.5 text-[var(--text-primary)] opacity-60" />
             <input type="search" readOnly onClick={() => setIsSearchOpen(true)} onFocus={() => setIsSearchOpen(true)} placeholder={t('search')} aria-label={t('search')} className="relative z-20 w-full rounded-full bg-[var(--bg-primary)] py-2 pl-9 pr-4 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-primary)] placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]" />
             </div>
         </div>
+        </>, document.body)}
         <div className="mx-auto hidden max-w-7xl px-5 sm:px-8 md:block lg:px-10">
           <div className="flex h-8 items-center justify-center border-b border-[var(--border-subtle)]/50 text-center">
             <Sparkles
@@ -275,6 +293,9 @@ export default function Navbar() {
                 <User strokeWidth={1.25} size={19} />
                 </span>
               </IconButton>
+              {isAdmin && <IconButton label={t('adminDashboard')} className="hidden sm:inline-flex" onClick={() => { window.location.href = '/admin' }}>
+                <Settings strokeWidth={1.25} size={19} />
+              </IconButton>}
               <IconButton label={t('shoppingBag')} className="relative" onClick={() => setIsBagOpen(true)}>
                 <ShoppingBag strokeWidth={1.25} size={20} />
                 {cartCount > 0 && (
@@ -315,6 +336,8 @@ export default function Navbar() {
         onLogin={() => setIsLoginOpen(true)}
         wishlistCount={wishlistItems.length}
         onWishlist={() => setIsWishlistOpen(true)}
+        user={user}
+        isAdmin={isAdmin}
       />
       <SearchDrawer
         isOpen={isSearchOpen}
@@ -326,7 +349,7 @@ export default function Navbar() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
       />
-      <LoginDrawer isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+      <LoginDrawer isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} onSuccess={() => setIsLoginOpen(false)} />
     </>
   )
 }

@@ -36,6 +36,10 @@ export default function Catalog() {
       if (error) console.warn(`Catalog fallback: ${error.message}`)
       if (data?.length) setProducts(data)
       setLoading(false)
+    }).catch((requestError) => {
+      if (!active) return
+      console.warn(`Catalog fallback: ${requestError.message}`)
+      setLoading(false)
     })
     return () => { active = false }
   }, [])

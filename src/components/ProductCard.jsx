@@ -188,9 +188,9 @@ export default function ProductCard({ product }) {
             event.stopPropagation()
             navigate(`/product/${product.id}`)
           }}
-          className="mt-2 w-full border border-[var(--text-primary)] py-2 text-[10px] uppercase tracking-widest text-[var(--text-primary)] transition-colors hover:bg-[var(--text-primary)] hover:text-[var(--surface-primary)]"
+          className="mt-3 flex min-h-11 w-full items-center justify-center border border-[var(--text-primary)] px-3 py-2 text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--text-primary)] transition-colors active:bg-[var(--text-primary)] active:text-[var(--surface-primary)] hover:bg-[var(--text-primary)] hover:text-[var(--surface-primary)]"
         >
-          Discover
+          {t('discover')}
         </button>
       </div>
     </article>
