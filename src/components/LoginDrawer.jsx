@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { Eye, EyeOff, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
@@ -12,6 +12,10 @@ export default function LoginDrawer({ isOpen, onClose, onSuccess }) {
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const drawerRef = useRef(null)
+  useLayoutEffect(() => {
+    if (!isOpen && drawerRef.current?.contains(document.activeElement)) document.activeElement.blur()
+  }, [isOpen])
   const validate = async (event) => {
     event.preventDefault()
     const nextErrors = {}
@@ -36,9 +40,9 @@ export default function LoginDrawer({ isOpen, onClose, onSuccess }) {
   }
 
   return (
-    <div className={`fixed inset-0 z-[90] transition-opacity duration-300 ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} aria-hidden={!isOpen}>
+    <div inert={!isOpen} className={`fixed inset-0 z-[90] transition-opacity duration-300 ${isOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} aria-hidden={!isOpen}>
       <button type="button" aria-label={t('closeLogin')} onClick={onClose} className="absolute inset-0 top-[60px] bg-black/70 backdrop-blur-sm md:inset-0" />
-      <aside className={`absolute inset-x-0 bottom-0 top-[60px] flex h-[calc(100dvh-60px)] w-full max-w-md transform flex-col border border-amber-500/30 bg-neutral-950 p-6 text-[var(--text-primary)] shadow-2xl transition-transform duration-300 md:inset-y-0 md:left-auto md:right-0 md:h-full md:border-y-0 md:border-r-0 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <aside ref={drawerRef} className={`absolute inset-x-0 bottom-0 top-[60px] flex h-[calc(100dvh-60px)] w-full max-w-md transform flex-col border border-amber-500/30 bg-neutral-950 p-6 text-[var(--text-primary)] shadow-2xl transition-transform duration-300 md:inset-y-0 md:left-auto md:right-0 md:h-full md:border-y-0 md:border-r-0 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="relative z-50 flex items-center justify-between border-b border-[var(--border-subtle)] pb-5">
           <h2 className="font-serif text-xl uppercase tracking-widest">{t('login')}</h2>
           <button type="button" aria-label={t('closeLogin')} onClick={onClose} className="p-2 opacity-70 hover:text-[var(--accent-gold)]"><X size={22} strokeWidth={1.25} /></button>

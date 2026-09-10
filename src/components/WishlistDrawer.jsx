@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import { Trash2, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
@@ -6,15 +7,19 @@ import { useLanguage } from '../context/LanguageContext'
 import { getProductPrice } from '../utils/productUtils'
 
 export default function WishlistDrawer() {
+  const drawerRef = useRef(null)
   const { addToCart, isInCart } = useCart()
   const { wishlistItems, removeFromWishlist, isWishlistOpen, setIsWishlistOpen } = useWishlist()
   const { t } = useLanguage()
+  useLayoutEffect(() => {
+    if (!isWishlistOpen && drawerRef.current?.contains(document.activeElement)) document.activeElement.blur()
+  }, [isWishlistOpen])
   const addWishlistItem = (item) => {
     if (isInCart(item.id)) return
     addToCart({ ...item, price: getProductPrice(item) }, 1, { suppressBagOpen: true })
   }
 
-  return <div className={`fixed inset-0 z-[100] h-full w-full bg-neutral-950 transition-opacity ${isWishlistOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}>
+  return <div ref={drawerRef} inert={!isWishlistOpen} className={`fixed inset-0 z-[100] h-full w-full bg-neutral-950 transition-opacity ${isWishlistOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} aria-hidden={!isWishlistOpen}>
     <button type="button" aria-label={t('closeOverlay')} onClick={() => setIsWishlistOpen(false)} className="absolute inset-0 bg-black/70" />
     <aside className={`absolute inset-y-0 right-0 flex h-full w-full flex-col bg-neutral-950 px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 text-white shadow-2xl transition-transform sm:w-[400px] ${isWishlistOpen ? 'translate-x-0' : 'translate-x-full'}`}>
       <header className="flex shrink-0 items-center justify-between border-b border-neutral-800 pb-5">

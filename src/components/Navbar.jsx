@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   Heart,
@@ -8,6 +8,7 @@ import {
   Search,
   ShoppingBag,
   Sparkles,
+  MapPin,
   Sun,
   User,
   X,
@@ -43,6 +44,10 @@ function IconButton({ label, children, onClick, className = '' }) {
 function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin, wishlistCount, onWishlist, user, isAdmin }) {
   const { t } = useLanguage()
   const [signedOut, setSignedOut] = useState(false)
+  const drawerRef = useRef(null)
+  useLayoutEffect(() => {
+    if (!isOpen && drawerRef.current?.contains(document.activeElement)) document.activeElement.blur()
+  }, [isOpen])
   const mobileLinks = [
     [t('highJewelry'), '/catalog?category=High%20Jewelry'],
     [t('fineJewelry'), '/catalog?category=Fine%20Jewelry'],
@@ -51,7 +56,7 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin
     [t('concierge'), '/concierge'],
   ]
   return (
-    <div className={`pointer-events-none fixed inset-0 z-40 md:hidden ${isOpen ? 'visible' : 'invisible'}`} role="dialog" aria-modal="true" aria-hidden={!isOpen}>
+    <div ref={drawerRef} inert={!isOpen} className={`pointer-events-none fixed inset-0 z-40 md:hidden ${isOpen ? 'visible' : 'invisible'}`} role="dialog" aria-modal="true" aria-hidden={!isOpen}>
       <button
         type="button"
         aria-label="Close navigation"
@@ -74,6 +79,9 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin
         </nav>
 
         <div className="space-y-4 bg-[var(--bg-primary)]/30 p-4 text-xs font-mono tracking-wider">
+          <a href="/boutique" onClick={onClose} className="flex w-full items-center justify-between text-left">
+            {t('boutique')} <MapPin size={16} strokeWidth={1.25} />
+          </a>
           <button type="button" onClick={toggleTheme} className="flex w-full items-center justify-between">
             {t('themeToggle')}
             {themeMode === 'dark' ? <Sun size={16} strokeWidth={1.25} /> : <Moon size={16} strokeWidth={1.25} />}
