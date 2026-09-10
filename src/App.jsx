@@ -26,11 +26,12 @@ import { LanguageProvider, useLanguage } from './context/LanguageContext'
 import { AuthProvider } from './context/AuthContext'
 import { WishlistProvider } from './context/WishlistContext'
 import { SiteConfigProvider } from './context/SiteConfigContext'
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import GlobalLoader from './components/GlobalLoader'
 import CookieConsent from './components/CookieConsent'
 import { trackEvent } from './utils/analytics'
 import MaisonInformation from './pages/MaisonInformation'
+import AdminGuard from './components/AdminGuard'
 import './App.css'
 
 function NotFound() {
@@ -49,6 +50,19 @@ function ScrollToTop() {
   return null
 }
 
+function AdminAccessNotice() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const denied = location.state?.adminAccessDenied
+  useEffect(() => {
+    if (!denied) return undefined
+    const timer = window.setTimeout(() => navigate(location.pathname, { replace: true, state: {} }), 3500)
+    return () => window.clearTimeout(timer)
+  }, [denied, location.pathname, navigate])
+  if (!denied) return null
+  return <div role="status" className="fixed bottom-6 left-1/2 z-[120] w-[90%] max-w-md -translate-x-1/2 border border-amber-500/40 bg-neutral-900 px-6 py-4 text-center text-xs uppercase tracking-widest text-amber-300 shadow-2xl">Access restricted to authorized personnel</div>
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -59,6 +73,7 @@ function App() {
         <SiteConfigProvider>
         <CartProvider>
           <ScrollToTop />
+          <AdminAccessNotice />
           <GlobalLoader />
           <div className="min-h-screen overflow-x-clip bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300">
           <SEOHead />
@@ -72,7 +87,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/checkout" element={<Checkout />} />
-            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin" element={<AdminGuard><Admin /></AdminGuard>} />
             <Route path="/account" element={<Account />} />
             <Route path="/concierge" element={<Concierge />} />
             <Route path="/catalog" element={<Catalog />} />
