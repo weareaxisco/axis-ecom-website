@@ -168,7 +168,7 @@ export default function Navbar() {
       document.documentElement.style.overflow = ''
       document.body.style.overflow = ''
     }
-  }, [isDrawerOpen, isSearchOpen])
+  }, [isDrawerOpen, isSearchOpen, isLoginOpen])
 
   useEffect(() => {
     if (!isDrawerOpen && !isSearchOpen) return undefined

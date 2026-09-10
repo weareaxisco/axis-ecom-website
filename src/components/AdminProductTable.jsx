@@ -35,7 +35,7 @@ export default function AdminProductTable({ products, onToggleOnsiteOnly, onAddP
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-800/80">
-          {products.map((product) => (
+          {(Array.isArray(products) ? products : []).map((product) => (
             <tr key={product.id} className="text-sm text-neutral-200">
               <td className="px-5 py-4"><img src={product.main_image_url || product.image || product.images?.[0]} alt="" className="h-14 w-12 object-cover" /></td>
               <td className="px-5 py-4 font-serif">{product.name || product.title}</td>
@@ -60,7 +60,7 @@ export default function AdminProductTable({ products, onToggleOnsiteOnly, onAddP
           ))}
         </tbody>
       </table>
-      {!products.length && <p className="p-10 text-center text-sm text-neutral-500">{t('noProductsFound')}</p>}
+      {(!Array.isArray(products) || !products.length) && <p className="p-10 text-center text-sm text-neutral-500">{t('noProductsFound')}</p>}
     </div>
     </>
   )
