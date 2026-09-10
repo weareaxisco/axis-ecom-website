@@ -64,7 +64,7 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin
               key={href}
               href={href}
               onClick={onClose}
-              className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-5 text-sm uppercase tracking-[0.18em] transition-all duration-300 ease-out first:pt-4 hover:text-[var(--accent-gold)]"
+              className="flex items-center justify-between border-b border-[var(--border-subtle)] px-6 py-5 text-sm tracking-[0.18em] transition-all duration-300 ease-out first:pt-4 hover:text-[var(--accent-gold)]"
             >
               {label}
               <ChevronRight size={16} strokeWidth={1.25} />
@@ -72,7 +72,7 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin
           ))}
         </nav>
 
-        <div className="space-y-4 bg-[var(--bg-primary)]/30 p-4 text-xs font-mono uppercase tracking-wider">
+        <div className="space-y-4 bg-[var(--bg-primary)]/30 p-4 text-xs font-mono tracking-wider">
           <button type="button" onClick={toggleTheme} className="flex w-full items-center justify-between">
             {t('themeToggle')}
             {themeMode === 'dark' ? <Sun size={16} strokeWidth={1.25} /> : <Moon size={16} strokeWidth={1.25} />}
@@ -84,13 +84,13 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin
           <button type="button" onClick={() => { onClose(); onWishlist() }} className="flex w-full items-center justify-between text-left">{t('favorites')} <span className="flex items-center gap-2"><span className="font-medium text-amber-400">{wishlistCount}</span><Heart size={16} strokeWidth={1.25} className="fill-amber-400 text-amber-400" /></span></button>
           {user ? (
             <div className="flex w-full items-center justify-between text-left">
-              <a href="/account" onClick={onClose} className="flex items-center gap-2 hover:text-[var(--accent-gold)]">{t('myAccount')} <User size={16} strokeWidth={1.25} /></a>
+              <a href="/account" onClick={onClose} className="flex items-center gap-2 hover:text-[var(--accent-gold)]"><User size={16} strokeWidth={1.25} /> {t('myAccount')}</a>
               <button type="button" aria-label={t('signOut')} onClick={() => { onClose(); supabase.auth.signOut() }} className="text-[var(--text-primary)] transition-colors hover:text-[var(--accent-gold)]"><LogOut size={16} strokeWidth={1.25} /></button>
             </div>
           ) : (
             <button type="button" onClick={() => { onClose(); onLogin() }} className="flex w-full items-center justify-between text-left">{t('signInAccount')} <User size={16} strokeWidth={1.25} /></button>
           )}
-          {isAdmin && <a href="/admin" onClick={onClose} className="flex w-full items-center justify-between border-t border-[var(--border-subtle)] pt-4">{t('adminDashboard')} <Settings size={16} strokeWidth={1.25} /></a>}
+          {isAdmin && <a href="/admin" onClick={onClose} className="flex w-full items-center justify-between border-t border-[var(--border-subtle)] pt-4 uppercase">{t('adminDashboard')} <Settings size={16} strokeWidth={1.25} /></a>}
           <div className="space-y-1 border-t border-[var(--border-subtle)] pt-4 opacity-70">
             <p>{config.location_city} | {config.phone_number}</p>
             <a href={`https://wa.me/${config.whatsapp_number}`}>{t('boutiqueConcierge')}</a>
@@ -207,9 +207,9 @@ export default function Navbar() {
       >
         {createPortal(<>
         <div className="fixed left-0 right-0 top-0 z-[60] md:hidden">
-          <div className="relative z-50 flex h-[60px] w-full items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
+          <div className="relative z-[80] flex h-[60px] w-full items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4">
             <div className="flex w-[60px] items-center justify-start">
-              <IconButton label={isDrawerOpen || isSearchOpen ? t('closeOverlay') : t('openNavigation')} onClick={handleLeftIconClick}>
+              <IconButton label={isDrawerOpen || isSearchOpen ? t('closeOverlay') : t('openNavigation')} onClick={handleLeftIconClick} className="relative z-[90]">
                 {isDrawerOpen || isSearchOpen ? <X className="h-5 w-5" strokeWidth={1.25} /> : <Menu className="h-5 w-5" strokeWidth={1.25} />}
               </IconButton>
             </div>
@@ -224,7 +224,7 @@ export default function Navbar() {
             </div>
           </div>
         </div>
-        <div className={`fixed left-0 right-0 top-[60px] z-[59] h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2 md:hidden ${!isDrawerOpen && !isSearchOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
+        <div className={`fixed left-0 right-0 top-[60px] z-[59] h-12 border-b border-[var(--border-subtle)] bg-[var(--surface-primary)] px-4 py-2 md:hidden ${!isDrawerOpen && !isSearchOpen && !isLoginOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
           <div className="relative">
             <Search size={16} strokeWidth={1.25} className="pointer-events-none absolute left-3 top-2.5 text-[var(--text-primary)] opacity-60" />
             <input type="search" readOnly onClick={() => setIsSearchOpen(true)} onFocus={() => setIsSearchOpen(true)} placeholder={t('search')} aria-label={t('search')} className="relative z-20 w-full rounded-full bg-[var(--bg-primary)] py-2 pl-9 pr-4 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-primary)] placeholder:opacity-50 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]" />

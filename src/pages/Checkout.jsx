@@ -39,11 +39,12 @@ const codTimeline = [
 const onlineTimeline = ['Payment Confirmed', 'Crafting & Preparation', 'Dispatched via Ameex (Tracking Link)', 'Delivered']
 
 export default function Checkout() {
-  const { cartItems, subtotal, hasOnsiteOnly } = useCart()
+  const { selectedItems: cartItems, subtotal, hasOnsiteOnly, clearSelectedItems } = useCart()
   const { t } = useLanguage()
   const [cities, setCities] = useState(fallbackCities)
   const [step, setStep] = useState(1)
   const [payment, setPayment] = useState('cod')
+  const [completedItems, setCompletedItems] = useState([])
   const [fulfillment, setFulfillment] = useState(hasOnsiteOnly ? 'onsite' : 'delivery')
   const [phoneError, setPhoneError] = useState('')
   const [form, setForm] = useState({ fullName: '', address: '', city: 'Casablanca', postalCode: '', phone: '+212 ', pickupDate: '', pickupTime: '' })
@@ -81,7 +82,11 @@ export default function Checkout() {
     if (step === 1 && fulfillment === 'onsite' && (!form.pickupDate || !form.pickupTime)) return
     setPhoneError('')
     if (step === 1) trackEvent('begin_checkout', { items: cartItems.length, value: total }).catch(() => {})
-    if (step === 2) trackEvent('purchase', { items: cartItems.length, value: total, payment }).catch(() => {})
+    if (step === 2) {
+      trackEvent('purchase', { items: cartItems.length, value: total, payment }).catch(() => {})
+      setCompletedItems(cartItems)
+      clearSelectedItems()
+    }
     setStep((current) => current + 1)
   }
 
@@ -104,7 +109,7 @@ export default function Checkout() {
               </div>
             </div>}
             {step === 2 && <div className="space-y-3">{[['cod', t('cod'), 'Pay securely upon delivery in Morocco.'], ['card', 'Credit Card', 'CMI / Stripe secure payment placeholder.'], ['wire', 'Wire Transfer / Bank Deposit', 'Bank details will be provided after confirmation.']].map(([value, title, description]) => <label key={value} className={`block cursor-pointer border p-5 ${payment === value ? 'border-amber-500 bg-amber-500/5' : 'border-neutral-800'}`}><input type="radio" name="payment" value={value} checked={payment === value} onChange={(event) => setPayment(event.target.value)} className="mr-3 accent-amber-500" /><span className="text-sm uppercase tracking-widest">{title}</span><p className="mt-2 pl-6 text-xs text-neutral-500">{description}</p></label>)}</div>}
-            {step === 3 && <div className="border border-amber-500/40 bg-neutral-900/50 p-8"><p className="text-center text-[10px] uppercase tracking-[0.25em] text-amber-400">Order Status</p><h2 className="mt-4 text-center font-serif text-2xl uppercase tracking-widest">Your journey with the Maison</h2><div className="mx-auto mt-8 max-w-xl space-y-5">{timeline.map((status, index) => <div key={status} className="flex gap-4"><span className={`mt-1 h-3 w-3 flex-shrink-0 rounded-full border ${index === 0 ? 'border-amber-400 bg-amber-400' : 'border-neutral-600'}`} /><div><p className={`text-xs uppercase tracking-widest ${index === 0 ? 'text-amber-400' : 'text-neutral-400'}`}>{status}</p>{payment === 'cod' && index === 1 && <button type="button" className="mt-2 text-[10px] uppercase tracking-widest text-amber-400 underline">Pay Upfront Deposit to Fast-Track Shipping</button>}</div></div>)}</div><button type="button" onClick={() => generateInvoice({ cartItems, subtotal, shippingFee, city: form.city, address: form.address, fullName: form.fullName, payment_method: payment })} className="mx-auto mt-8 block border border-amber-500/50 px-4 py-3 text-[10px] uppercase tracking-widest text-amber-300">Download Tax Receipt (PDF)</button></div>}
+            {step === 3 && <div className="border border-amber-500/40 bg-neutral-900/50 p-8"><p className="text-center text-[10px] uppercase tracking-[0.25em] text-amber-400">Order Status</p><h2 className="mt-4 text-center font-serif text-2xl uppercase tracking-widest">Your journey with the Maison</h2><div className="mx-auto mt-8 max-w-xl space-y-5">{timeline.map((status, index) => <div key={status} className="flex gap-4"><span className={`mt-1 h-3 w-3 flex-shrink-0 rounded-full border ${index === 0 ? 'border-amber-400 bg-amber-400' : 'border-neutral-600'}`} /><div><p className={`text-xs uppercase tracking-widest ${index === 0 ? 'text-amber-400' : 'text-neutral-400'}`}>{status}</p>{payment === 'cod' && index === 1 && <button type="button" className="mt-2 text-[10px] uppercase tracking-widest text-amber-400 underline">Pay Upfront Deposit to Fast-Track Shipping</button>}</div></div>)}</div><button type="button" onClick={() => generateInvoice({ cartItems: completedItems, subtotal: completedItems.reduce((sum, item) => sum + getProductPrice(item) * item.quantity, 0), shippingFee, city: form.city, address: form.address, fullName: form.fullName, payment_method: payment })} className="mx-auto mt-8 block border border-amber-500/50 px-4 py-3 text-[10px] uppercase tracking-widest text-amber-300">Download Tax Receipt (PDF)</button></div>}
             {step < 3 && <button type="button" onClick={advanceStep} className="mt-8 bg-amber-500 px-8 py-4 text-xs font-semibold uppercase tracking-widest text-black">{step === 1 ? 'Continue to Payment' : t('reviewOrder')}</button>}
           </section>
           <aside className="h-fit border border-neutral-800 bg-neutral-950/60 p-6 lg:sticky lg:top-32"><h2 className="font-serif text-xl uppercase tracking-widest">Order Summary</h2><div className="mt-6 space-y-4">          {cartItems.map((item) => <div key={item.cartKey} className="flex justify-between gap-4 text-xs"><span>{item.name} × {item.quantity}</span><span>{money(getProductPrice(item) * item.quantity)}</span></div>)}</div><div className="mt-6 space-y-3 border-t border-neutral-800 pt-5 text-sm"><div className="flex justify-between"><span>Subtotal</span><span>{money(subtotal)}</span></div><div className="flex justify-between text-neutral-500"><span>Tax</span><span>Included</span></div><div className="flex justify-between text-amber-400"><span>Shipping</span><span>{shippingFee ? money(shippingFee) : 'Complimentary'}</span></div><div className="flex justify-between border-t border-neutral-800 pt-4 text-base font-semibold"><span>Total</span><span>{money(total)}</span></div></div></aside>

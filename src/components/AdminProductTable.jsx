@@ -45,7 +45,7 @@ export default function AdminProductTable({ products, onToggleOnsiteOnly, onAddP
                 <label className="relative inline-flex cursor-pointer items-center">
                   <input type="checkbox" checked={Boolean(product.onsite_only)} onChange={() => handleToggle(product)} disabled={savingId === product.id} className="peer sr-only" />
                   <span className="relative h-6 w-11 rounded-full bg-neutral-800 transition-colors after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-neutral-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-amber-500 peer-checked:after:translate-x-full peer-disabled:opacity-50 peer-focus:outline-none" />
-                  <span className="ml-2 text-xs font-mono uppercase text-neutral-400">{product.onsite_only ? t('pickup') : t('standard')}</span>
+                  <span className="ml-2 text-xs font-mono uppercase text-neutral-400">{product.onsite_only ? t('pickup') : t('deliveryLabel')}</span>
                   {savingId === product.id && <LoaderCircle className="ml-2 animate-spin text-amber-400" size={15} />}
                 </label>
               </td>
