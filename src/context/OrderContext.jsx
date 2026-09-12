@@ -29,10 +29,16 @@ export function OrderProvider({ children }) {
 
   const createOrder = useCallback(async (payload) => {
     const { data: { user } } = await supabase.auth.getUser()
-    const record = {
-      id: payload.id,
+    const newOrder = {
+      id: payload.id || `local-${Date.now()}`,
       user_id: user?.id,
-      items: payload.items,
+      customer_name: payload.customer_name || payload.full_name || 'Guest Customer',
+      customer_email: payload.customer_email || user?.email || '',
+      total_amount: payload.total_amount ?? payload.total_dh ?? 0,
+      items: payload.items || [],
+      shipping_address: payload.shipping_address || payload.delivery_address || '',
+      status: 'Pending Confirmation',
+      created_at: new Date().toISOString(),
       subtotal_dh: payload.subtotal_dh,
       shipping_fee_dh: payload.shipping_fee_dh,
       total_dh: payload.total_dh,
@@ -41,18 +47,40 @@ export function OrderProvider({ children }) {
       shipping_address: payload.shipping_address || payload.delivery_address,
       phone: payload.phone,
       payment_method: payload.payment_method,
-      customer_name: payload.customer_name,
-      customer_email: payload.customer_email,
       postal_code: payload.postal_code,
     }
-    let order = { ...record, id: record.id || `local-${Date.now()}`, total_amount: payload.total_amount ?? payload.total_dh, created_at: new Date().toISOString(), status: 'pending_confirmation' }
-    if (user?.id) {
-      const { data, error } = await supabase.from('orders').insert(record).select().single()
-      if (!error && data) order = { ...data, customer_name: payload.customer_name, customer_email: payload.customer_email, postal_code: payload.postal_code }
+    let order = newOrder
+    let { data, error } = await supabase.from('orders').insert(newOrder).select().single()
+    if (error) {
+      const legacyRecord = {
+        id: newOrder.id,
+        user_id: newOrder.user_id,
+        items: newOrder.items,
+        subtotal_dh: newOrder.subtotal_dh,
+        shipping_fee_dh: newOrder.shipping_fee_dh,
+        total_dh: newOrder.total_dh,
+        city: newOrder.city,
+        delivery_address: newOrder.shipping_address,
+        phone: newOrder.phone,
+        payment_method: newOrder.payment_method,
+        customer_name: newOrder.customer_name,
+        customer_email: newOrder.customer_email,
+        postal_code: newOrder.postal_code,
+        status: newOrder.status,
+        created_at: newOrder.created_at,
+      }
+      const retry = await supabase.from('orders').insert(legacyRecord).select().single()
+      data = retry.data
+      error = retry.error
     }
+    if (!error && data) order = { ...newOrder, ...data, customer_name: newOrder.customer_name, customer_email: newOrder.customer_email }
     setOrders((current) => {
       const next = [order, ...current.filter((item) => item.id !== order.id)]
-      window.localStorage.setItem(localOrdersKey, JSON.stringify(next.filter((item) => String(item.id).startsWith('local-'))))
+      try {
+        window.localStorage.setItem(localOrdersKey, JSON.stringify(next.filter((item) => String(item.id).startsWith('local-'))))
+      } catch {
+        // Local persistence is optional when browser storage is unavailable.
+      }
       return next
     })
     window.dispatchEvent(new CustomEvent('orders_updated', { detail: order }))

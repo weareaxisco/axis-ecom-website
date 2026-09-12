@@ -186,6 +186,34 @@ function AdminContent() {
     window.addEventListener('order:created', handleOrderCreated)
     return () => window.removeEventListener('order:created', handleOrderCreated)
   }, [])
+  useEffect(() => {
+    if (!isAdmin) return undefined
+    let active = true
+    const mergeRemoteOrders = (incoming) => {
+      if (!Array.isArray(incoming) || !incoming.length) return
+      setOrders((current) => {
+        const byId = new Map(current.map((order) => [order.id, order]))
+        incoming.forEach((order) => byId.set(order.id, { ...byId.get(order.id), ...order }))
+        return [...byId.values()].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+      })
+    }
+    const fetchOrders = async () => {
+      const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false })
+      if (active) mergeRemoteOrders(data)
+    }
+    const channel = supabase
+      .channel('admin_orders_channel')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
+        if (active && payload.new?.id) mergeRemoteOrders([payload.new])
+      })
+      .subscribe()
+    const pollingTimer = window.setInterval(() => { fetchOrders().catch(() => {}) }, 10000)
+    return () => {
+      active = false
+      window.clearInterval(pollingTimer)
+      supabase.removeChannel(channel)
+    }
+  }, [isAdmin])
 
   const updateOnsiteOnly = async (id, onsiteOnly) => {
     if (!can('manage_products')) return
