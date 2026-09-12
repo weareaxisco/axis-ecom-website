@@ -43,7 +43,11 @@ export function ProductProvider({ children }) {
     refresh().catch((error) => console.warn(`Product catalog fallback: ${error.message}`))
     const handleChange = () => refresh().catch((error) => console.warn(`Taxonomy refresh failed: ${error.message}`))
     window.addEventListener('taxonomy:changed', handleChange)
-    return () => window.removeEventListener('taxonomy:changed', handleChange)
+    window.addEventListener('inventory_updated', handleChange)
+    return () => {
+      window.removeEventListener('taxonomy:changed', handleChange)
+      window.removeEventListener('inventory_updated', handleChange)
+    }
   }, [])
 
   const taxonomies = useMemo(() => {

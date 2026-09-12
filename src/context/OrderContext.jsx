@@ -85,11 +85,13 @@ export function OrderProvider({ children }) {
     }
     const orderItems = Array.isArray(payload.items) ? payload.items : []
     const stockItems = orderItems
-      .map((item) => ({ id: item.product_id || item.productId || item.id, quantity: Number(item.quantity || 1) }))
-      .filter((item) => item.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(item.id))
+      .map((item) => ({ id: item.id || item.product_id || item.productId, quantity: Number(item.quantity || 1) }))
+      .filter((item) => item.id && Number.isFinite(item.quantity) && item.quantity > 0)
     for (const item of stockItems) {
       try {
         const { data, error } = await supabase.from('products').select('id, stock').eq('id', item.id).maybeSingle()
+        if (error) throw error
+        if (!data) throw new Error(`Product ${item.id} was not found.`)
         if (!error && data && Number(data.stock) < item.quantity) {
           const stockError = new Error(`Product ${item.id} is out of stock.`)
           stockError.code = 'OUT_OF_STOCK'
@@ -157,8 +159,14 @@ export function OrderProvider({ children }) {
       if (error) console.warn('[orders] remote insert rejected; local order retained:', error.message)
       else {
         await Promise.all(stockItems.map(async (item) => {
-          const { data } = await supabase.from('products').select('stock').eq('id', item.id).maybeSingle()
-          if (data) await supabase.from('products').update({ stock: Math.max(0, Number(data.stock) - item.quantity) }).eq('id', item.id)
+          const { data, error: stockError } = await supabase.from('products').select('stock').eq('id', item.id).maybeSingle()
+          if (stockError) throw stockError
+          if (data) {
+            const newStock = Math.max(0, Number(data.stock) - item.quantity)
+            const { error } = await supabase.from('products').update({ stock: newStock }).eq('id', item.id)
+            if (error) throw error
+            window.dispatchEvent(new CustomEvent('inventory_updated', { detail: { productId: item.id, stock: newStock } }))
+          }
         }))
       }
     } catch (error) {
