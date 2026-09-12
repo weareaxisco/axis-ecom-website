@@ -55,7 +55,7 @@ export default function AdminProductEditor() {
   const persistTaxonomy = async (type, name) => {
     const slug = slugify(name)
     const table = type === 'category' ? 'categories' : 'collections'
-    const candidates = type === 'category' ? [{ name, name_en: name, title: name, slug }, { name_en: name, slug }, { title: name, slug }, { name, slug }] : [{ name, slug }, { title: name, slug }]
+    const candidates = type === 'category' ? [{ name, name_fr: name, name_en: name, title: name, slug }, { name_fr: name, name_en: name, slug }, { title: name, slug }, { name, slug }] : [{ name, slug }, { title: name, slug }]
     let createError
     for (const payload of candidates) {
       const result = await supabase.from(table).insert(payload)

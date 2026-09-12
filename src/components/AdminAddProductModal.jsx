@@ -44,7 +44,7 @@ export default function AdminAddProductModal({ onClose, onCreated, initialProduc
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.type === 'checkbox' ? event.target.checked : event.target.value }))
   const createTaxonomy = async (type, name) => {
     const table = type === 'category' ? 'categories' : 'collections'
-    const payload = type === 'category' ? { name, name_en: name, slug: name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') } : { name, slug: name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') }
+    const payload = type === 'category' ? { name, name_fr: name, name_en: name, slug: name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') } : { name, slug: name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') }
     const existing = type === 'category' ? categories : collections
     if (existing.some((item) => item.toLowerCase() === name.toLowerCase())) {
       setForm((current) => ({ ...current, [type]: existing.find((item) => item.toLowerCase() === name.toLowerCase()) }))

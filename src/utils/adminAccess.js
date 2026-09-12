@@ -9,6 +9,7 @@ export function getAllowedAdminTabs(user) {
     hasAdminPermission(user, 'manage_orders') && 'analytics',
     hasAdminPermission(user, 'manage_orders') && 'orders',
     hasAdminPermission(user, 'manage_products') && 'inventory',
+    hasAdminPermission(user, 'manage_products') && ['super_admin', 'admin'].includes(user?.role) && 'taxonomies',
     hasAdminPermission(user, 'manage_appointments') && 'appointments',
     hasAdminPermission(user, 'manage_settings') && 'settings',
     ['super_admin', 'admin'].includes(user?.role) && 'staff',

@@ -18,7 +18,7 @@ export default function AdminTaxonomyManager({ products = [], onNotice }) {
     const name = drafts[type].trim()
     if (!name) return
     const table = type === 'categories' ? 'categories' : 'collections'
-    const payload = type === 'categories' ? { name_fr: name, name_en: name, slug: slugify(name) } : { name, slug: slugify(name) }
+    const payload = type === 'categories' ? { name, name_fr: name, name_en: name, slug: slugify(name) } : { name, slug: slugify(name) }
     const { error } = await supabase.from(table).insert(payload)
     if (error) { onNotice(`Unable to add taxonomy: ${error.message}`); return }
     setDrafts((current) => ({ ...current, [type]: '' }))

@@ -77,20 +77,13 @@ export default function ProductCard({ product, onProductClick }) {
         {t('new')}
           </span>
         )}
-        {gallery.map((image, index) => (
-          <ImageWithSkeleton
-            key={`${image}-${index}`}
-            src={image}
-            alt={index === 0 ? product.name || t('jewelryCreation') : ''}
-            aria-hidden={index !== 0}
-            onError={replaceWithFallback}
-            className={`absolute inset-0 h-full w-full transition-all duration-700 ease-out ${
-              activeImageIndex === index
-                ? 'scale-100 opacity-100 group-hover:scale-[1.03]'
-                : 'scale-100 opacity-0'
-            }`}
-          />
-        ))}
+        <ImageWithSkeleton
+          key={`${gallery[activeImageIndex]}-${activeImageIndex}`}
+          src={gallery[activeImageIndex]}
+          alt={product.name || t('jewelryCreation')}
+          onError={replaceWithFallback}
+          className="absolute inset-0 h-full w-full transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+        />
 
         <button
           type="button"
@@ -142,8 +135,11 @@ export default function ProductCard({ product, onProductClick }) {
 
         <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5">
           {gallery.map((image, index) => (
-            <span
+            <button
+              type="button"
               key={`${image}-indicator`}
+              aria-label={`Show product image ${index + 1}`}
+              onClick={(event) => { event.stopPropagation(); setActiveImageIndex(index); setTimerKey((key) => key + 1) }}
               className={`transition-all duration-300 ${
                 index === activeImageIndex
                   ? 'h-[2px] w-8 rounded-full bg-[var(--text-primary)]'
