@@ -30,15 +30,15 @@
 ## Phase 2: Dynamic Taxonomies & Global Filter Integration
 *Goal: Allow instant creation of Categories, Collections, and Tags that feed dynamically into website filters.*
 
-- [ ] **2.1 Dynamic Category & Collection Selectors (`src/components/TaxonomyInput.jsx`)**
+- [x] **2.1 Dynamic Category & Collection Selectors (`src/components/TaxonomyInput.jsx`)**
   - Build combobox inputs for Category and Collection fields with an inline **+ Create New** button.
   - Persist newly created categories to the backend database taxonomy table.
 
-- [ ] **2.2 Tag Management Engine (`src/components/TagManager.jsx`)**
+- [x] **2.2 Tag Management Engine (`src/components/TagManager.jsx`)**
   - Replace "Novelty" dropdown with a flexible **Tags** chip input system (*"New Arrival"*, *"Iconic"*, *"Boutique Exclusive"*).
   - Support multi-tag assignments per product.
 
-- [ ] **2.3 Catalog Filter Synchronization (`src/context/ProductContext.jsx`, `src/pages/Catalog.jsx`)**
+- [x] **2.3 Catalog Filter Synchronization (`src/pages/Catalog.jsx`)**
   - Update frontend store catalog filters to dynamically query available categories and tags from database records.
 
 ---
