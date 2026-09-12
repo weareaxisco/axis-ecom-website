@@ -17,7 +17,7 @@ export default function TaxonomyCombobox({ label, value = '', options = [], onCh
 
   const multiple = selectedValues.length > 0 || Boolean(onRemove)
   return <div ref={ref} className="relative w-full min-w-0">
-    <label className="block w-full text-[10px] uppercase tracking-widest text-neutral-400">{label}
+    <label className="block w-full text-xs uppercase tracking-wider text-neutral-400">{label}
       {multiple ? <div className="mt-1 flex min-h-[44px] w-full flex-wrap items-center gap-1.5 rounded-none border border-neutral-800 bg-neutral-900 p-2 focus-within:border-amber-400">
         {selectedValues.map((item) => <span key={item} className="inline-flex items-center gap-1 rounded-full border border-amber-500/50 bg-amber-500/10 px-2 py-1 text-[10px] normal-case tracking-normal text-amber-300">
           {item}<button type="button" aria-label={`Remove ${item}`} onClick={() => onRemove?.(item)}><span aria-hidden="true">×</span></button>
