@@ -13,6 +13,11 @@ export default function AccountAddresses({ userId }) {
   useEffect(() => {
     fetch('/data/ameex_cities.csv').then((response) => response.text()).then((text) => setCities(text.split(/\r?\n/).slice(1).filter(Boolean).map((row) => row.split(',')[1]))).catch(() => {})
   }, [])
+  useEffect(() => {
+    supabase.from('addresses').select('*').eq('user_id', userId).eq('is_default', true).maybeSingle().then(({ data }) => {
+      if (data) setForm((current) => ({ ...current, ...data, fullName: data.fullName || data.full_name || current.fullName }))
+    }).catch(() => {})
+  }, [userId])
 
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
   const saveAddress = async (event) => {

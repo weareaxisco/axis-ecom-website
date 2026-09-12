@@ -23,7 +23,7 @@ export function OrderProvider({ children }) {
     if (user?.id) {
       const { data, error } = await supabase.from('orders').insert(record).select().single()
       if (error) throw error
-      order = data
+      order = { ...data, customer_name: payload.customer_name, postal_code: payload.postal_code }
     }
     setOrders((current) => [order, ...current])
     window.dispatchEvent(new CustomEvent('order:created', { detail: order }))

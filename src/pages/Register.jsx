@@ -60,6 +60,7 @@ export default function Register() {
           title: form.title,
           first_name: form.firstName.trim(),
           last_name: form.lastName.trim(),
+          full_name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
           phone: form.phone.trim(),
           country: form.country,
         },

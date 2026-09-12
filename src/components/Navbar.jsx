@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import {
   Heart,
@@ -119,6 +120,7 @@ export default function Navbar() {
   const { wishlistItems, setIsWishlistOpen } = useWishlist()
   const { t } = useLanguage()
   const { user } = useAuth()
+  const navigate = useNavigate()
   const isAdmin = adminRoles.includes(user?.role)
   const [isScrolled, setIsScrolled] = useState(false)
   const [scrollY, setScrollY] = useState(0)
@@ -296,8 +298,8 @@ export default function Navbar() {
                 <Heart strokeWidth={1.25} size={19} />
                 {wishlistItems.length > 0 && <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-gold)] px-1 text-[9px] text-[var(--bg-primary)]">{wishlistItems.length}</span>}
               </IconButton>
-              <IconButton label={t('account')} className="hidden sm:inline-flex">
-                <span onClick={() => setIsLoginOpen(true)} className="flex h-full w-full items-center justify-center">
+              <IconButton label={t('account')} className="hidden sm:inline-flex" onClick={() => user ? navigate('/account') : setIsLoginOpen(true)}>
+                <span className="flex h-full w-full items-center justify-center">
                 <User strokeWidth={1.25} size={19} />
                 </span>
               </IconButton>
