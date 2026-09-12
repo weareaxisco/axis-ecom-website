@@ -55,6 +55,7 @@ export default function Checkout() {
   const [form, setForm] = useState({ fullName: '', address: '', city: 'Casablanca', postalCode: '', phone: '+212 ', pickupDate: '', pickupTime: '' })
   const [orderSnapshot, setOrderSnapshot] = useState(null)
   const [draftLoaded, setDraftLoaded] = useState(false)
+  const [submissionError, setSubmissionError] = useState('')
 
   useEffect(() => {
     try {
@@ -112,7 +113,6 @@ export default function Checkout() {
   const inputClass = 'mt-1 w-full border border-neutral-800 bg-neutral-900/60 px-4 py-3 text-sm text-neutral-200 outline-none focus:border-amber-500/70'
 
   const advanceStep = async () => {
-    let submissionError = null
     if (step === 1 && fulfillment === 'delivery' && !/^\+212\s?[67]\d{2}[-\s]?\d{6}$/.test(form.phone.trim())) {
       setPhoneError('Use +212 6XX-XXXXXX or +212 7XX-XXXXXX.')
       return
@@ -127,12 +127,14 @@ export default function Checkout() {
       try {
         order = await createOrder({ items: snapshot.items, subtotal_dh: snapshot.subtotal, shipping_fee_dh: snapshot.shippingFee, total_dh: snapshot.total, total_amount: snapshot.total, city: snapshot.city, delivery_address: snapshot.address, shipping_address: snapshot.address, postal_code: form.postalCode, phone: snapshot.phone, customer_name: snapshot.customer_name, customer_email: snapshot.customer_email, payment_method: payment })
       } catch (error) {
-        submissionError = error
+        if (error.code === 'OUT_OF_STOCK') {
+          setSubmissionError(error.message)
+          return
+        }
         order = { ...snapshot, id: `local-${Date.now()}` }
         window.dispatchEvent(new CustomEvent('order:created', { detail: order }))
-      } finally {
-        setOrderSnapshot({ ...snapshot, id: order.id })
       }
+      setSubmissionError('')
       setOrderSnapshot({ ...snapshot, id: order.id })
       if (user) {
         updateUserProfile({ full_name: form.fullName, phone: form.phone, saved_address: { full_name: form.fullName, phone: form.phone, address: form.address, city: form.city, postal_code: form.postalCode } }).catch((error) => console.warn(`Profile sync failed: ${error.message}`))
@@ -141,7 +143,6 @@ export default function Checkout() {
       setCompletedItems(snapshot.items)
       clearSelectedItems()
       window.localStorage.removeItem('checkout_draft')
-      if (submissionError) console.warn(`Order sync fallback used: ${submissionError.message}`)
     }
     setStep((current) => current + 1)
   }
@@ -166,6 +167,7 @@ export default function Checkout() {
             </div>}
             {step === 2 && <div className="space-y-3">{[['cod', t('cod'), 'Pay securely upon delivery in Morocco.'], ['card', 'Credit Card', 'CMI / Stripe secure payment placeholder.'], ['wire', 'Wire Transfer / Bank Deposit', 'Bank details will be provided after confirmation.']].map(([value, title, description]) => <label key={value} className={`block cursor-pointer border p-5 ${payment === value ? 'border-amber-500 bg-amber-500/5' : 'border-neutral-800'}`}><input type="radio" name="payment" value={value} checked={payment === value} onChange={(event) => setPayment(event.target.value)} className="mr-3 accent-amber-500" /><span className="text-sm uppercase tracking-widest">{title}</span><p className="mt-2 pl-6 text-xs text-neutral-500">{description}</p></label>)}</div>}
             {step === 3 && <div className="border border-amber-500/40 bg-neutral-900/50 p-8"><p className="text-center text-[10px] uppercase tracking-[0.25em] text-amber-400">Order Status</p><h2 className="mt-4 text-center font-serif text-2xl uppercase tracking-widest">Your journey with the Maison</h2><div className="mx-auto mt-8 max-w-xl space-y-5">{timeline.map((status, index) => <div key={status} className="flex gap-4"><span className={`mt-1 h-3 w-3 flex-shrink-0 rounded-full border ${index === 0 ? 'border-amber-400 bg-amber-400' : 'border-neutral-600'}`} /><div><p className={`text-xs uppercase tracking-widest ${index === 0 ? 'text-amber-400' : 'text-neutral-400'}`}>{status}</p>{payment === 'cod' && index === 1 && <button type="button" className="mt-2 text-[10px] uppercase tracking-widest text-amber-400 underline">Pay Upfront Deposit to Fast-Track Shipping</button>}</div></div>)}</div><button type="button" onClick={() => generateInvoice({ cartItems: completedItems,             subtotal: orderSnapshot?.subtotal || completedItems.reduce((sum, item) => sum + getProductPrice(item) * item.quantity, 0), shippingFee: orderSnapshot?.shippingFee ?? shippingFee, city: orderSnapshot?.city || form.city, address: orderSnapshot?.address || form.address, fullName: orderSnapshot?.customer_name || form.fullName, payment_method: payment })} className="mx-auto mt-8 block border border-amber-500/50 px-4 py-3 text-[10px] uppercase tracking-widest text-amber-300">Download Tax Receipt (PDF)</button></div>}
+            {submissionError && <p role="alert" className="mt-6 border border-rose-500/40 bg-rose-950/20 p-3 text-xs text-rose-300">{submissionError}</p>}
             {step < 3 && <button type="button" onClick={advanceStep} className="mt-8 bg-amber-500 px-8 py-4 text-xs font-semibold uppercase tracking-widest text-black">{step === 1 ? 'Continue to Payment' : t('reviewOrder')}</button>}
           </section>
           <aside className="h-fit border border-neutral-800 bg-neutral-950/60 p-6 lg:sticky lg:top-32"><h2 className="font-serif text-xl uppercase tracking-widest">Order Summary</h2><div className="mt-6 space-y-4">{(orderSnapshot?.items || cartItems).map((item) => <div key={item.cartKey} className="flex justify-between gap-4 text-xs"><span>{item.name} × {item.quantity}</span><span>{money(getProductPrice(item) * item.quantity)}</span></div>)}</div><div className="mt-6 space-y-3 border-t border-neutral-800 pt-5 text-sm"><div className="flex justify-between"><span>Subtotal</span><span>{money(orderSnapshot?.subtotal ?? subtotal)}</span></div><div className="flex justify-between text-neutral-500"><span>Tax</span><span>Included</span></div><div className="flex justify-between text-amber-400"><span>Shipping</span><span>{(orderSnapshot?.shippingFee ?? shippingFee) ? money(orderSnapshot?.shippingFee ?? shippingFee) : 'Complimentary'}</span></div><div className="flex justify-between border-t border-neutral-800 pt-4 text-base font-semibold"><span>Total</span><span>{money(orderSnapshot?.total ?? total)}</span></div></div></aside>

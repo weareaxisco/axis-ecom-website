@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient'
 import { useSiteConfigSettings } from '../context/SiteConfigContext'
 import { useLanguage } from '../context/LanguageContext'
 
-const statuses = ['requested', 'confirmed', 'rescheduled', 'completed', 'cancelled']
+const statuses = ['pending_confirmation', 'requested', 'confirmed', 'rescheduled', 'completed', 'cancelled']
 
 export default function AdminAppointments({ onError }) {
   const { t } = useLanguage()
@@ -22,7 +22,16 @@ export default function AdminAppointments({ onError }) {
       setAppointments(data || [])
       setLoading(false)
     })
-    return () => { active = false }
+    const channel = supabase.channel('admin_appointments_channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, (payload) => {
+        const appointmentId = payload.new?.id || payload.old?.id
+        if (!active || !appointmentId) return
+        setAppointments((current) => payload.eventType === 'DELETE'
+          ? current.filter((item) => item.id !== appointmentId)
+          : [payload.new, ...current.filter((item) => item.id !== appointmentId)])
+      })
+      .subscribe()
+    return () => { active = false; supabase.removeChannel(channel) }
   }, [onError])
 
   const updateStatus = async (id, status) => {

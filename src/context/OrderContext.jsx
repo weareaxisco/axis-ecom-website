@@ -83,6 +83,23 @@ export function OrderProvider({ children }) {
     } catch (error) {
       console.warn('[orders] auth lookup unavailable:', error)
     }
+    const orderItems = Array.isArray(payload.items) ? payload.items : []
+    const stockItems = orderItems
+      .map((item) => ({ id: item.product_id || item.productId || item.id, quantity: Number(item.quantity || 1) }))
+      .filter((item) => item.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(item.id))
+    for (const item of stockItems) {
+      try {
+        const { data, error } = await supabase.from('products').select('id, stock').eq('id', item.id).maybeSingle()
+        if (!error && data && Number(data.stock) < item.quantity) {
+          const stockError = new Error(`Product ${item.id} is out of stock.`)
+          stockError.code = 'OUT_OF_STOCK'
+          throw stockError
+        }
+      } catch (error) {
+        if (error.code === 'OUT_OF_STOCK') throw error
+        console.warn('[orders] stock check unavailable:', error.message)
+      }
+    }
     const orderId = generateUuid()
     const newOrder = {
       id: orderId,
@@ -92,7 +109,7 @@ export function OrderProvider({ children }) {
       phone: payload.phone || '',
       address: payload.address || payload.shipping_address || payload.delivery_address || '',
       city: payload.city || '',
-      items: payload.items || [],
+      items: orderItems,
       subtotal: payload.subtotal ?? payload.subtotal_dh ?? 0,
       total_amount: payload.total_amount ?? payload.total_dh ?? 0,
       status: 'pending_confirmation',
@@ -138,6 +155,12 @@ export function OrderProvider({ children }) {
     try {
       const { error } = await supabase.from('orders').insert([databaseOrder])
       if (error) console.warn('[orders] remote insert rejected; local order retained:', error.message)
+      else {
+        await Promise.all(stockItems.map(async (item) => {
+          const { data } = await supabase.from('products').select('stock').eq('id', item.id).maybeSingle()
+          if (data) await supabase.from('products').update({ stock: Math.max(0, Number(data.stock) - item.quantity) }).eq('id', item.id)
+        }))
+      }
     } catch (error) {
       console.warn('[orders] remote insert unavailable; local order retained:', error)
     }

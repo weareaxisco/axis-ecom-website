@@ -23,14 +23,22 @@ export default function Concierge() {
       setError(t('privateAppointmentSignIn'))
       return
     }
-    const { error: insertError } = await supabase.from('appointments').insert({
+    const appointment = {
+      id: crypto.randomUUID(),
       user_id: user.id,
+      client_name: user.user_metadata?.full_name || user.email || 'Client',
+      email: user.email || '',
+      phone: user.user_metadata?.phone || '',
+      service_type: form.focus,
       boutique_location: form.location,
       appointment_date: form.date,
       time_slot: form.time,
       consultation_type: form.focus,
       guests: Number(form.guests),
-    })
+      notes: '',
+      status: 'pending_confirmation',
+    }
+    const { error: insertError } = await supabase.from('appointments').insert(appointment)
     if (insertError) {
       setError(insertError.message)
       return
