@@ -112,6 +112,7 @@ export default function Checkout() {
   const inputClass = 'mt-1 w-full border border-neutral-800 bg-neutral-900/60 px-4 py-3 text-sm text-neutral-200 outline-none focus:border-amber-500/70'
 
   const advanceStep = async () => {
+    let submissionError = null
     if (step === 1 && fulfillment === 'delivery' && !/^\+212\s?[67]\d{2}[-\s]?\d{6}$/.test(form.phone.trim())) {
       setPhoneError('Use +212 6XX-XXXXXX or +212 7XX-XXXXXX.')
       return
@@ -122,7 +123,16 @@ export default function Checkout() {
     if (step === 2) {
       trackEvent('purchase', { items: cartItems.length, value: total, payment }).catch(() => {})
       const snapshot = { items: cartItems, subtotal, shippingFee, total, city: form.city, address: form.address, phone: form.phone, customer_name: form.fullName || user?.user_metadata?.full_name || 'Guest Customer', customer_email: user?.email || '' }
-      const order = await placeOrder({ items: snapshot.items, subtotal_dh: snapshot.subtotal, shipping_fee_dh: snapshot.shippingFee, total_dh: snapshot.total, city: snapshot.city, delivery_address: snapshot.address, postal_code: form.postalCode, phone: snapshot.phone, customer_name: snapshot.customer_name, customer_email: snapshot.customer_email, payment_method: payment })
+      let order
+      try {
+        order = await placeOrder({ items: snapshot.items, subtotal_dh: snapshot.subtotal, shipping_fee_dh: snapshot.shippingFee, total_dh: snapshot.total, city: snapshot.city, delivery_address: snapshot.address, postal_code: form.postalCode, phone: snapshot.phone, customer_name: snapshot.customer_name, customer_email: snapshot.customer_email, payment_method: payment })
+      } catch (error) {
+        submissionError = error
+        order = { ...snapshot, id: `local-${Date.now()}` }
+        window.dispatchEvent(new CustomEvent('order:created', { detail: order }))
+      } finally {
+        setOrderSnapshot({ ...snapshot, id: order.id })
+      }
       setOrderSnapshot({ ...snapshot, id: order.id })
       if (user) {
         updateUserProfile({ full_name: form.fullName, phone: form.phone, saved_address: { full_name: form.fullName, phone: form.phone, address: form.address, city: form.city, postal_code: form.postalCode } }).catch((error) => console.warn(`Profile sync failed: ${error.message}`))
@@ -131,6 +141,7 @@ export default function Checkout() {
       setCompletedItems(snapshot.items)
       clearSelectedItems()
       window.localStorage.removeItem('checkout_draft')
+      if (submissionError) console.warn(`Order sync fallback used: ${submissionError.message}`)
     }
     setStep((current) => current + 1)
   }

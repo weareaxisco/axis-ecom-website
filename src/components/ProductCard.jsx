@@ -34,8 +34,6 @@ export default function ProductCard({ product, onProductClick }) {
   const navigate = useNavigate()
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
-  const [timerKey, setTimerKey] = useState(0)
-  const cardRef = useRef(null)
   const touchStartX = useRef(null)
   const images = useMemo(() => normalizeImages(product), [product.images, product.main_image_url, product.hover_image_url])
   const gallery = images.length ? images : [cardImageFallback]
@@ -47,29 +45,7 @@ export default function ProductCard({ product, onProductClick }) {
     setActiveImageIndex(0)
   }, [product.id, gallery.length])
 
-  useEffect(() => {
-    if (!isHovered || gallery.length < 2) return undefined
-
-    const interval = window.setInterval(() => {
-      setActiveImageIndex((currentIndex) => (currentIndex + 1) % gallery.length)
-    }, 2500)
-
-    return () => window.clearInterval(interval)
-  }, [gallery.length, isHovered, timerKey])
-
-  useEffect(() => {
-    const element = cardRef.current
-    if (!element || typeof IntersectionObserver === 'undefined') return undefined
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) setIsHovered(true)
-      else setIsHovered(false)
-    }, { threshold: 0.65 })
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [])
-
   const changeImage = (direction) => {
-    setTimerKey((key) => key + 1)
     setActiveImageIndex(
       (currentIndex) => (currentIndex + direction + gallery.length) % gallery.length,
     )
@@ -77,7 +53,6 @@ export default function ProductCard({ product, onProductClick }) {
 
   return (
     <article
-      ref={cardRef}
       className="group w-full max-w-full overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-primary)] transition-all duration-300 ease-out hover:shadow-lg"
       onClick={() => onProductClick ? onProductClick(product) : navigate(`/product/${product.id}`)}
       onMouseEnter={() => setIsHovered(true)}
@@ -153,7 +128,7 @@ export default function ProductCard({ product, onProductClick }) {
               type="button"
               key={`${image}-indicator`}
               aria-label={`Show product image ${index + 1}`}
-              onClick={(event) => { event.stopPropagation(); setActiveImageIndex(index); setTimerKey((key) => key + 1) }}
+              onClick={(event) => { event.stopPropagation(); setActiveImageIndex(index) }}
               className={`transition-all duration-300 ${
                 index === activeImageIndex
                   ? 'h-[2px] w-8 rounded-full bg-[var(--text-primary)]'
