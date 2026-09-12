@@ -49,11 +49,6 @@ const orderStatuses = [
   { value: 'delivered', label: 'Completed' },
   { value: 'cancelled', label: 'Cancelled' },
 ]
-const mockOrders = [
-  { id: 'ORD-1001', customer_name: 'Nadia El Mansouri', city: 'Casablanca', payment_method: 'COD', total_dh: 185000, status: 'pending_confirmation' },
-  { id: 'ORD-1002', customer_name: 'Youssef Bennani', city: 'Rabat', payment_method: 'CMI / Stripe', total_dh: 320000, status: 'in_preparation' },
-]
-
 function LoginGate({ onAuthorized }) {
   const { t } = useLanguage()
   const [form, setForm] = useState({ email: '', password: '' })
@@ -83,7 +78,7 @@ function LoginGate({ onAuthorized }) {
   return <main className="flex min-h-screen items-center justify-center bg-neutral-950 px-4 text-white"><form onSubmit={submit} className="w-full max-w-sm border border-neutral-800 bg-neutral-900/70 p-8"><ShieldCheck className="text-amber-400" size={28} /><h1 className="mt-5 font-serif text-2xl uppercase tracking-widest">{t('adminMaison')}</h1><p className="mt-2 text-xs text-neutral-500">{t('secureConsole')}</p>{error && <div className="mb-4 rounded border border-red-800 bg-red-950/50 p-3 text-xs text-red-300">{error}</div>}<label className="mt-8 block text-[10px] uppercase tracking-widest text-neutral-400">{t('adminEmail')}<input required type="email" value={form.email} onChange={(event) => { setForm((current) => ({ ...current, email: event.target.value })); setError('') }} className="mt-2 w-full border border-neutral-800 bg-neutral-950 px-4 py-3 outline-none focus:border-amber-500" /></label><label className="mt-4 block text-[10px] uppercase tracking-widest text-neutral-400">{t('adminPasswordLabel')}<input required type="password" value={form.password} onChange={(event) => { setForm((current) => ({ ...current, password: event.target.value })); setError('') }} className="mt-2 w-full border border-neutral-800 bg-neutral-950 px-4 py-3 outline-none focus:border-amber-500" /></label><button type="submit" className="mt-6 w-full bg-amber-500 py-3 text-xs font-semibold uppercase tracking-widest text-black">{t('enterDashboard')}</button></form></main>
 }
 
-function OrdersTable({ orders, filteredOrders, visibleOrders, query, setQuery, page, setPage, pageSize, setPageSize, pageCount, onEdit, onDelete, onNotice }) {
+function OrdersTable({ filteredOrders, visibleOrders, query, setQuery, page, setPage, pageSize, setPageSize, pageCount, onEdit, onDelete, onClear, onNotice }) {
   const [preview, setPreview] = useState(null)
   const [edit, setEdit] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -107,6 +102,7 @@ function OrdersTable({ orders, filteredOrders, visibleOrders, query, setQuery, p
         <label className="flex items-center justify-center gap-2 whitespace-nowrap border border-neutral-800 px-3 py-2.5 text-[10px] uppercase tracking-widest text-neutral-400">Rows:
           <select value={pageSize} onChange={(event) => setPageSize(event.target.value === 'all' ? 'all' : Number(event.target.value))} className="bg-transparent text-xs text-white outline-none">{[5, 10, 20, 50].map((size) => <option key={size} value={size}>{size}</option>)}<option value="all">ALL</option></select>
         </label>
+        <button type="button" onClick={onClear} className="border border-rose-500/60 px-3 py-2.5 text-[10px] uppercase tracking-widest text-rose-300 hover:bg-rose-500/10">Purge All Orders</button>
       </div>
       <p className="mt-3 text-[10px] uppercase tracking-widest text-neutral-500">{filteredOrders.length} orders</p>
     </div>
@@ -121,7 +117,7 @@ function AdminContent() {
   const navigate = useNavigate()
   const { user, loading: authLoading } = useAuth()
   const { t } = useLanguage()
-  const { orders: contextOrders, updateOrder, deleteOrder } = useOrderContext()
+  const { orders, updateOrder, deleteOrder, clearAllOrders } = useOrderContext()
   const { products: contextProducts } = useProductContext()
   const [tab, setTab] = useState(() => {
     try {
@@ -131,7 +127,6 @@ function AdminContent() {
     }
   })
   const [products, setProducts] = useState(mockProducts)
-  const [orders, setOrders] = useState(mockOrders)
   const [loading, setLoading] = useState(true)
   const [notice, setNotice] = useState('')
   const [showProductModal, setShowProductModal] = useState(false)
@@ -194,7 +189,7 @@ function AdminContent() {
       const warnings = []
       if (productResult.status === 'fulfilled' && Array.isArray(productResult.value.data) && productResult.value.data.length) setProducts(productResult.value.data)
       else if (productResult.status === 'rejected' || productResult.value?.error) warnings.push('products')
-      if (orderResult.status === 'fulfilled' && Array.isArray(orderResult.value.data) && orderResult.value.data.length) setOrders(orderResult.value.data)
+      if (orderResult.status === 'fulfilled' && Array.isArray(orderResult.value.data) && orderResult.value.data.length) orderResult.value.data.forEach((order) => window.dispatchEvent(new CustomEvent('orders_updated', { detail: order })))
       else if (orderResult.status === 'rejected' || orderResult.value?.error) warnings.push('orders')
       if (analyticsResult.status === 'fulfilled' && Array.isArray(analyticsResult.value.data)) setAnalyticsEvents(analyticsResult.value.data)
       else if (analyticsResult.status === 'rejected' || analyticsResult.value?.error) warnings.push('analytics')
@@ -205,39 +200,17 @@ function AdminContent() {
     return () => { active = false }
   }, [isAdmin])
   useEffect(() => {
-    if (contextOrders.length) setOrders(contextOrders)
-  }, [contextOrders])
-  useEffect(() => {
     if (contextProducts.length) setProducts(contextProducts)
   }, [contextProducts])
   useEffect(() => {
     setOrderPage(1)
   }, [orderQuery, orderPageSize])
   useEffect(() => {
-    const handleOrder = (event) => {
-      if (event.detail?.deleted) setOrders((current) => current.filter((order) => order.id !== event.detail.id))
-      else if (event.detail?.id) setOrders((current) => [event.detail, ...current.filter((order) => order.id !== event.detail.id)])
-    }
-    window.addEventListener('orders_updated', handleOrder)
-    return () => window.removeEventListener('orders_updated', handleOrder)
-  }, [])
-  useEffect(() => {
-    const handleOrderCreated = (event) => {
-      if (event.detail?.id) setOrders((current) => current.some((order) => order.id === event.detail.id) ? current : [event.detail, ...current])
-    }
-    window.addEventListener('order:created', handleOrderCreated)
-    return () => window.removeEventListener('order:created', handleOrderCreated)
-  }, [])
-  useEffect(() => {
     if (!isAdmin) return undefined
     let active = true
     const mergeRemoteOrders = (incoming) => {
       if (!Array.isArray(incoming) || !incoming.length) return
-      setOrders((current) => {
-        const byId = new Map(current.map((order) => [order.id, order]))
-        incoming.forEach((order) => byId.set(order.id, { ...byId.get(order.id), ...order }))
-        return [...byId.values()].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
-      })
+      incoming.forEach((order) => window.dispatchEvent(new CustomEvent('orders_updated', { detail: order })))
     }
     const fetchOrders = async () => {
       const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false })
@@ -325,7 +298,7 @@ function AdminContent() {
   const handleAppointmentError = useCallback((message) => setNotice(`Unable to load appointment: ${message}`), [])
 
   const counts = useMemo(() => ({ products: Array.isArray(products) ? products.length : 0, orders: Array.isArray(orders) ? orders.length : 0 }), [products, orders])
-  const ordersTable = <OrdersTable orders={orders} filteredOrders={filteredOrders} visibleOrders={visibleOrders} query={orderQuery} setQuery={setOrderQuery} page={orderPage} setPage={setOrderPage} pageSize={orderPageSize} setPageSize={setOrderPageSize} pageCount={orderPageCount} onEdit={async (id, changes) => { const updated = await updateOrder(id, changes); setOrders((current) => current.map((order) => order.id === id ? { ...order, ...updated } : order)) }} onDelete={deleteOrder} onNotice={setNotice} />
+  const ordersTable = <OrdersTable filteredOrders={filteredOrders} visibleOrders={visibleOrders} query={orderQuery} setQuery={setOrderQuery} page={orderPage} setPage={setOrderPage} pageSize={orderPageSize} setPageSize={setOrderPageSize} pageCount={orderPageCount} onEdit={updateOrder} onDelete={deleteOrder} onClear={() => { if (window.confirm('Wipe all orders permanently?')) clearAllOrders().catch((error) => setNotice(`Unable to purge orders: ${error.message}`)) }} onNotice={setNotice} />
   const tabs = [
     ...(can('manage_orders') ? [{ id: 'analytics', label: 'Analytics' }, { id: 'orders', label: `${t('myOrders')} (${counts.orders})` }] : []),
     ...(can('manage_products') ? [{ id: 'inventory', label: `${t('inventory')} (${counts.products})` }, { id: 'taxonomies', label: 'Taxonomies' }] : []),

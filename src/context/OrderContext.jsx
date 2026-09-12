@@ -3,9 +3,10 @@ import { supabase } from '../supabaseClient'
 
 const OrderContext = createContext(null)
 const localOrdersKey = 'axis-orders'
+const legacyLocalOrdersKey = 'maison_orders'
 const readLocalOrders = () => {
   try {
-    const value = JSON.parse(window.localStorage.getItem(localOrdersKey) || '[]')
+    const value = JSON.parse(window.localStorage.getItem(legacyLocalOrdersKey) || window.localStorage.getItem(localOrdersKey) || '[]')
     return Array.isArray(value) ? value : []
   } catch {
     return []
@@ -25,6 +26,17 @@ export function OrderProvider({ children }) {
     }
     load().catch(() => setOrders(readLocalOrders()))
     return () => { active = false }
+  }, [])
+  useEffect(() => {
+    const handleOrderUpdate = (event) => {
+      const incoming = event.detail
+      if (!incoming?.id) return
+      setOrders((current) => incoming.deleted
+        ? current.filter((order) => order.id !== incoming.id)
+        : [incoming, ...current.filter((order) => order.id !== incoming.id)])
+    }
+    window.addEventListener('orders_updated', handleOrderUpdate)
+    return () => window.removeEventListener('orders_updated', handleOrderUpdate)
   }, [])
 
   const createOrder = useCallback(async (payload) => {
@@ -77,7 +89,9 @@ export function OrderProvider({ children }) {
     setOrders((current) => {
       const next = [order, ...current.filter((item) => item.id !== order.id)]
       try {
-        window.localStorage.setItem(localOrdersKey, JSON.stringify(next.filter((item) => String(item.id).startsWith('local-'))))
+        const local = JSON.stringify(next)
+        window.localStorage.setItem(localOrdersKey, local)
+        window.localStorage.setItem(legacyLocalOrdersKey, local)
       } catch {
         // Local persistence is optional when browser storage is unavailable.
       }
@@ -109,7 +123,20 @@ export function OrderProvider({ children }) {
     window.dispatchEvent(new CustomEvent('orders_updated', { detail: { id, deleted: true } }))
   }, [])
 
-  const value = useMemo(() => ({ orders, createOrder, updateOrder, deleteOrder, placeOrder: createOrder }), [orders, createOrder, updateOrder, deleteOrder])
+  const clearAllOrders = useCallback(async () => {
+    const { error } = await supabase.from('orders').delete().not('id', 'is', null)
+    setOrders([])
+    try {
+      window.localStorage.removeItem(localOrdersKey)
+      window.localStorage.removeItem(legacyLocalOrdersKey)
+    } catch {
+      // Local persistence is optional when browser storage is unavailable.
+    }
+    window.dispatchEvent(new CustomEvent('orders_updated', { detail: { clearAll: true } }))
+    if (error) throw new Error(error.message)
+  }, [])
+
+  const value = useMemo(() => ({ orders, createOrder, updateOrder, deleteOrder, clearAllOrders, placeOrder: createOrder }), [orders, createOrder, updateOrder, deleteOrder, clearAllOrders])
   return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>
 }
 
@@ -125,6 +152,7 @@ export function useOrderContext() {
     },
     updateOrder: async (id, changes) => ({ id, ...changes }),
     deleteOrder: async () => {},
+    clearAllOrders: async () => {},
     placeOrder: async (payload) => {
       const order = { ...payload, id: `local-${Date.now()}`, created_at: new Date().toISOString(), status: 'pending_confirmation' }
       window.dispatchEvent(new CustomEvent('orders_updated', { detail: order }))
