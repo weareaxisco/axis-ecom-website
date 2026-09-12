@@ -16,6 +16,7 @@ import AdminTaxonomyManager from '../components/AdminTaxonomyManager'
 import { adminRoles, getAllowedAdminTabs, getPrimaryAdminWorkspace, hasAdminPermission } from '../utils/adminAccess'
 import { supabase as analyticsSupabase } from '../supabaseClient'
 import { useOrderContext } from '../context/OrderContext'
+import { useProductContext } from '../context/ProductContext'
 
 const orderReference = (id) => {
   const value = String(id || '')
@@ -56,7 +57,6 @@ const mockOrders = [
 
 function LoginGate({ onAuthorized }) {
   const { t } = useLanguage()
-  const { orders: contextOrders } = useOrderContext()
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const submit = async (event) => {
@@ -88,6 +88,8 @@ function AdminContent() {
   const navigate = useNavigate()
   const { user, loading: authLoading } = useAuth()
   const { t } = useLanguage()
+  const { orders: contextOrders } = useOrderContext()
+  const { products: contextProducts } = useProductContext()
   const [tab, setTab] = useState(() => {
     try {
       return window.sessionStorage.getItem('admin_active_tab') || 'orders'
@@ -144,28 +146,32 @@ function AdminContent() {
   useEffect(() => {
     if (!isAdmin) return undefined
     let active = true
-    Promise.all([
-      supabase.from('products').select('*'),
-      supabase.from('orders').select('*').order('created_at', { ascending: false }),
-      analyticsSupabase.from('analytics_events').select('event_name, visitor_id, metadata, created_at').order('created_at', { ascending: false }).limit(500),
-    ]).then(([productResult, orderResult, analyticsResult]) => {
+    const hydrate = async () => {
+      const [productResult, orderResult, analyticsResult] = await Promise.allSettled([
+        supabase.from('products').select('*'),
+        supabase.from('orders').select('*').order('created_at', { ascending: false }),
+        analyticsSupabase.from('analytics_events').select('event_name, visitor_id, metadata, created_at').order('created_at', { ascending: false }).limit(500),
+      ])
       if (!active) return
-      if (Array.isArray(productResult.data) && productResult.data.length) setProducts(productResult.data)
-      if (Array.isArray(orderResult.data) && orderResult.data.length) setOrders(orderResult.data)
-      if (Array.isArray(analyticsResult.data)) setAnalyticsEvents(analyticsResult.data)
-      if (productResult.error || orderResult.error) setNotice('Some live data is unavailable; showing the latest local catalogue.')
+      const warnings = []
+      if (productResult.status === 'fulfilled' && Array.isArray(productResult.value.data) && productResult.value.data.length) setProducts(productResult.value.data)
+      else if (productResult.status === 'rejected' || productResult.value?.error) warnings.push('products')
+      if (orderResult.status === 'fulfilled' && Array.isArray(orderResult.value.data) && orderResult.value.data.length) setOrders(orderResult.value.data)
+      else if (orderResult.status === 'rejected' || orderResult.value?.error) warnings.push('orders')
+      if (analyticsResult.status === 'fulfilled' && Array.isArray(analyticsResult.value.data)) setAnalyticsEvents(analyticsResult.value.data)
+      else if (analyticsResult.status === 'rejected' || analyticsResult.value?.error) warnings.push('analytics')
+      if (warnings.length) setNotice(`Some live data is unavailable; using local ${warnings.join(', ')} fallback.`)
       setLoading(false)
-    }).catch((error) => {
-      if (active) {
-        setNotice(error.message)
-        setLoading(false)
-      }
-    })
+    }
+    hydrate().catch((error) => { if (active) { setNotice(`Admin data fallback active: ${error.message}`); setLoading(false) } })
     return () => { active = false }
   }, [isAdmin])
   useEffect(() => {
     if (contextOrders.length) setOrders(contextOrders)
   }, [contextOrders])
+  useEffect(() => {
+    if (contextProducts.length) setProducts(contextProducts)
+  }, [contextProducts])
   useEffect(() => {
     const handleOrder = (event) => {
       if (event.detail?.id) setOrders((current) => [event.detail, ...current.filter((order) => order.id !== event.detail.id)])

@@ -3,6 +3,14 @@ import { supabase } from '../supabaseClient'
 
 const OrderContext = createContext(null)
 const localOrdersKey = 'axis-orders'
+const readLocalOrders = () => {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(localOrdersKey) || '[]')
+    return Array.isArray(value) ? value : []
+  } catch {
+    return []
+  }
+}
 
 export function OrderProvider({ children }) {
   const [orders, setOrders] = useState([])
@@ -10,12 +18,12 @@ export function OrderProvider({ children }) {
   useEffect(() => {
     let active = true
     const load = async () => {
-      const local = JSON.parse(window.localStorage.getItem(localOrdersKey) || '[]')
+      const local = readLocalOrders()
       const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false })
       if (!active) return
       setOrders(error ? local : [...(data || []), ...local.filter((item) => !(data || []).some((order) => order.id === item.id))])
     }
-    load().catch(() => setOrders(JSON.parse(window.localStorage.getItem(localOrdersKey) || '[]')))
+    load().catch(() => setOrders(readLocalOrders()))
     return () => { active = false }
   }, [])
 
