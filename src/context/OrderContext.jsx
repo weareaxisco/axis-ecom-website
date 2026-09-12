@@ -77,7 +77,7 @@ export function OrderProvider({ children }) {
     } catch (error) {
       console.warn('[orders] auth lookup unavailable:', error)
     }
-    const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`
+    const orderId = globalThis.crypto?.randomUUID?.() || `local-${Date.now()}`
     const newOrder = {
       id: orderId,
       user_id: user?.id,
@@ -89,34 +89,52 @@ export function OrderProvider({ children }) {
       items: payload.items || [],
       subtotal: payload.subtotal ?? payload.subtotal_dh ?? 0,
       total_amount: payload.total_amount ?? payload.total_dh ?? 0,
-      status: 'Pending Confirmation',
+      status: 'pending_confirmation',
       created_at: new Date().toISOString(),
-      shipping_address: payload.shipping_address || payload.delivery_address || payload.address || '',
       subtotal_dh: payload.subtotal_dh ?? payload.subtotal,
-      shipping_fee_dh: payload.shipping_fee_dh,
+      shipping_fee_dh: payload.shipping_fee_dh ?? 0,
       total_dh: payload.total_dh ?? payload.total_amount,
       delivery_address: payload.delivery_address || payload.address,
-      payment_method: payload.payment_method,
+      payment_method: payload.payment_method || 'cod',
       postal_code: payload.postal_code,
     }
-    let updatedOrders = []
+    const databaseOrder = {
+      id: newOrder.id,
+      ...(newOrder.user_id ? { user_id: newOrder.user_id } : {}),
+      customer_name: newOrder.customer_name,
+      customer_email: newOrder.customer_email,
+      phone: newOrder.phone,
+      delivery_address: newOrder.delivery_address,
+      city: newOrder.city,
+      postal_code: newOrder.postal_code,
+      payment_method: newOrder.payment_method,
+      items: newOrder.items,
+      subtotal_dh: newOrder.subtotal_dh,
+      shipping_fee_dh: newOrder.shipping_fee_dh,
+      total_dh: newOrder.total_dh,
+      status: newOrder.status,
+      created_at: newOrder.created_at,
+    }
     setOrders((current) => {
-      updatedOrders = [newOrder, ...current.filter((item) => item.id !== newOrder.id)]
+      const updatedOrders = [newOrder, ...current.filter((item) => item.id !== newOrder.id)]
+      try {
+        window.localStorage.setItem(localOrdersKey, JSON.stringify(updatedOrders))
+        const channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(channelName) : null
+        channel?.postMessage({ orders: updatedOrders })
+        channel?.close()
+      } catch (error) {
+        console.warn('[orders] local persistence unavailable:', error)
+      }
       return updatedOrders
     })
-    try {
-      window.localStorage.setItem(localOrdersKey, JSON.stringify(updatedOrders))
-      const channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(channelName) : null
-      channel?.postMessage({ orders: updatedOrders })
-      channel?.close()
-    } catch (error) {
-      console.warn('[orders] local persistence unavailable:', error)
-    }
-    window.dispatchEvent(new CustomEvent('orders_updated', { detail: { orders: updatedOrders } }))
+    window.dispatchEvent(new CustomEvent('orders_updated', { detail: newOrder }))
     window.dispatchEvent(new CustomEvent('order:created', { detail: newOrder }))
     try {
-      const { error } = await supabase.from('orders').insert(newOrder).select().single()
+      const { data, error } = await supabase.from('orders').insert(databaseOrder).select().single()
       if (error) console.warn('[orders] remote insert rejected; local order retained:', error.message)
+      else if (data) {
+        setOrders((current) => current.map((order) => order.id === newOrder.id ? { ...order, ...data } : order))
+      }
     } catch (error) {
       console.warn('[orders] remote insert unavailable; local order retained:', error)
     }
