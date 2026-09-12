@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Copy, LogOut, Package, ShieldCheck, ShoppingBag } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Copy, Edit3, Eye, LogOut, Package, Search, ShieldCheck, ShoppingBag, Trash2, X } from 'lucide-react'
 import { mockProducts } from '../components/ProductCatalog'
 import AdminProductTable from '../components/AdminProductTable'
 import { supabase } from '../supabaseClient'
@@ -10,7 +10,6 @@ import AdminAddProductModal from '../components/AdminAddProductModal'
 import { useLanguage } from '../context/LanguageContext'
 import AdminAppointments from '../components/AdminAppointments'
 import AdminStaff from '../components/AdminStaff'
-import { ameexDispatchEnabled, createSandboxParcel } from '../services/ameexApi'
 import AdminAnalytics from '../components/AdminAnalytics'
 import AdminTaxonomyManager from '../components/AdminTaxonomyManager'
 import { adminRoles, getAllowedAdminTabs, getPrimaryAdminWorkspace, hasAdminPermission } from '../utils/adminAccess'
@@ -84,11 +83,45 @@ function LoginGate({ onAuthorized }) {
   return <main className="flex min-h-screen items-center justify-center bg-neutral-950 px-4 text-white"><form onSubmit={submit} className="w-full max-w-sm border border-neutral-800 bg-neutral-900/70 p-8"><ShieldCheck className="text-amber-400" size={28} /><h1 className="mt-5 font-serif text-2xl uppercase tracking-widest">{t('adminMaison')}</h1><p className="mt-2 text-xs text-neutral-500">{t('secureConsole')}</p>{error && <div className="mb-4 rounded border border-red-800 bg-red-950/50 p-3 text-xs text-red-300">{error}</div>}<label className="mt-8 block text-[10px] uppercase tracking-widest text-neutral-400">{t('adminEmail')}<input required type="email" value={form.email} onChange={(event) => { setForm((current) => ({ ...current, email: event.target.value })); setError('') }} className="mt-2 w-full border border-neutral-800 bg-neutral-950 px-4 py-3 outline-none focus:border-amber-500" /></label><label className="mt-4 block text-[10px] uppercase tracking-widest text-neutral-400">{t('adminPasswordLabel')}<input required type="password" value={form.password} onChange={(event) => { setForm((current) => ({ ...current, password: event.target.value })); setError('') }} className="mt-2 w-full border border-neutral-800 bg-neutral-950 px-4 py-3 outline-none focus:border-amber-500" /></label><button type="submit" className="mt-6 w-full bg-amber-500 py-3 text-xs font-semibold uppercase tracking-widest text-black">{t('enterDashboard')}</button></form></main>
 }
 
+function OrdersTable({ orders, filteredOrders, visibleOrders, query, setQuery, page, setPage, pageSize, setPageSize, pageCount, onEdit, onDelete, onNotice }) {
+  const [preview, setPreview] = useState(null)
+  const [edit, setEdit] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const total = (order) => Number(order.total_amount ?? order.total_dh ?? order.total ?? 0)
+  const saveEdit = async (event) => {
+    event.preventDefault()
+    setSaving(true)
+    try {
+      await onEdit(edit.id, { customer_name: edit.customer_name, phone: edit.phone, delivery_address: edit.delivery_address, shipping_address: edit.delivery_address, city: edit.city, status: edit.status })
+      setEdit(null)
+    } catch (error) {
+      onNotice(`Unable to save order: ${error.message}`)
+    } finally {
+      setSaving(false)
+    }
+  }
+  return <div className="relative">
+    <div className="sticky top-0 z-10 border border-neutral-800 bg-neutral-950/95 p-3 backdrop-blur">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+        <div className="relative min-w-0 flex-1"><Search size={16} className="absolute left-3 top-3 text-neutral-500" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search order ID, customer, phone, email or city" className="w-full border border-neutral-800 bg-neutral-900 py-2.5 pl-9 pr-3 text-xs text-white outline-none focus:border-amber-500" /></div>
+        <label className="flex items-center justify-center gap-2 whitespace-nowrap border border-neutral-800 px-3 py-2.5 text-[10px] uppercase tracking-widest text-neutral-400">Rows:
+          <select value={pageSize} onChange={(event) => setPageSize(event.target.value === 'all' ? 'all' : Number(event.target.value))} className="bg-transparent text-xs text-white outline-none">{[5, 10, 20, 50].map((size) => <option key={size} value={size}>{size}</option>)}<option value="all">ALL</option></select>
+        </label>
+      </div>
+      <p className="mt-3 text-[10px] uppercase tracking-widest text-neutral-500">{filteredOrders.length} orders</p>
+    </div>
+    <div className="overflow-x-auto border-x border-neutral-800 bg-neutral-950/70"><table className="w-full min-w-[1050px] text-left"><thead className="border-b border-neutral-800 text-[10px] uppercase tracking-[0.2em] text-neutral-500"><tr>{['Order ID', 'Customer Name', 'Items', 'City', 'Total', 'Status', 'Actions'].map((heading) => <th key={heading} className="px-5 py-4">{heading}</th>)}</tr></thead><tbody className="divide-y divide-neutral-800/80">{visibleOrders.map((order) => <tr key={order.id} className="text-sm"><td className="px-5 py-5 font-mono text-amber-400"><button type="button" title={order.id} onClick={() => navigator.clipboard?.writeText(order.id)} className="inline-flex items-center gap-2 hover:text-white">{orderReference(order.id)}<Copy size={13} /></button></td><td className="px-5 py-5">{order.customer_name || order.full_name || 'Guest Customer'}</td><td className="px-5 py-5"><button type="button" onClick={() => setPreview(order)} className="inline-flex items-center gap-1 text-xs uppercase tracking-widest text-amber-300 hover:text-white"><Eye size={14} /> {(order.items || []).length} items</button></td><td className="px-5 py-5 text-neutral-400">{order.city || '—'}</td><td className="px-5 py-5">{total(order).toLocaleString()} DH</td><td className="px-5 py-5 text-xs">{order.status || 'Pending Confirmation'}</td><td className="px-5 py-5"><div className="flex gap-2"><button type="button" onClick={() => setEdit({ ...order, customer_name: order.customer_name || '', phone: order.phone || '', delivery_address: order.delivery_address || order.shipping_address || '', city: order.city || '', status: order.status || 'pending_confirmation' })} className="inline-flex items-center gap-1 border border-neutral-700 px-2 py-1.5 text-[10px] uppercase tracking-widest hover:border-amber-400"><Edit3 size={13} /> Edit</button><button type="button" onClick={() => { if (window.confirm(`Permanently cancel and delete order ${orderReference(order.id)}?`)) onDelete(order.id).catch((error) => onNotice(`Unable to delete order: ${error.message}`)) }} className="inline-flex items-center gap-1 border border-rose-500/50 px-2 py-1.5 text-[10px] uppercase tracking-widest text-rose-300 hover:border-rose-400"><Trash2 size={13} /> Delete</button></div></td></tr>)}</tbody></table>{!visibleOrders.length && <p className="p-10 text-center text-sm text-neutral-500">No orders found.</p>}</div>
+    <div className="flex items-center justify-center gap-4 border border-t-0 border-neutral-800 py-4 text-xs uppercase tracking-widest text-neutral-400"><button type="button" aria-label="Previous Page" disabled={page <= 1 || pageSize === 'all'} onClick={() => setPage((current) => current - 1)} className="border border-neutral-800 p-2 hover:border-amber-400 hover:text-amber-300 disabled:cursor-not-allowed disabled:opacity-40"><ChevronLeft size={16} /></button><span>Page {page} of {pageCount}</span><button type="button" aria-label="Next Page" disabled={page >= pageCount || pageSize === 'all'} onClick={() => setPage((current) => current + 1)} className="border border-neutral-800 p-2 hover:border-amber-400 hover:text-amber-300 disabled:cursor-not-allowed disabled:opacity-40"><ChevronRight size={16} /></button></div>
+    {preview && <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true"><div className="max-h-[80vh] w-full max-w-2xl overflow-y-auto border border-neutral-700 bg-neutral-950 p-6"><div className="flex items-center justify-between"><h2 className="font-serif text-xl uppercase tracking-widest">Order Items</h2><button type="button" onClick={() => setPreview(null)} aria-label="Close preview"><X size={18} /></button></div><div className="mt-6 space-y-3">{(preview.items || []).map((item, index) => <div key={`${item.id || item.product_id || item.name}-${index}`} className="flex items-center gap-4 border-b border-neutral-800 py-3"><img src={item.image || item.images?.[0] || '/placeholder.jpg'} alt="" className="h-16 w-16 object-cover" /><div className="min-w-0 flex-1"><a href={`/product/${item.id || item.product_id}`} className="text-sm text-amber-300 hover:text-white">{item.name || item.title || 'Product'}</a><p className="mt-1 text-xs text-neutral-500">Qty {item.quantity || 1} · {Number(item.price || item.unit_price || 0).toLocaleString()} DH</p></div></div>)}</div></div></div>}
+    {edit && <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true"><form onSubmit={saveEdit} className="w-full max-w-lg border border-neutral-700 bg-neutral-950 p-6"><div className="flex items-center justify-between"><h2 className="font-serif text-xl uppercase tracking-widest">Edit Order</h2><button type="button" onClick={() => setEdit(null)} aria-label="Close edit"><X size={18} /></button></div><div className="mt-6 grid gap-4 sm:grid-cols-2">{[['customer_name', 'Customer Name'], ['phone', 'Phone'], ['delivery_address', 'Address'], ['city', 'City']].map(([key, label]) => <label key={key} className="text-[10px] uppercase tracking-widest text-neutral-400">{label}<input value={edit[key]} onChange={(event) => setEdit((current) => ({ ...current, [key]: event.target.value }))} className="mt-1 w-full border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-white outline-none focus:border-amber-500" /></label>)}<label className="text-[10px] uppercase tracking-widest text-neutral-400 sm:col-span-2">Status<select value={edit.status} onChange={(event) => setEdit((current) => ({ ...current, status: event.target.value }))} className="mt-1 w-full border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-white outline-none focus:border-amber-500">{orderStatuses.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}</select></label></div><button type="submit" disabled={saving} className="mt-6 w-full bg-amber-500 py-3 text-xs font-semibold uppercase tracking-widest text-black">{saving ? 'Saving…' : 'Save Changes'}</button></form></div>}
+  </div>
+}
+
 function AdminContent() {
   const navigate = useNavigate()
   const { user, loading: authLoading } = useAuth()
   const { t } = useLanguage()
-  const { orders: contextOrders } = useOrderContext()
+  const { orders: contextOrders, updateOrder, deleteOrder } = useOrderContext()
   const { products: contextProducts } = useProductContext()
   const [tab, setTab] = useState(() => {
     try {
@@ -106,6 +139,11 @@ function AdminContent() {
   const [authorizedUser, setAuthorizedUser] = useState(null)
   const [analyticsEvents, setAnalyticsEvents] = useState([])
   const [showTabFade, setShowTabFade] = useState(true)
+  const [orderQuery, setOrderQuery] = useState('')
+  const [orderPage, setOrderPage] = useState(1)
+  const [orderPageSize, setOrderPageSize] = useState(10)
+  const [previewOrder, setPreviewOrder] = useState(null)
+  const [editingOrder, setEditingOrder] = useState(null)
   const mobileTabsRef = useRef(null)
 
   const activeUser = user || authorizedUser
@@ -173,8 +211,12 @@ function AdminContent() {
     if (contextProducts.length) setProducts(contextProducts)
   }, [contextProducts])
   useEffect(() => {
+    setOrderPage(1)
+  }, [orderQuery, orderPageSize])
+  useEffect(() => {
     const handleOrder = (event) => {
-      if (event.detail?.id) setOrders((current) => [event.detail, ...current.filter((order) => order.id !== event.detail.id)])
+      if (event.detail?.deleted) setOrders((current) => current.filter((order) => order.id !== event.detail.id))
+      else if (event.detail?.id) setOrders((current) => [event.detail, ...current.filter((order) => order.id !== event.detail.id)])
     }
     window.addEventListener('orders_updated', handleOrder)
     return () => window.removeEventListener('orders_updated', handleOrder)
@@ -214,6 +256,14 @@ function AdminContent() {
       supabase.removeChannel(channel)
     }
   }, [isAdmin])
+
+  const filteredOrders = useMemo(() => {
+    const query = orderQuery.trim().toLowerCase()
+    if (!query) return orders
+    return orders.filter((order) => [orderReference(order.id), order.id, order.customer_name, order.full_name, order.phone, order.customer_email, order.city].some((value) => String(value || '').toLowerCase().includes(query)))
+  }, [orders, orderQuery])
+  const orderPageCount = orderPageSize === 'all' ? 1 : Math.max(1, Math.ceil(filteredOrders.length / orderPageSize))
+  const visibleOrders = orderPageSize === 'all' ? filteredOrders : filteredOrders.slice((orderPage - 1) * orderPageSize, orderPage * orderPageSize)
 
   const updateOnsiteOnly = async (id, onsiteOnly) => {
     if (!can('manage_products')) return
@@ -272,41 +322,10 @@ function AdminContent() {
     setNotice(t('productDeleted'))
   }
 
-  const updateOrderStatus = async (id, status) => {
-    if (!can('manage_orders')) return
-    if (status === 'dispatched_ameex') {
-      setNotice('Use the explicit Dispatch to Ameex button to create a parcel.')
-      return
-    }
-    try {
-      const update = { status }
-      setOrders((current) => current.map((item) => item.id === id ? { ...item, ...update } : item))
-      const { error } = await supabase.from('orders').update(update).eq('id', id)
-      if (error) throw new Error(error.message)
-    } catch (error) {
-      setNotice(`Unable to update order: ${error.message}`)
-    }
-  }
-  const dispatchToAmeex = async (order) => {
-    if (!can('manage_orders')) return
-      if (!ameexDispatchEnabled) {
-        setNotice('Ameex dispatch is disabled by configuration.')
-        return
-      }
-      try {
-        const tracking = order.ameex_tracking_id || await createSandboxParcel(order)
-        const update = { status: 'dispatched_ameex', ameex_tracking_id: tracking }
-        const { error } = await supabase.from('orders').update(update).eq('id', order.id)
-        if (error) throw new Error(error.message)
-        setOrders((current) => current.map((item) => item.id === order.id ? { ...item, ...update } : item))
-        setNotice(`Ameex Sandbox parcel created: ${tracking}`)
-      } catch (error) {
-        setNotice(`Unable to dispatch order: ${error.message}`)
-      }
-    }
   const handleAppointmentError = useCallback((message) => setNotice(`Unable to load appointment: ${message}`), [])
 
   const counts = useMemo(() => ({ products: Array.isArray(products) ? products.length : 0, orders: Array.isArray(orders) ? orders.length : 0 }), [products, orders])
+  const ordersTable = <OrdersTable orders={orders} filteredOrders={filteredOrders} visibleOrders={visibleOrders} query={orderQuery} setQuery={setOrderQuery} page={orderPage} setPage={setOrderPage} pageSize={orderPageSize} setPageSize={setOrderPageSize} pageCount={orderPageCount} onEdit={async (id, changes) => { const updated = await updateOrder(id, changes); setOrders((current) => current.map((order) => order.id === id ? { ...order, ...updated } : order)) }} onDelete={deleteOrder} onNotice={setNotice} />
   const tabs = [
     ...(can('manage_orders') ? [{ id: 'analytics', label: 'Analytics' }, { id: 'orders', label: `${t('myOrders')} (${counts.orders})` }] : []),
     ...(can('manage_products') ? [{ id: 'inventory', label: `${t('inventory')} (${counts.products})` }, { id: 'taxonomies', label: 'Taxonomies' }] : []),
@@ -321,7 +340,7 @@ function AdminContent() {
     <nav className="mt-8 hidden flex-wrap gap-2 border-b border-neutral-800 md:flex">{can('manage_orders') && <button type="button" onClick={() => selectTab('analytics')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'analytics' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Analytics</button>}{can('manage_orders') && <button type="button" onClick={() => selectTab('orders')} className={`inline-flex items-center gap-2 border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'orders' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}><ShoppingBag size={15} /> {t('myOrders')} ({counts.orders})</button>}{can('manage_products') && <button type="button" onClick={() => selectTab('inventory')} className={`inline-flex items-center gap-2 border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'inventory' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}><Package size={15} /> {t('inventory')} ({counts.products})</button>}{can('manage_products') && <button type="button" onClick={() => selectTab('taxonomies')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'taxonomies' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Taxonomies</button>}{can('manage_appointments') && <button type="button" onClick={() => selectTab('appointments')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'appointments' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Appointments</button>}{can('manage_settings') && <button type="button" onClick={() => selectTab('settings')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'settings' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>{t('settings')}</button>}{    ['super_admin', 'admin'].includes(activeUser?.role) && <button type="button" onClick={() => selectTab('staff')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'staff' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Staff &amp; Permissions</button>}</nav>
     <div className="relative md:hidden"><nav ref={mobileTabsRef} className="mt-8 flex overflow-x-auto no-scrollbar whitespace-nowrap gap-3 border-b border-neutral-800 pb-3" aria-label="Admin mobile navigation">{tabs.map((tabItem) => <button key={tabItem.id} type="button" onClick={(event) => { selectTab(tabItem.id); event.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }) }} className={`shrink-0 rounded-none border-b-2 px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition-all ${activeTab === tabItem.id ? 'border-amber-400 bg-neutral-900/60 font-bold text-amber-400' : 'border-transparent text-neutral-400 hover:text-white'}`}>{tabItem.label}</button>)}</nav>{showTabFade && <span aria-hidden="true" className="pointer-events-none absolute right-0 top-8 h-9 w-12 bg-gradient-to-l from-neutral-950 to-transparent" />}</div>
     {notice && <p role="status" className="fixed bottom-6 left-1/2 z-[70] w-[90%] max-w-md -translate-x-1/2 rounded-none border border-amber-500/40 bg-neutral-900 px-6 py-3 text-center text-xs text-amber-300 shadow-2xl transition-all duration-300 ease-in-out md:w-auto">{notice}</p>}
-    <section className="mt-8">{activeTab === 'analytics' ? <AdminAnalytics orders={Array.isArray(orders) ? orders : []} events={Array.isArray(analyticsEvents) ? analyticsEvents : []} /> : activeTab === 'staff' ? <AdminStaff /> : activeTab === 'settings' ? <AdminSettings /> : activeTab === 'appointments' ? <AdminAppointments onError={handleAppointmentError} /> : activeTab === 'taxonomies' ? <AdminTaxonomyManager products={products} onNotice={setNotice} /> : loading ? <p className="py-16 text-center text-sm text-neutral-500">Loading operations data...</p> : activeTab === 'inventory' ? <AdminProductTable products={products} onToggleOnsiteOnly={updateOnsiteOnly} onAddProduct={() => navigate('/admin/inventory/editor/new')} onEditProduct={(product) => navigate(`/admin/inventory/editor/edit/${product.id}`)} onDeleteProduct={handleDeleteProduct} onBulkTag={handleBulkTag} onBulkDelete={handleBulkDelete} /> : <div className="overflow-x-auto border border-neutral-800 bg-neutral-950/70"><table className="w-full min-w-[900px] text-left"><thead className="border-b border-neutral-800 text-[10px] uppercase tracking-[0.2em] text-neutral-500"><tr>{['Order ID', 'Customer Name', 'City', 'Payment Method', 'Total (DH)', 'Status', 'Ameex Tracking'].map((heading) => <th key={heading} className="px-5 py-4">{heading}</th>)}</tr></thead><tbody className="divide-y divide-neutral-800/80">{(Array.isArray(orders) ? orders : []).map((order) => <tr key={order.id} className="text-sm"><td className="px-5 py-5 font-mono text-amber-400"><button type="button" title={order.id} onClick={() => navigator.clipboard?.writeText(order.id)} className="inline-flex items-center gap-2 hover:text-white">{orderReference(order.id)}<Copy size={13} /></button></td><td className="px-5 py-5">{order.customer_name || order.full_name || order.customer?.name || order.user?.user_metadata?.full_name || 'Guest Customer'}</td><td className="px-5 py-5 text-neutral-400">{order.city || '—'}</td><td className="px-5 py-5 text-xs text-neutral-400">{order.payment_method || order.payment || '—'}</td><td className="px-5 py-5">{Number(order.total_dh ?? order.total ?? 0).toLocaleString()} DH</td><td className="px-5 py-5"><div className="flex flex-wrap gap-2"><select aria-label={`Update status for ${order.id}`} value={order.status === 'dispatched_ameex' ? 'in_preparation' : order.status} onChange={(event) => updateOrderStatus(order.id, event.target.value)} className="border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs outline-none focus:border-amber-500">{orderStatuses.filter((status) => status.value !== 'dispatched_ameex').map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}</select>{order.status !== 'dispatched_ameex' && <button type="button" disabled={!ameexDispatchEnabled} onClick={() => dispatchToAmeex(order)} className="border border-amber-400 px-3 py-2 text-[10px] uppercase tracking-wider text-amber-300 transition-colors hover:bg-amber-400 hover:text-black disabled:cursor-not-allowed disabled:opacity-40">Dispatch to Ameex</button>}</div></td><td className="px-5 py-5 text-xs font-mono text-neutral-400">{order.ameex_tracking_id || '—'}</td></tr>)}</tbody></table></div>}</section>{showProductModal && <AdminAddProductModal initialProduct={editingProduct} onClose={() => { setShowProductModal(false); setEditingProduct(null) }} onCreated={(product) => setProducts((current) => [product, ...current])} onUpdated={(product) => setProducts((current) => current.map((item) => item.id === product.id ? product : item))} />}
+    <section className="mt-8">{activeTab === 'analytics' ? <AdminAnalytics orders={Array.isArray(orders) ? orders : []} events={Array.isArray(analyticsEvents) ? analyticsEvents : []} /> : activeTab === 'staff' ? <AdminStaff /> : activeTab === 'settings' ? <AdminSettings /> : activeTab === 'appointments' ? <AdminAppointments onError={handleAppointmentError} /> : activeTab === 'taxonomies' ? <AdminTaxonomyManager products={products} onNotice={setNotice} /> : loading ? <p className="py-16 text-center text-sm text-neutral-500">Loading operations data...</p> : activeTab === 'inventory' ? <AdminProductTable products={products} onToggleOnsiteOnly={updateOnsiteOnly} onAddProduct={() => navigate('/admin/inventory/editor/new')} onEditProduct={(product) => navigate(`/admin/inventory/editor/edit/${product.id}`)} onDeleteProduct={handleDeleteProduct} onBulkTag={handleBulkTag} onBulkDelete={handleBulkDelete} /> : ordersTable}</section>{showProductModal && <AdminAddProductModal initialProduct={editingProduct} onClose={() => { setShowProductModal(false); setEditingProduct(null) }} onCreated={(product) => setProducts((current) => [product, ...current])} onUpdated={(product) => setProducts((current) => current.map((item) => item.id === product.id ? product : item))} />}
   </div></main>
 }
 

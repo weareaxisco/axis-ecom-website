@@ -88,7 +88,28 @@ export function OrderProvider({ children }) {
     return order
   }, [])
 
-  const value = useMemo(() => ({ orders, createOrder, placeOrder: createOrder }), [orders, createOrder])
+  const updateOrder = useCallback(async (id, changes) => {
+    const { data, error } = await supabase.from('orders').update(changes).eq('id', id).select().single()
+    const updated = data || { id, ...changes }
+    setOrders((current) => current.map((order) => order.id === id ? { ...order, ...updated } : order))
+    window.dispatchEvent(new CustomEvent('orders_updated', { detail: updated }))
+    if (error) throw new Error(error.message)
+    return updated
+  }, [])
+
+  const deleteOrder = useCallback(async (id) => {
+    const { error } = await supabase.from('orders').delete().eq('id', id)
+    if (error && !String(id).startsWith('local-')) throw new Error(error.message)
+    setOrders((current) => current.filter((order) => order.id !== id))
+    try {
+      window.localStorage.setItem(localOrdersKey, JSON.stringify(readLocalOrders().filter((order) => order.id !== id)))
+    } catch {
+      // Local persistence is optional when browser storage is unavailable.
+    }
+    window.dispatchEvent(new CustomEvent('orders_updated', { detail: { id, deleted: true } }))
+  }, [])
+
+  const value = useMemo(() => ({ orders, createOrder, updateOrder, deleteOrder, placeOrder: createOrder }), [orders, createOrder, updateOrder, deleteOrder])
   return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>
 }
 
@@ -102,6 +123,8 @@ export function useOrderContext() {
       window.dispatchEvent(new CustomEvent('orders_updated', { detail: order }))
       return order
     },
+    updateOrder: async (id, changes) => ({ id, ...changes }),
+    deleteOrder: async () => {},
     placeOrder: async (payload) => {
       const order = { ...payload, id: `local-${Date.now()}`, created_at: new Date().toISOString(), status: 'pending_confirmation' }
       window.dispatchEvent(new CustomEvent('orders_updated', { detail: order }))
