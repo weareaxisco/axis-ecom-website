@@ -21,6 +21,12 @@ function replaceWithFallback(event) {
   }
 }
 
+function normalizeImages(product) {
+  const configured = Array.isArray(product.images) ? product.images : []
+  const images = configured.map((image) => typeof image === 'string' ? image : image?.url || image?.src || image?.path).filter(Boolean)
+  return [...new Set([...images, product.main_image_url, product.hover_image_url].filter(Boolean))]
+}
+
 export default function ProductCard({ product, onProductClick }) {
   const { config } = useSiteConfig()
   const { t } = useLanguage()
@@ -29,10 +35,7 @@ export default function ProductCard({ product, onProductClick }) {
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
   const [timerKey, setTimerKey] = useState(0)
-  const images = useMemo(
-    () => [...new Set([product.main_image_url, product.hover_image_url].filter(Boolean))],
-    [product.main_image_url, product.hover_image_url],
-  )
+  const images = useMemo(() => normalizeImages(product), [product.images, product.main_image_url, product.hover_image_url])
   const gallery = images.length ? images : [cardImageFallback]
   const categoryName = getCategoryName(product)
   const formattedPrice = getProductPrice(product).toLocaleString()

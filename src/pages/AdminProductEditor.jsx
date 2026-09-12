@@ -30,7 +30,18 @@ export default function AdminProductEditor() {
     supabase.from('products').select('*').eq('id', id).single().then(({ data, error: loadError }) => {
       if (!active) return
       if (loadError) setError(loadError.message)
-      if (data) setForm({ ...emptyForm, ...data, name: data.name || data.title || '', images: Array.isArray(data.images) ? data.images : data.images ? String(data.images).split(/\r?\n|,/) : [], tags: Array.isArray(data.tags) ? data.tags : data.tags ? [data.tags] : [], specifications: data.specifications || {} })
+      if (data) {
+        const metadata = data.metadata && typeof data.metadata === 'object' ? data.metadata : {}
+        setForm({
+          ...emptyForm,
+          ...data,
+          name: data.name || data.title || '',
+          sku: data.sku || metadata.sku || '',
+          tags: Array.isArray(data.tags) ? data.tags : Array.isArray(metadata.tags) ? metadata.tags : data.tags ? [data.tags] : [],
+          specifications: data.specifications || metadata.specifications || {},
+          images: Array.isArray(data.images) ? data.images : data.images ? String(data.images).split(/\r?\n|,/) : [],
+        })
+      }
       setLoading(false)
     })
     return () => { active = false }
@@ -61,13 +72,28 @@ export default function AdminProductEditor() {
     event.preventDefault()
     setSaving(true)
     setError('')
-    const payload = { ...form, sku: form.sku.trim() || sku(), slug: slugify(form.name), price_dh: Number(form.price_dh), stock: Number(form.stock), images: form.images }
+    const generatedSku = form.sku.trim() || sku()
+    const payload = {
+      name: form.name.trim(),
+      slug: slugify(form.name),
+      category: form.category.trim(),
+      collection: form.collection.trim() || null,
+      description: form.description,
+      price_dh: Number(form.price_dh),
+      stock: Number(form.stock),
+      images: form.images,
+      metadata: {
+        sku: generatedSku,
+        tags: form.tags,
+        specifications: form.specifications,
+      },
+    }
     const saveProduct = (data) => editing ? supabase.from('products').update(data).eq('id', id) : supabase.from('products').insert(data)
     let saveError = (await saveProduct(payload)).error
-    if (isMissingColumnError(saveError, 'sku')) {
-      const withoutSku = { ...payload }
-      delete withoutSku.sku
-      saveError = (await saveProduct(withoutSku)).error
+    if (isMissingColumnError(saveError, 'metadata')) {
+      const withoutMetadata = { ...payload }
+      delete withoutMetadata.metadata
+      saveError = (await saveProduct(withoutMetadata)).error
     }
     setSaving(false)
     if (saveError) {
