@@ -6,12 +6,23 @@ const ProductContext = createContext(null)
 const slugify = (value) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
 const categoryName = (item) => item.name_en || item.name_fr || item.name || item.title
 const collectionName = (item) => item.name || item.title
+const localTagsKey = 'axis-custom-tags'
+const isMissingTagsTable = (error) => ['PGRST205', '42P01', 'PGRST204'].includes(error?.code) || /public\.tags|relation .*tags|schema cache/i.test(error?.message || '')
+const readLocalTags = () => {
+  if (typeof window === 'undefined') return []
+  try {
+    const value = JSON.parse(window.localStorage.getItem(localTagsKey) || '[]')
+    return Array.isArray(value) ? value.filter((tag) => typeof tag === 'string') : []
+  } catch {
+    return []
+  }
+}
 
 export function ProductProvider({ children }) {
   const [products, setProducts] = useState(mockProducts)
   const [categories, setCategories] = useState([])
   const [collections, setCollections] = useState([])
-  const [customTags, setCustomTags] = useState([])
+  const [customTags, setCustomTags] = useState(readLocalTags)
 
   const refresh = async () => {
     const [productResult, categoryResult, collectionResult, tagResult] = await Promise.all([
@@ -25,6 +36,7 @@ export function ProductProvider({ children }) {
       setCategories((categoryResult.data || []).map(categoryName).filter(Boolean))
       setCollections((collectionResult.data || []).map(collectionName).filter(Boolean))
       if (!tagResult.error) setCustomTags((tagResult.data || []).map((item) => item.name).filter(Boolean))
+      else if (!isMissingTagsTable(tagResult.error)) console.warn(`Tag taxonomy load failed: ${tagResult.error.message}`)
     }
   }
   useEffect(() => {
@@ -54,8 +66,12 @@ export function ProductProvider({ children }) {
     if (!value) return
     if (type === 'tag') {
       const { error } = await supabase.from('tags').insert({ name: value, slug: slugify(value) })
-      if (error && error.code !== '23505') throw error
-      setCustomTags((current) => [...new Set([...current, value])])
+      if (error && error.code !== '23505' && !isMissingTagsTable(error)) throw error
+      setCustomTags((current) => {
+        const next = [...new Set([...current, value])]
+        if (typeof window !== 'undefined') window.localStorage.setItem(localTagsKey, JSON.stringify(next))
+        return next
+      })
       window.dispatchEvent(new CustomEvent('taxonomy:changed'))
       return
     }
@@ -74,8 +90,12 @@ export function ProductProvider({ children }) {
       const failed = results.find((result) => result.error)?.error
       if (failed) throw failed
       const { error: tagError } = await supabase.from('tags').delete().eq('name', value)
-      if (tagError && tagError.code !== 'PGRST116') throw tagError
-      setCustomTags((current) => current.filter((tag) => tag !== value))
+      if (tagError && tagError.code !== 'PGRST116' && !isMissingTagsTable(tagError)) throw tagError
+      setCustomTags((current) => {
+        const next = current.filter((tag) => tag !== value)
+        if (typeof window !== 'undefined') window.localStorage.setItem(localTagsKey, JSON.stringify(next))
+        return next
+      })
       setProducts((current) => current.map((product) => ({ ...product, metadata: { ...(product.metadata || {}), tags: (product.metadata?.tags || product.tags || []).filter((tag) => tag !== value) } })))
       return
     }
