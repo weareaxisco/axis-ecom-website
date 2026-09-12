@@ -17,7 +17,7 @@ export default function TaxonomyCombobox({ label, value = '', options = [], onCh
 
   return <div ref={ref} className="relative">
     <label className="text-[10px] uppercase tracking-widest text-neutral-400">{label}
-      <input value={value} onFocus={() => setOpen(true)} onChange={(event) => { onChange(event.target.value); setOpen(true) }} className="mt-1 w-full border border-neutral-800 bg-neutral-900 px-3 py-2.5 text-sm normal-case tracking-normal outline-none focus:border-amber-500" aria-expanded={open} aria-autocomplete="list" />
+      <input value={value} onFocus={() => setOpen(true)} onChange={(event) => { onChange(event.target.value); setOpen(true) }} className="mt-1 h-11 w-full border border-neutral-800 bg-neutral-900 px-3 text-sm normal-case tracking-normal outline-none focus:border-amber-400" aria-expanded={open} aria-autocomplete="list" />
     </label>
     {open && <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-48 overflow-y-auto border border-neutral-800 bg-neutral-950 p-1 shadow-2xl" role="listbox">
       {filtered.map((option) => <button key={option} type="button" onClick={() => { onChange(option); setOpen(false) }} className="block w-full px-3 py-2 text-left text-xs text-neutral-300 hover:bg-neutral-900 hover:text-amber-300">{option}</button>)}

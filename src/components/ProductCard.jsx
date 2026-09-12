@@ -78,7 +78,7 @@ export default function ProductCard({ product, onProductClick }) {
   return (
     <article
       ref={cardRef}
-      className="group mx-auto w-[92vw] max-w-full overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-primary)] transition-all duration-300 ease-out hover:shadow-lg md:w-full"
+      className="group w-full max-w-full overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-primary)] transition-all duration-300 ease-out hover:shadow-lg"
       onClick={() => onProductClick ? onProductClick(product) : navigate(`/product/${product.id}`)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

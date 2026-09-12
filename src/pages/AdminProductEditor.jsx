@@ -7,12 +7,12 @@ import TaxonomyCombobox from '../components/TaxonomyCombobox'
 import ImageUploader from '../components/ImageUploader'
 import MarkdownToolbar from '../components/MarkdownToolbar'
 import AdminProductPreview from '../components/AdminProductPreview'
+import { useProductContext } from '../context/ProductContext'
 
 const slugify = (value) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
 const sku = () => `MSN-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
 const emptyForm = { name: '', sku: '', category: '', collection: '', price_dh: '', stock: '0', description: '', images: [], tags: [], specifications: {} }
 const isMissingColumnError = (error, column) => error?.code === 'PGRST204' && error.message?.toLowerCase().includes(column)
-const categoryName = (item) => item.name_en || item.title || item.name
 
 export default function AdminProductEditor() {
   const { id } = useParams()
@@ -23,6 +23,7 @@ export default function AdminProductEditor() {
   const [loading, setLoading] = useState(editing)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const { taxonomies } = useProductContext()
 
   useEffect(() => {
     if (!editing) return undefined
@@ -48,10 +49,6 @@ export default function AdminProductEditor() {
   }, [editing, id])
 
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
-  const [taxonomies, setTaxonomies] = useState({ categories: [], collections: [] })
-  useEffect(() => {
-    Promise.all([supabase.from('categories').select('*'), supabase.from('collections').select('*')]).then(([categoryResult, collectionResult]) => setTaxonomies({ categories: categoryResult.data?.map(categoryName).filter(Boolean).sort() || [], collections: collectionResult.data?.map((item) => item.name || item.title).filter(Boolean).sort() || [] }))
-  }, [])
   const persistTaxonomy = async (type, name) => {
     const slug = slugify(name)
     const table = type === 'category' ? 'categories' : 'collections'
@@ -64,7 +61,7 @@ export default function AdminProductEditor() {
       if (!['PGRST204', '42703'].includes(createError.code)) break
     }
     if (createError) { setError(createError.message); return false }
-    setTaxonomies((current) => ({ ...current, [type === 'category' ? 'categories' : 'collections']: [...current[type === 'category' ? 'categories' : 'collections'], name] }))
+    window.dispatchEvent(new CustomEvent('taxonomy:changed'))
     return true
   }
   const save = async (event) => {
@@ -118,11 +115,11 @@ export default function AdminProductEditor() {
         <form onSubmit={save} className={`${activePanel === 'form' ? 'block' : 'hidden'} space-y-5 md:block`}>
           <div className="grid gap-4 border border-neutral-800 bg-neutral-950/60 p-6 sm:grid-cols-2">
             <label className="text-[10px] uppercase tracking-widest text-neutral-400 sm:col-span-2">Title<input required value={form.name} onChange={update('name')} className="mt-2 w-full border border-neutral-800 bg-neutral-900 px-3 py-3 text-sm outline-none focus:border-amber-500" /></label>
-            <label className="text-[10px] uppercase tracking-widest text-neutral-400">SKU<input value={form.sku} onChange={update('sku')} placeholder="Auto-generated if empty" className="mt-2 w-full border border-neutral-800 bg-neutral-900 px-3 py-3 text-sm outline-none focus:border-amber-500" /></label>
+            <label className="text-[10px] uppercase tracking-widest text-neutral-400">SKU<input value={form.sku} onChange={update('sku')} placeholder="Auto-generated if empty" className="mt-2 h-11 w-full border border-neutral-800 bg-neutral-900 px-3 text-sm outline-none focus:border-amber-400" /></label>
             <TaxonomyCombobox label="Category" value={form.category} options={taxonomies.categories} onChange={(value) => setForm((current) => ({ ...current, category: value }))} />
             <TaxonomyCombobox label="Collection" value={form.collection} options={taxonomies.collections} onChange={(value) => setForm((current) => ({ ...current, collection: value }))} />
-            <label className="text-[10px] uppercase tracking-widest text-neutral-400">Price (DH)<input required type="number" value={form.price_dh} onChange={update('price_dh')} className="mt-2 w-full border border-neutral-800 bg-neutral-900 px-3 py-3 text-sm outline-none focus:border-amber-500" /></label>
-            <label className="text-[10px] uppercase tracking-widest text-neutral-400">Stock<input type="number" value={form.stock} onChange={update('stock')} className="mt-2 w-full border border-neutral-800 bg-neutral-900 px-3 py-3 text-sm outline-none focus:border-amber-500" /></label>
+            <label className="text-[10px] uppercase tracking-widest text-neutral-400">Price (DH)<input required type="number" value={form.price_dh} onChange={update('price_dh')} className="mt-2 h-11 w-full border border-neutral-800 bg-neutral-900 px-3 text-sm outline-none focus:border-amber-400" /></label>
+            <label className="text-[10px] uppercase tracking-widest text-neutral-400">Stock<input type="number" value={form.stock} onChange={update('stock')} className="mt-2 h-11 w-full border border-neutral-800 bg-neutral-900 px-3 text-sm outline-none focus:border-amber-400" /></label>
             <div><TagManager value={form.tags} onChange={(tags) => setForm((current) => ({ ...current, tags }))} /></div>
             <div className="sm:col-span-2"><ImageUploader value={form.images} onChange={(images) => setForm((current) => ({ ...current, images }))} /></div>
             <label className="text-[10px] uppercase tracking-widest text-neutral-400 sm:col-span-2">Description<MarkdownToolbar value={form.description} onChange={(description) => setForm((current) => ({ ...current, description }))} /></label>
