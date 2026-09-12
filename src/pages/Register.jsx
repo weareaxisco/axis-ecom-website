@@ -62,6 +62,13 @@ export default function Register() {
           last_name: form.lastName.trim(),
           full_name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
           phone: form.phone.trim(),
+          saved_address: {
+            full_name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
+            phone: form.phone.trim(),
+            address: '',
+            city: '',
+            postal_code: '',
+          },
           country: form.country,
         },
       },

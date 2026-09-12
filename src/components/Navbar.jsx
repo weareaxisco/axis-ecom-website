@@ -130,6 +130,7 @@ export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoginOpen, setIsLoginOpen] = useState(false)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
 
   useEffect(() => {
     let lastScrollY = window.scrollY
@@ -298,11 +299,14 @@ export default function Navbar() {
                 <Heart strokeWidth={1.25} size={19} />
                 {wishlistItems.length > 0 && <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-gold)] px-1 text-[9px] text-[var(--bg-primary)]">{wishlistItems.length}</span>}
               </IconButton>
-              <IconButton label={t('account')} className="hidden sm:inline-flex" onClick={() => user ? navigate('/account') : setIsLoginOpen(true)}>
-                <span className="flex h-full w-full items-center justify-center">
-                <User strokeWidth={1.25} size={19} />
-                </span>
-              </IconButton>
+              <div className="relative hidden md:block" onMouseLeave={() => setIsProfileOpen(false)}>
+                <IconButton label={t('account')} className="inline-flex" onClick={() => setIsProfileOpen((current) => !current)}>
+                  <User strokeWidth={1.25} size={19} />
+                </IconButton>
+                {isProfileOpen && <div className="absolute right-0 top-full z-50 mt-2 min-w-[160px] border border-neutral-800 bg-neutral-900 p-2 text-xs uppercase tracking-widest shadow-2xl">
+                  {user ? <><button type="button" onClick={() => { setIsProfileOpen(false); navigate('/account') }} className="block w-full px-3 py-3 text-left hover:bg-neutral-800 hover:text-amber-300">My Account</button><button type="button" onClick={async () => { await supabase.auth.signOut(); setIsProfileOpen(false) }} className="block w-full px-3 py-3 text-left hover:bg-neutral-800 hover:text-amber-300">Logout</button></> : <><button type="button" onClick={() => { setIsProfileOpen(false); setIsLoginOpen(true) }} className="block w-full px-3 py-3 text-left hover:bg-neutral-800 hover:text-amber-300">Sign In</button><button type="button" onClick={() => { setIsProfileOpen(false); navigate('/register') }} className="block w-full px-3 py-3 text-left hover:bg-neutral-800 hover:text-amber-300">Sign Up</button></>}
+                </div>}
+              </div>
               {isAdmin && <IconButton label={t('adminDashboard')} className="hidden sm:inline-flex" onClick={() => { window.location.href = '/admin' }}>
                 <Settings strokeWidth={1.25} size={19} />
               </IconButton>}

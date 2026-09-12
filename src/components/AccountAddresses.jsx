@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useLanguage } from '../context/LanguageContext'
+import { useAuth } from '../context/AuthContext'
 
 const fallbackCities = ['Casablanca', 'Rabat / Salé / Kénitra', 'Marrakech', 'Tangier', 'Agadir', 'Fes', 'Meknes', 'Oujda', 'Laâyoune', 'Dakhla']
 
 export default function AccountAddresses({ userId }) {
   const { t } = useLanguage()
+  const { user, updateUserProfile } = useAuth()
   const [cities, setCities] = useState(fallbackCities)
   const [form, setForm] = useState({ fullName: '', address: '', city: 'Casablanca', phone: '+212 ' })
   const [notice, setNotice] = useState('')
@@ -15,14 +17,22 @@ export default function AccountAddresses({ userId }) {
   }, [])
   useEffect(() => {
     supabase.from('addresses').select('*').eq('user_id', userId).eq('is_default', true).maybeSingle().then(({ data }) => {
-      if (data) setForm((current) => ({ ...current, ...data, fullName: data.fullName || data.full_name || current.fullName }))
+      const saved = user?.user_metadata?.saved_address || {}
+      if (saved.full_name || saved.address) setForm((current) => ({ ...current, fullName: saved.full_name || current.fullName, phone: saved.phone || current.phone, address: saved.address || current.address, city: saved.city || current.city }))
+      else if (data) setForm((current) => ({ ...current, ...data, fullName: data.fullName || data.full_name || current.fullName }))
     }).catch(() => {})
-  }, [userId])
+  }, [userId, user])
 
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
   const saveAddress = async (event) => {
     event.preventDefault()
     const { error } = await supabase.from('addresses').upsert({ user_id: userId, ...form, is_default: true })
+    try {
+      await updateUserProfile({ full_name: form.fullName, phone: form.phone, saved_address: { full_name: form.fullName, phone: form.phone, address: form.address, city: form.city, postal_code: form.postalCode || '' } })
+    } catch (profileError) {
+      setNotice(profileError.message)
+      return
+    }
     setNotice(error ? error.message : t('addressSaved'))
   }
   const requestData = async (action) => {

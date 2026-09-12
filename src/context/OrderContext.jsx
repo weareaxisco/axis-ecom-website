@@ -18,12 +18,15 @@ export function OrderProvider({ children }) {
       delivery_address: payload.delivery_address,
       phone: payload.phone,
       payment_method: payload.payment_method,
+      customer_name: payload.customer_name,
+      customer_email: payload.customer_email,
+      postal_code: payload.postal_code,
     }
     let order = { ...record, id: `local-${Date.now()}`, created_at: new Date().toISOString(), status: 'pending_confirmation' }
     if (user?.id) {
       const { data, error } = await supabase.from('orders').insert(record).select().single()
       if (error) throw error
-      order = { ...data, customer_name: payload.customer_name, postal_code: payload.postal_code }
+      order = { ...data, customer_name: payload.customer_name, customer_email: payload.customer_email, postal_code: payload.postal_code }
     }
     setOrders((current) => [order, ...current])
     window.dispatchEvent(new CustomEvent('order:created', { detail: order }))

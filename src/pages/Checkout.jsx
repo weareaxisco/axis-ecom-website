@@ -45,7 +45,7 @@ export default function Checkout() {
   const { selectedItems: cartItems, subtotal, hasOnsiteOnly, clearSelectedItems } = useCart()
   const { t } = useLanguage()
   const { placeOrder } = useOrderContext()
-  const { user, updateProfile } = useAuth()
+  const { user, updateUserProfile } = useAuth()
   const [cities, setCities] = useState(fallbackCities)
   const [step, setStep] = useState(1)
   const [payment, setPayment] = useState('cod')
@@ -69,6 +69,11 @@ export default function Checkout() {
   }, [])
   useEffect(() => {
     if (!user || window.localStorage.getItem('checkout_draft')) return
+    const saved = user.user_metadata?.saved_address || {}
+    if (saved.full_name || saved.phone || saved.address || saved.city || saved.postal_code) {
+      setForm((current) => ({ ...current, fullName: saved.full_name || user.user_metadata?.full_name || current.fullName, phone: saved.phone || user.user_metadata?.phone || current.phone, address: saved.address || current.address, city: saved.city || current.city, postalCode: saved.postal_code || current.postalCode }))
+      return
+    }
     supabase.from('addresses').select('*').eq('user_id', user.id).eq('is_default', true).maybeSingle().then(({ data }) => {
       if (!data) return
       setForm((current) => ({ ...current, fullName: data.fullName || user.user_metadata?.full_name || current.fullName, phone: data.phone || user.user_metadata?.phone || current.phone, address: data.address || current.address, city: data.city || current.city, postalCode: data.postalCode || data.postal_code || current.postalCode }))
@@ -115,9 +120,9 @@ export default function Checkout() {
     if (step === 1) trackEvent('begin_checkout', { items: cartItems.length, value: total }).catch(() => {})
     if (step === 2) {
       trackEvent('purchase', { items: cartItems.length, value: total, payment }).catch(() => {})
-      placeOrder({ items: cartItems, subtotal_dh: subtotal, shipping_fee_dh: shippingFee, total_dh: total, city: form.city, delivery_address: form.address, postal_code: form.postalCode, phone: form.phone, customer_name: form.fullName || user?.user_metadata?.full_name || 'Guest Customer', payment_method: payment }).catch((error) => console.warn(`Order sync failed: ${error.message}`))
+      placeOrder({ items: cartItems, subtotal_dh: subtotal, shipping_fee_dh: shippingFee, total_dh: total, city: form.city, delivery_address: form.address, postal_code: form.postalCode, phone: form.phone, customer_name: form.fullName || user?.user_metadata?.full_name || 'Guest Customer', customer_email: user?.email || '', payment_method: payment }).catch((error) => console.warn(`Order sync failed: ${error.message}`))
       if (user) {
-        updateProfile({ full_name: form.fullName, phone: form.phone }).catch((error) => console.warn(`Profile sync failed: ${error.message}`))
+        updateUserProfile({ full_name: form.fullName, phone: form.phone, saved_address: { full_name: form.fullName, phone: form.phone, address: form.address, city: form.city, postal_code: form.postalCode } }).catch((error) => console.warn(`Profile sync failed: ${error.message}`))
         supabase.from('addresses').upsert({ user_id: user.id, fullName: form.fullName, phone: form.phone, address: form.address, city: form.city, postalCode: form.postalCode, is_default: true }).then(({ error }) => { if (error) console.warn(`Address sync failed: ${error.message}`) })
       }
       setCompletedItems(cartItems)

@@ -7,7 +7,7 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
-  const updateProfile = async (metadata) => {
+  const updateUserProfile = async (metadata) => {
     const { data, error } = await supabase.auth.updateUser({ data: metadata })
     if (error) throw error
     setUser((current) => current ? { ...current, user_metadata: { ...current.user_metadata, ...metadata } } : current)
@@ -36,12 +36,12 @@ export function AuthProvider({ children }) {
   }, [])
 
   const resendVerification = async (email) => supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: window.location.origin } })
-  const value = useMemo(() => ({ session, user, loading, resendVerification, updateProfile }), [session, user, loading])
+  const value = useMemo(() => ({ session, user, loading, resendVerification, updateUserProfile, updateProfile: updateUserProfile }), [session, user, loading])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context) return context
-  return { session: null, user: null, loading: false, updateProfile: async () => null }
+  return { session: null, user: null, loading: false, updateUserProfile: async () => null, updateProfile: async () => null }
 }
