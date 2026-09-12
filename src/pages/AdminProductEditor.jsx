@@ -132,7 +132,7 @@ export default function AdminProductEditor() {
               <div className="flex w-full flex-col"><label className="mb-2 block h-4 text-xs uppercase leading-4 tracking-wider text-neutral-400">STOCK</label><input type="number" value={form.stock} onChange={update('stock')} className="block h-11 w-full border border-neutral-800 bg-neutral-900 px-3 text-sm text-neutral-200 outline-none focus:border-amber-400" /></div>
               <div className="flex w-full flex-col"><label className="mb-2 block h-4 text-xs uppercase leading-4 tracking-wider text-neutral-400">TAGS</label><TaxonomyCombobox hideLabel value={tagDraft} options={taxonomies.tags} selectedValues={form.tags} onChange={setTagDraft} onRemove={(tag) => setForm((current) => ({ ...current, tags: current.tags.filter((item) => item !== tag) }))} onSelect={(tag) => { setForm((current) => ({ ...current, tags: current.tags.includes(tag) ? current.tags : [...current.tags, tag] })); setTagDraft('') }} /></div>
             </div>
-            <div className="md:col-span-2"><ImageUploader value={form.images} onChange={(images) => setForm((current) => ({ ...current, images }))} /></div>
+            <div className="mt-8 md:col-span-2"><ImageUploader value={form.images} onChange={(images) => setForm((current) => ({ ...current, images }))} /></div>
             <label className="text-[10px] uppercase tracking-widest text-neutral-400 md:col-span-2">Description<MarkdownToolbar value={form.description} onChange={(description) => setForm((current) => ({ ...current, description }))} /></label>
           </div>
           <SpecificationEditor value={form.specifications} onChange={(specifications) => setForm((current) => ({ ...current, specifications }))} />

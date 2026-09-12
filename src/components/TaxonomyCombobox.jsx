@@ -33,14 +33,19 @@ export default function TaxonomyCombobox({ value = '', options = [], onChange, o
     setOpen(true)
   }
   const handleKeyDown = (event) => {
+    if (multiple && (event.key === 'Backspace' || event.key === 'Delete') && !value && selectedValues.length) {
+      event.preventDefault()
+      onRemove?.(selectedValues[selectedValues.length - 1])
+      return
+    }
     if (!multiple || !['Enter', ','].includes(event.key)) return
     event.preventDefault()
     selectValues(value)
   }
   return <div ref={ref} className="relative w-full">
     <div onClick={() => inputRef.current?.focus()} className="relative flex items-center gap-1.5 w-full h-11 bg-neutral-900 border border-neutral-800 focus-within:border-amber-400 px-3 overflow-x-auto no-scrollbar scrollbar-none">
-      {multiple && selectedValues.map((item) => <span key={item} className="inline-flex flex-shrink-0 items-center gap-1 rounded-full border border-amber-500/50 bg-amber-500/10 px-2 py-0.5 text-xs normal-case tracking-normal text-amber-300">
-        {item}<button type="button" aria-label={`Remove ${item}`} onClick={() => onRemove?.(item)}><span aria-hidden="true">×</span></button>
+      {multiple && selectedValues.map((item) => <span key={item} role="button" tabIndex={0} aria-label={`Remove ${item}`} onClick={() => onRemove?.(item)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') onRemove?.(item) }} className="inline-flex flex-shrink-0 cursor-pointer items-center gap-1 rounded-full border border-amber-500/50 bg-amber-500/10 px-2 py-0.5 text-xs normal-case tracking-normal text-amber-300">
+        {item}<span aria-hidden="true">×</span>
       </span>)}
       <input ref={inputRef} value={value} onFocus={() => setOpen(true)} onChange={handleChange} onKeyDown={handleKeyDown} className="flex-1 min-w-[120px] bg-transparent outline-none text-sm text-neutral-200 h-full border-none focus:ring-0 p-0" aria-expanded={open} aria-autocomplete="list" />
     </div>
