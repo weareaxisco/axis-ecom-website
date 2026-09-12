@@ -15,7 +15,7 @@ export default function TaxonomyCombobox({ label, value = '', options = [], onCh
     return () => document.removeEventListener('mousedown', close)
   }, [])
 
-  return <div ref={ref} className="relative">
+  return <div ref={ref} className="relative w-full">
     <label className="text-[10px] uppercase tracking-widest text-neutral-400">{label}
       <input value={value} onFocus={() => setOpen(true)} onChange={(event) => { onChange(event.target.value); setOpen(true) }} className="mt-1 h-11 w-full border border-neutral-800 bg-neutral-900 px-3 text-sm normal-case tracking-normal outline-none focus:border-amber-400" aria-expanded={open} aria-autocomplete="list" />
     </label>

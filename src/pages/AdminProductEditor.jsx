@@ -24,7 +24,7 @@ export default function AdminProductEditor() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [tagDraft, setTagDraft] = useState('')
-  const { taxonomies } = useProductContext()
+  const { taxonomies, addTaxonomy } = useProductContext()
 
   useEffect(() => {
     if (!editing) return undefined
@@ -92,6 +92,15 @@ export default function AdminProductEditor() {
         return
       }
     }
+    try {
+      for (const tag of form.tags) {
+        if (!taxonomies.tags.some((item) => item.toLowerCase() === tag.toLowerCase())) await addTaxonomy('tag', tag)
+      }
+    } catch (taxonomyError) {
+      setSaving(false)
+      setError(taxonomyError.message)
+      return
+    }
     const saveProduct = (data) => editing ? supabase.from('products').update(data).eq('id', id) : supabase.from('products').insert(data)
     let saveError = (await saveProduct(payload)).error
     if (isMissingColumnError(saveError, 'metadata')) {
@@ -114,16 +123,16 @@ export default function AdminProductEditor() {
       <div className="sticky top-0 z-20 mt-8 flex border-b border-neutral-800 bg-[var(--bg-primary)]/95 md:hidden"><button type="button" onClick={() => setActivePanel('form')} className={`flex-1 py-3 text-[10px] uppercase tracking-widest ${activePanel === 'form' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-neutral-500'}`}>Edit Form</button><button type="button" onClick={() => setActivePanel('preview')} className={`flex-1 py-3 text-[10px] uppercase tracking-widest ${activePanel === 'preview' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-neutral-500'}`}>Live Preview</button></div>
       <div className="mt-8 grid gap-8 md:grid-cols-[3fr_2fr]">
         <form onSubmit={save} className={`${activePanel === 'form' ? 'block' : 'hidden'} space-y-5 md:block`}>
-          <div className="grid gap-4 border border-neutral-800 bg-neutral-950/60 p-6 sm:grid-cols-2">
-            <label className="text-[10px] uppercase tracking-widest text-neutral-400 sm:col-span-2">Title<input required value={form.name} onChange={update('name')} className="mt-2 h-11 w-full border border-neutral-800 bg-neutral-900 px-3 text-sm outline-none focus:border-amber-400" /></label>
+          <div className="grid w-full grid-cols-1 gap-x-6 gap-y-5 border border-neutral-800 bg-neutral-950/60 p-6 md:grid-cols-2">
+            <label className="text-[10px] uppercase tracking-widest text-neutral-400 md:col-span-2">Title<input required value={form.name} onChange={update('name')} className="mt-2 h-11 w-full border border-neutral-800 bg-neutral-900 px-3 text-sm outline-none focus:border-amber-400" /></label>
             <label className="text-[10px] uppercase tracking-widest text-neutral-400">SKU<input value={form.sku} onChange={update('sku')} placeholder="Auto-generated if empty" className="mt-2 h-11 w-full border border-neutral-800 bg-neutral-900 px-3 text-sm outline-none focus:border-amber-400" /></label>
             <TaxonomyCombobox label="Category" value={form.category} options={taxonomies.categories} onChange={(value) => setForm((current) => ({ ...current, category: value }))} />
             <TaxonomyCombobox label="Collection" value={form.collection} options={taxonomies.collections} onChange={(value) => setForm((current) => ({ ...current, collection: value }))} />
             <label className="text-[10px] uppercase tracking-widest text-neutral-400">Price (DH)<input required type="number" value={form.price_dh} onChange={update('price_dh')} className="mt-2 h-11 w-full border border-neutral-800 bg-neutral-900 px-3 text-sm outline-none focus:border-amber-400" /></label>
             <label className="text-[10px] uppercase tracking-widest text-neutral-400">Stock<input type="number" value={form.stock} onChange={update('stock')} className="mt-2 h-11 w-full border border-neutral-800 bg-neutral-900 px-3 text-sm outline-none focus:border-amber-400" /></label>
             <div className="text-[10px] uppercase tracking-widest text-neutral-400"><TaxonomyCombobox label="Tags" value={tagDraft} options={taxonomies.tags} onChange={setTagDraft} onSelect={(tag) => { setForm((current) => ({ ...current, tags: current.tags.includes(tag) ? current.tags : [...current.tags, tag] })); setTagDraft('') }} /><div className="mt-2 flex flex-wrap gap-2">{form.tags.map((tag) => <span key={tag} className="inline-flex items-center gap-1 rounded-full border border-amber-500/50 bg-amber-500/10 px-2.5 py-1 text-[10px] normal-case tracking-normal text-amber-300">{tag}<button type="button" aria-label={`Remove ${tag}`} onClick={() => setForm((current) => ({ ...current, tags: current.tags.filter((item) => item !== tag) }))}><X size={12} /></button></span>)}</div></div>
-            <div className="sm:col-span-2"><ImageUploader value={form.images} onChange={(images) => setForm((current) => ({ ...current, images }))} /></div>
-            <label className="text-[10px] uppercase tracking-widest text-neutral-400 sm:col-span-2">Description<MarkdownToolbar value={form.description} onChange={(description) => setForm((current) => ({ ...current, description }))} /></label>
+            <div className="md:col-span-2"><ImageUploader value={form.images} onChange={(images) => setForm((current) => ({ ...current, images }))} /></div>
+            <label className="text-[10px] uppercase tracking-widest text-neutral-400 md:col-span-2">Description<MarkdownToolbar value={form.description} onChange={(description) => setForm((current) => ({ ...current, description }))} /></label>
           </div>
           <SpecificationEditor value={form.specifications} onChange={(specifications) => setForm((current) => ({ ...current, specifications }))} />
           {error && <p className="border border-rose-500/30 bg-rose-950/20 p-3 text-xs text-rose-300">{error}</p>}<button type="submit" disabled={saving} className="w-full bg-amber-500 py-4 text-xs font-semibold uppercase tracking-widest text-black disabled:opacity-50">{saving ? 'Saving…' : 'Save Creation'}</button>

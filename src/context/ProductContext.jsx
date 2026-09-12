@@ -14,15 +14,17 @@ export function ProductProvider({ children }) {
   const [customTags, setCustomTags] = useState([])
 
   const refresh = async () => {
-    const [productResult, categoryResult, collectionResult] = await Promise.all([
+    const [productResult, categoryResult, collectionResult, tagResult] = await Promise.all([
       supabase.from('products').select('*, categories(*), collections(*)'),
       supabase.from('categories').select('*'),
       supabase.from('collections').select('*'),
+      supabase.from('tags').select('name'),
     ])
     if (productResult.data?.length) setProducts(productResult.data)
     if (!productResult.error) {
       setCategories((categoryResult.data || []).map(categoryName).filter(Boolean))
       setCollections((collectionResult.data || []).map(collectionName).filter(Boolean))
+      if (!tagResult.error) setCustomTags((tagResult.data || []).map((item) => item.name).filter(Boolean))
     }
   }
   useEffect(() => {
@@ -51,7 +53,10 @@ export function ProductProvider({ children }) {
     const value = name.trim()
     if (!value) return
     if (type === 'tag') {
+      const { error } = await supabase.from('tags').insert({ name: value, slug: slugify(value) })
+      if (error && error.code !== '23505') throw error
       setCustomTags((current) => [...new Set([...current, value])])
+      window.dispatchEvent(new CustomEvent('taxonomy:changed'))
       return
     }
     const table = type === 'category' ? 'categories' : 'collections'
@@ -68,6 +73,8 @@ export function ProductProvider({ children }) {
       const results = await Promise.all(updates)
       const failed = results.find((result) => result.error)?.error
       if (failed) throw failed
+      const { error: tagError } = await supabase.from('tags').delete().eq('name', value)
+      if (tagError && tagError.code !== 'PGRST116') throw tagError
       setCustomTags((current) => current.filter((tag) => tag !== value))
       setProducts((current) => current.map((product) => ({ ...product, metadata: { ...(product.metadata || {}), tags: (product.metadata?.tags || product.tags || []).filter((tag) => tag !== value) } })))
       return
