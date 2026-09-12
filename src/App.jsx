@@ -32,6 +32,7 @@ import CookieConsent from './components/CookieConsent'
 import { trackEvent } from './utils/analytics'
 import MaisonInformation from './pages/MaisonInformation'
 import AdminGuard from './components/AdminGuard'
+import AdminProductEditor from './pages/AdminProductEditor'
 import './App.css'
 
 function NotFound() {
@@ -87,6 +88,8 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/admin/inventory/editor/new" element={<AdminGuard><AdminProductEditor /></AdminGuard>} />
+            <Route path="/admin/inventory/editor/edit/:id" element={<AdminGuard><AdminProductEditor /></AdminGuard>} />
             <Route path="/admin" element={<AdminGuard><Admin /></AdminGuard>} />
             <Route path="/account" element={<Account />} />
             <Route path="/concierge" element={<Concierge />} />

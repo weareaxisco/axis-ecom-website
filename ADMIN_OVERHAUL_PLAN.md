@@ -46,12 +46,12 @@
 ## Phase 3: Split Full-Page Creation & Edit Workspace
 *Goal: Replace the cramped modal with a dedicated split-screen editing studio and dynamic specification management.*
 
-- [ ] **3.1 Full-Page Editor Route (`src/pages/AdminProductEditor.jsx`)**
+- [x] **3.1 Full-Page Editor Route (`src/pages/AdminProductEditor.jsx`)**
   - Add route `/admin/inventory/editor` (handles both `/new` and `/edit/:id`).
   - Desktop: 60% Left column form space, 40% Right column live preview frame.
   - Mobile: Sticky top tab switcher `[ EDIT FORM ]` and `[ LIVE PREVIEW ]`.
 
-- [ ] **3.2 Dynamic Key-Value Specifications Table (`src/components/SpecificationEditor.jsx`)**
+- [x] **3.2 Dynamic Key-Value Specifications Table (`src/components/SpecificationEditor.jsx`)**
   - Replace static Metal selector with a dynamic 2-column key-value table (`Key` | `Value`).
   - Add **+ Add Specification** button to create arbitrary attributes (*"Metal"*, *"Carat Weight"*, *"Gemstone"*).
   - Render specs inside the live product preview accordion.
