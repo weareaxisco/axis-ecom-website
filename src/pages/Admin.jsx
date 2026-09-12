@@ -156,6 +156,13 @@ function AdminContent() {
     })
     return () => { active = false }
   }, [isAdmin])
+  useEffect(() => {
+    const handleOrderCreated = (event) => {
+      if (event.detail?.id) setOrders((current) => current.some((order) => order.id === event.detail.id) ? current : [event.detail, ...current])
+    }
+    window.addEventListener('order:created', handleOrderCreated)
+    return () => window.removeEventListener('order:created', handleOrderCreated)
+  }, [])
 
   const updateOnsiteOnly = async (id, onsiteOnly) => {
     if (!can('manage_products')) return

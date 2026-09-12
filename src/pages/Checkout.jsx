@@ -4,6 +4,7 @@ import { generateInvoice } from '../utils/generateInvoice'
 import { useLanguage } from '../context/LanguageContext'
 import { getProductPrice } from '../utils/productUtils'
 import { trackEvent } from '../utils/analytics'
+import { useOrderContext } from '../context/OrderContext'
 
 const money = (value) => `${Number(value || 0).toLocaleString()} DH`
 const fallbackCities = [
@@ -41,6 +42,7 @@ const onlineTimeline = ['Payment Confirmed', 'Crafting & Preparation', 'Dispatch
 export default function Checkout() {
   const { selectedItems: cartItems, subtotal, hasOnsiteOnly, clearSelectedItems } = useCart()
   const { t } = useLanguage()
+  const { placeOrder } = useOrderContext()
   const [cities, setCities] = useState(fallbackCities)
   const [step, setStep] = useState(1)
   const [payment, setPayment] = useState('cod')
@@ -48,6 +50,20 @@ export default function Checkout() {
   const [fulfillment, setFulfillment] = useState(hasOnsiteOnly ? 'onsite' : 'delivery')
   const [phoneError, setPhoneError] = useState('')
   const [form, setForm] = useState({ fullName: '', address: '', city: 'Casablanca', postalCode: '', phone: '+212 ', pickupDate: '', pickupTime: '' })
+  const [draftLoaded, setDraftLoaded] = useState(false)
+
+  useEffect(() => {
+    try {
+      const draft = JSON.parse(window.localStorage.getItem('checkout_draft') || 'null')
+      if (draft?.form) setForm((current) => ({ ...current, ...draft.form }))
+      if (draft?.payment) setPayment(draft.payment)
+      if (draft?.fulfillment) setFulfillment(draft.fulfillment)
+    } catch (error) {
+      console.warn(`Checkout draft recovery failed: ${error.message}`)
+    } finally {
+      setDraftLoaded(true)
+    }
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -67,6 +83,11 @@ export default function Checkout() {
     if (hasOnsiteOnly) setFulfillment('onsite')
   }, [hasOnsiteOnly])
 
+  useEffect(() => {
+    if (!draftLoaded) return
+    window.localStorage.setItem('checkout_draft', JSON.stringify({ form, payment, fulfillment }))
+  }, [draftLoaded, form, payment, fulfillment])
+
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
   const selectedCity = cities.find((city) => city.city_name === form.city) || cities[0]
   const shippingFee = fulfillment === 'onsite' ? 0 : Number(selectedCity?.delivery_price_dh || 0)
@@ -84,8 +105,10 @@ export default function Checkout() {
     if (step === 1) trackEvent('begin_checkout', { items: cartItems.length, value: total }).catch(() => {})
     if (step === 2) {
       trackEvent('purchase', { items: cartItems.length, value: total, payment }).catch(() => {})
+      placeOrder({ items: cartItems, subtotal_dh: subtotal, shipping_fee_dh: shippingFee, total_dh: total, city: form.city, delivery_address: form.address, phone: form.phone, payment_method: payment }).catch((error) => console.warn(`Order sync failed: ${error.message}`))
       setCompletedItems(cartItems)
       clearSelectedItems()
+      window.localStorage.removeItem('checkout_draft')
     }
     setStep((current) => current + 1)
   }

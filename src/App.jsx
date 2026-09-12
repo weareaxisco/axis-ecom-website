@@ -27,6 +27,7 @@ import { AuthProvider } from './context/AuthContext'
 import { WishlistProvider } from './context/WishlistContext'
 import { SiteConfigProvider } from './context/SiteConfigContext'
 import { ProductProvider } from './context/ProductContext'
+import { OrderProvider } from './context/OrderContext'
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import GlobalLoader from './components/GlobalLoader'
 import CookieConsent from './components/CookieConsent'
@@ -76,6 +77,7 @@ function App() {
         <SiteConfigProvider>
         <CartProvider>
           <ProductProvider>
+          <OrderProvider>
           <ScrollToTop />
           <AdminAccessNotice />
           <GlobalLoader />
@@ -113,6 +115,7 @@ function App() {
             <WishlistDrawer />
             <CookieConsent />
           </div>
+            </OrderProvider>
             </ProductProvider>
         </CartProvider>
         </SiteConfigProvider>
