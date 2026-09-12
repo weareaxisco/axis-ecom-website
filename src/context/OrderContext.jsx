@@ -4,6 +4,12 @@ import { supabase } from '../supabaseClient'
 const OrderContext = createContext(null)
 const localOrdersKey = 'maison_orders'
 const channelName = 'maison_orders_channel'
+const generateUuid = () => globalThis.crypto?.randomUUID?.()
+  || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
+    const random = Math.random() * 16 | 0
+    const value = character === 'x' ? random : (random & 0x3 | 0x8)
+    return value.toString(16)
+  })
 const readLocalOrders = () => {
   try {
     const value = JSON.parse(window.localStorage.getItem(localOrdersKey) || '[]')
@@ -77,7 +83,7 @@ export function OrderProvider({ children }) {
     } catch (error) {
       console.warn('[orders] auth lookup unavailable:', error)
     }
-    const orderId = globalThis.crypto?.randomUUID?.() || `local-${Date.now()}`
+    const orderId = generateUuid()
     const newOrder = {
       id: orderId,
       user_id: user?.id,
@@ -184,7 +190,7 @@ export function useOrderContext() {
   return {
     orders: [],
     createOrder: async (payload) => {
-      const order = { ...payload, id: `local-${Date.now()}`, created_at: new Date().toISOString(), status: 'pending_confirmation' }
+      const order = { ...payload, id: generateUuid(), created_at: new Date().toISOString(), status: 'pending_confirmation' }
       window.dispatchEvent(new CustomEvent('orders_updated', { detail: order }))
       return order
     },
@@ -192,7 +198,7 @@ export function useOrderContext() {
     deleteOrder: async () => {},
     clearAllOrders: async () => {},
     placeOrder: async (payload) => {
-      const order = { ...payload, id: `local-${Date.now()}`, created_at: new Date().toISOString(), status: 'pending_confirmation' }
+      const order = { ...payload, id: generateUuid(), created_at: new Date().toISOString(), status: 'pending_confirmation' }
       window.dispatchEvent(new CustomEvent('orders_updated', { detail: order }))
       return order
     },
