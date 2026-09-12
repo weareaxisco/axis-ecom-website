@@ -131,6 +131,15 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const profileRef = useRef(null)
+
+  useEffect(() => {
+    const close = (event) => {
+      if (!profileRef.current?.contains(event.target)) setIsProfileOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [])
 
   useEffect(() => {
     let lastScrollY = window.scrollY
@@ -299,11 +308,11 @@ export default function Navbar() {
                 <Heart strokeWidth={1.25} size={19} />
                 {wishlistItems.length > 0 && <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-gold)] px-1 text-[9px] text-[var(--bg-primary)]">{wishlistItems.length}</span>}
               </IconButton>
-              <div className="relative hidden md:block" onMouseLeave={() => setIsProfileOpen(false)}>
+              <div ref={profileRef} className="group relative hidden md:block" onMouseEnter={() => setIsProfileOpen(true)}>
                 <IconButton label={t('account')} className="inline-flex" onClick={() => setIsProfileOpen((current) => !current)}>
                   <User strokeWidth={1.25} size={19} />
                 </IconButton>
-                {isProfileOpen && <div className="absolute right-0 top-full z-50 mt-2 min-w-[160px] border border-neutral-800 bg-neutral-900 p-2 text-xs uppercase tracking-widest shadow-2xl">
+                {isProfileOpen && <div className="before:content-[''] before:absolute before:-bottom-3 before:left-0 before:right-0 before:h-4 absolute right-0 top-full z-50 mt-2 min-w-[160px] border border-neutral-800 bg-neutral-900 p-2 text-xs uppercase tracking-widest shadow-2xl">
                   {user ? <><button type="button" onClick={() => { setIsProfileOpen(false); navigate('/account') }} className="block w-full px-3 py-3 text-left hover:bg-neutral-800 hover:text-amber-300">My Account</button><button type="button" onClick={async () => { await supabase.auth.signOut(); setIsProfileOpen(false) }} className="block w-full px-3 py-3 text-left hover:bg-neutral-800 hover:text-amber-300">Logout</button></> : <><button type="button" onClick={() => { setIsProfileOpen(false); setIsLoginOpen(true) }} className="block w-full px-3 py-3 text-left hover:bg-neutral-800 hover:text-amber-300">Sign In</button><button type="button" onClick={() => { setIsProfileOpen(false); navigate('/register') }} className="block w-full px-3 py-3 text-left hover:bg-neutral-800 hover:text-amber-300">Sign Up</button></>}
                 </div>}
               </div>
