@@ -26,7 +26,7 @@ import { LanguageProvider, useLanguage } from './context/LanguageContext'
 import { AuthProvider } from './context/AuthContext'
 import { WishlistProvider } from './context/WishlistContext'
 import { SiteConfigProvider } from './context/SiteConfigContext'
-import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import GlobalLoader from './components/GlobalLoader'
 import CookieConsent from './components/CookieConsent'
 import { trackEvent } from './utils/analytics'
@@ -68,8 +68,7 @@ function App() {
   const location = useLocation()
   const isAdminStudio = location.pathname.startsWith('/admin/inventory/editor')
   return (
-    <BrowserRouter>
-      <ConfigProvider>
+    <ConfigProvider>
         <LanguageProvider>
         <AuthProvider>
         <WishlistProvider>
@@ -118,7 +117,6 @@ function App() {
         </AuthProvider>
         </LanguageProvider>
       </ConfigProvider>
-    </BrowserRouter>
   )
 }
 
