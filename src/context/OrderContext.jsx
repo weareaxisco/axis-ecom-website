@@ -2,11 +2,11 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { supabase } from '../supabaseClient'
 
 const OrderContext = createContext(null)
-const localOrdersKey = 'axis-orders'
-const legacyLocalOrdersKey = 'maison_orders'
+const localOrdersKey = 'maison_orders'
+const channelName = 'maison_orders_channel'
 const readLocalOrders = () => {
   try {
-    const value = JSON.parse(window.localStorage.getItem(legacyLocalOrdersKey) || window.localStorage.getItem(localOrdersKey) || '[]')
+    const value = JSON.parse(window.localStorage.getItem(localOrdersKey) || '[]')
     return Array.isArray(value) ? value : []
   } catch {
     return []
@@ -14,15 +14,27 @@ const readLocalOrders = () => {
 }
 
 export function OrderProvider({ children }) {
-  const [orders, setOrders] = useState([])
+  const [orders, setOrders] = useState(readLocalOrders)
 
   useEffect(() => {
     let active = true
     const load = async () => {
       const local = readLocalOrders()
-      const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false })
+      let data = null
+      let error = null
+      try {
+        const result = await supabase.from('orders').select('*').order('created_at', { ascending: false })
+        data = result.data
+        error = result.error
+      } catch (requestError) {
+        console.warn('[orders] remote load unavailable:', requestError)
+      }
       if (!active) return
-      setOrders(error ? local : [...(data || []), ...local.filter((item) => !(data || []).some((order) => order.id === item.id))])
+      if (!error && Array.isArray(data)) {
+        const merged = [...data, ...local.filter((item) => !data.some((order) => order.id === item.id))]
+        setOrders(merged)
+        window.localStorage.setItem(localOrdersKey, JSON.stringify(merged))
+      } else setOrders(local)
     }
     load().catch(() => setOrders(readLocalOrders()))
     return () => { active = false }
@@ -30,76 +42,85 @@ export function OrderProvider({ children }) {
   useEffect(() => {
     const handleOrderUpdate = (event) => {
       const incoming = event.detail
-      if (!incoming?.id) return
-      setOrders((current) => incoming.deleted
-        ? current.filter((order) => order.id !== incoming.id)
-        : [incoming, ...current.filter((order) => order.id !== incoming.id)])
+      if (Array.isArray(incoming?.orders)) {
+        setOrders(incoming.orders)
+      } else if (incoming?.clearAll) {
+        setOrders([])
+      } else if (incoming?.id) {
+        setOrders((current) => incoming.deleted
+          ? current.filter((order) => order.id !== incoming.id)
+          : [incoming, ...current.filter((order) => order.id !== incoming.id)])
+      }
     }
     window.addEventListener('orders_updated', handleOrderUpdate)
-    return () => window.removeEventListener('orders_updated', handleOrderUpdate)
+    const handleStorage = (event) => {
+      if (event.key !== localOrdersKey) return
+      setOrders(event.newValue ? JSON.parse(event.newValue) : [])
+    }
+    window.addEventListener('storage', handleStorage)
+    const channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(channelName) : null
+    if (channel) channel.onmessage = (event) => {
+      if (Array.isArray(event.data?.orders)) setOrders(event.data.orders)
+    }
+    return () => {
+      window.removeEventListener('orders_updated', handleOrderUpdate)
+      window.removeEventListener('storage', handleStorage)
+      channel?.close()
+    }
   }, [])
 
   const createOrder = useCallback(async (payload) => {
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try {
+      const result = await supabase.auth.getUser()
+      user = result.data?.user || null
+    } catch (error) {
+      console.warn('[orders] auth lookup unavailable:', error)
+    }
+    const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`
     const newOrder = {
-      id: payload.id || `local-${Date.now()}`,
+      id: orderId,
       user_id: user?.id,
       customer_name: payload.customer_name || payload.full_name || 'Guest Customer',
       customer_email: payload.customer_email || user?.email || '',
-      total_amount: payload.total_amount ?? payload.total_dh ?? 0,
+      phone: payload.phone || '',
+      address: payload.address || payload.shipping_address || payload.delivery_address || '',
+      city: payload.city || '',
       items: payload.items || [],
-      shipping_address: payload.shipping_address || payload.delivery_address || '',
+      subtotal: payload.subtotal ?? payload.subtotal_dh ?? 0,
+      total_amount: payload.total_amount ?? payload.total_dh ?? 0,
       status: 'Pending Confirmation',
       created_at: new Date().toISOString(),
-      subtotal_dh: payload.subtotal_dh,
+      shipping_address: payload.shipping_address || payload.delivery_address || payload.address || '',
+      subtotal_dh: payload.subtotal_dh ?? payload.subtotal,
       shipping_fee_dh: payload.shipping_fee_dh,
-      total_dh: payload.total_dh,
-      city: payload.city,
-      delivery_address: payload.delivery_address,
-      shipping_address: payload.shipping_address || payload.delivery_address,
-      phone: payload.phone,
+      total_dh: payload.total_dh ?? payload.total_amount,
+      delivery_address: payload.delivery_address || payload.address,
       payment_method: payload.payment_method,
       postal_code: payload.postal_code,
     }
-    let order = newOrder
-    let { data, error } = await supabase.from('orders').insert(newOrder).select().single()
-    if (error) {
-      const legacyRecord = {
-        id: newOrder.id,
-        user_id: newOrder.user_id,
-        items: newOrder.items,
-        subtotal_dh: newOrder.subtotal_dh,
-        shipping_fee_dh: newOrder.shipping_fee_dh,
-        total_dh: newOrder.total_dh,
-        city: newOrder.city,
-        delivery_address: newOrder.shipping_address,
-        phone: newOrder.phone,
-        payment_method: newOrder.payment_method,
-        customer_name: newOrder.customer_name,
-        customer_email: newOrder.customer_email,
-        postal_code: newOrder.postal_code,
-        status: newOrder.status,
-        created_at: newOrder.created_at,
-      }
-      const retry = await supabase.from('orders').insert(legacyRecord).select().single()
-      data = retry.data
-      error = retry.error
-    }
-    if (!error && data) order = { ...newOrder, ...data, customer_name: newOrder.customer_name, customer_email: newOrder.customer_email }
+    let updatedOrders = []
     setOrders((current) => {
-      const next = [order, ...current.filter((item) => item.id !== order.id)]
-      try {
-        const local = JSON.stringify(next)
-        window.localStorage.setItem(localOrdersKey, local)
-        window.localStorage.setItem(legacyLocalOrdersKey, local)
-      } catch {
-        // Local persistence is optional when browser storage is unavailable.
-      }
-      return next
+      updatedOrders = [newOrder, ...current.filter((item) => item.id !== newOrder.id)]
+      return updatedOrders
     })
-    window.dispatchEvent(new CustomEvent('orders_updated', { detail: order }))
-    window.dispatchEvent(new CustomEvent('order:created', { detail: order }))
-    return order
+    try {
+      window.localStorage.setItem(localOrdersKey, JSON.stringify(updatedOrders))
+      const channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(channelName) : null
+      channel?.postMessage({ orders: updatedOrders })
+      channel?.close()
+    } catch (error) {
+      console.warn('[orders] local persistence unavailable:', error)
+    }
+    window.dispatchEvent(new CustomEvent('orders_updated', { detail: { orders: updatedOrders } }))
+    window.dispatchEvent(new CustomEvent('order:created', { detail: newOrder }))
+    try {
+      const { error } = await supabase.from('orders').insert(newOrder).select().single()
+      if (error) console.warn('[orders] remote insert rejected; local order retained:', error.message)
+    } catch (error) {
+      console.warn('[orders] remote insert unavailable; local order retained:', error)
+    }
+    return newOrder
   }, [])
 
   const updateOrder = useCallback(async (id, changes) => {
@@ -128,7 +149,6 @@ export function OrderProvider({ children }) {
     setOrders([])
     try {
       window.localStorage.removeItem(localOrdersKey)
-      window.localStorage.removeItem(legacyLocalOrdersKey)
     } catch {
       // Local persistence is optional when browser storage is unavailable.
     }

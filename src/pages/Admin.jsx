@@ -229,6 +229,26 @@ function AdminContent() {
       supabase.removeChannel(channel)
     }
   }, [isAdmin])
+  useEffect(() => {
+    const applyOrders = (nextOrders) => {
+      if (Array.isArray(nextOrders)) window.dispatchEvent(new CustomEvent('orders_updated', { detail: { orders: nextOrders } }))
+    }
+    const handleStorage = (event) => {
+      if (event.key !== 'maison_orders') return
+      try {
+        applyOrders(event.newValue ? JSON.parse(event.newValue) : [])
+      } catch (error) {
+        console.warn('[admin orders] ignored invalid cross-tab payload:', error)
+      }
+    }
+    const channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('maison_orders_channel') : null
+    if (channel) channel.onmessage = (event) => applyOrders(event.data?.orders)
+    window.addEventListener('storage', handleStorage)
+    return () => {
+      window.removeEventListener('storage', handleStorage)
+      channel?.close()
+    }
+  }, [])
 
   const filteredOrders = useMemo(() => {
     const query = orderQuery.trim().toLowerCase()

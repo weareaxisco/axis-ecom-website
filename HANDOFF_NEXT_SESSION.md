@@ -1,176 +1,196 @@
-# Next-session handoff: investigate and finish CI failure
+# Next-session handoff: Admin order operations and synchronization
 
 ## Copy/paste onboarding prompt
 
 You are continuing work on `C:\Users\abder\Desktop\axis-ecom-website`, repository
 `weareaxisco/axis-ecom-website`.
 
-The user showed a screenshot of several recent commits with red GitHub check
-failures (`1/2` and one `0/2`) and asked for the failures to be investigated and
-fixed. The CI workflow is [.github/workflows/ci.yml](./.github/workflows/ci.yml)
-and runs:
+The project is a React/Vite luxury jewelry storefront backed by Supabase. The
+latest work focused on making Admin > Operations > MY ORDERS use one canonical
+order collection, support cross-browser synchronization, and provide order
+management actions.
+
+The latest local commit is:
 
 ```text
-npm ci
-npm run lint
-npm run test
-npm run build
-npx playwright install --with-deps chromium
-npm run test:e2e
+d1dee08 fix(admin): remove legacy mock seed orders, bind admin directly to OrderContext, and add purge all orders action
 ```
 
-## What has already been investigated
-
-The local worktree is intentionally dirty and contains the user's/current
-development changes. Do **not** reset, checkout, clean, or revert unrelated
-changes. Preserve all existing modifications.
-
-The important finding was a real lint error in
-[src/components/WhatsAppConcierge.jsx](./src/components/WhatsAppConcierge.jsx):
-the component returned `null` for non-approved routes before calling
-`useSiteConfig()` and `useSiteConfigSettings()`. This violated React's Rules of
-Hooks because the hooks were conditional across renders.
-
-That issue has already been fixed by moving both context hook calls above the
-`isApprovedRoute` guard. Keep this fix unless a later test proves it needs
-adjustment:
-
-```jsx
-const { config } = useSiteConfig()
-const { siteConfig } = useSiteConfigSettings()
-const isApprovedRoute = whatsappRoutes.includes(location.pathname)
-  || location.pathname.startsWith('/product/')
-if (!isApprovedRoute) return null
-```
-
-The phone selection currently prioritizes the configured WhatsApp number:
-
-```jsx
-const phone = (
-  siteConfig.whatsapp_number
-  || config.whatsapp_number
-  || siteConfig.contact_phone
-  || '212600000000'
-).replace(/\D/g, '')
-```
-
-Do not remove the approved-route behavior or the route-aware message behavior.
-
-## Local validation already completed
-
-Using the existing installed dependencies:
-
-- `npm.cmd run lint` passed with exit code 0. It still reports non-blocking
-  warnings, mainly Fast Refresh/effect warnings and duplicate translation keys.
-- `npm.cmd run test` passed: 7 test files, 16 tests.
-- `npm.cmd run build` passed with Vite.
-- `npm.cmd run test:e2e` passed: all 4 Playwright tests.
-- `git diff --check` completed without whitespace errors.
-
-The first local npm commands used `npm` and were blocked by this Windows
-execution-policy issue; use `npm.cmd` in PowerShell:
+Do not push automatically. Do not reset, checkout, clean, or revert unrelated
+changes. Start by inspecting:
 
 ```text
-npm.ps1 cannot be loaded because running scripts is disabled
+git status --short
+git log -5 --oneline
 ```
 
-An additional `npm.cmd ci --ignore-scripts` attempt was blocked by Windows
-locking the native file
-`node_modules/@rolldown/binding-win32-x64-msvc/rolldown-binding.win32-x64-msvc.node`
-(`EPERM` while unlinking). This is an environment/file-lock issue, not a
-reported dependency or lockfile failure. Do not delete the repository or
-node_modules broadly. If a clean install is required, inspect the locking
-process first and use a narrowly scoped, safe approach.
+## Current architecture
 
-## Current worktree warning
+### OrderContext
 
-At handoff time, these files were modified or untracked. They may include
-intentional user changes and must be preserved:
+[src/context/OrderContext.jsx](./src/context/OrderContext.jsx) is the canonical
+order state and persistence layer.
+
+It currently provides:
+
+- `orders`
+- `createOrder`
+- `updateOrder`
+- `deleteOrder`
+- `clearAllOrders`
+- `placeOrder` as an alias for `createOrder`
+
+Order loading combines Supabase rows with locally persisted orders. The local
+storage keys currently supported are:
+
+- `axis-orders`
+- legacy compatibility key `maison_orders`
+
+`createOrder()` normalizes customer identity, totals, items, shipping data,
+status, and timestamps; attempts Supabase insertion; updates React state; writes
+the current order collection to local storage; and dispatches:
+
+- `orders_updated`
+- legacy `order:created`
+
+`updateOrder()` persists changes to Supabase, updates context state, and
+dispatches `orders_updated`.
+
+`deleteOrder()` removes one order from Supabase/state/local storage and
+dispatches an event.
+
+`clearAllOrders()` attempts a bulk Supabase deletion, clears context state and
+both local-storage keys, then dispatches an event with `{ clearAll: true }`.
+It intentionally clears the UI/local state even when the remote delete reports
+an error, then surfaces that error to the caller.
+
+### Admin
+
+[src/pages/Admin.jsx](./src/pages/Admin.jsx) now:
+
+- Reads `orders` directly from `useOrderContext()`.
+- Does not initialize mock orders.
+- Filters orders by order reference, raw ID, customer name, phone, email, and
+  city.
+- Provides rows-per-page controls (`5`, `10`, `20`, `50`, `ALL`).
+- Provides previous/next pagination.
+- Shows dynamic order counts from the context collection.
+- Provides item preview, edit, and delete actions.
+- Provides the red `Purge All Orders` action with confirmation text:
+  `Wipe all orders permanently?`
+- Uses Supabase Realtime INSERT subscription and 10-second polling fallback.
+- Feeds fetched/realtime orders into the provider through `orders_updated`.
+
+The item preview links to `/product/:id`. The edit modal updates customer name,
+phone, address, city, and status.
+
+### Checkout
+
+[src/pages/Checkout.jsx](./src/pages/Checkout.jsx) calls `createOrder()` with
+the checkout snapshot, including customer name/email, items, totals, address,
+city, phone, postal code, and payment method. It clears the checkout draft and
+cart after submission and displays the immutable order snapshot on confirmation.
+
+## Important current behavior and risks
+
+1. **Supabase schema compatibility**
+
+   The order table has historically used columns such as:
+
+   - `subtotal_dh`
+   - `shipping_fee_dh`
+   - `total_dh`
+   - `delivery_address`
+   - `city`
+   - `phone`
+   - `payment_method`
+   - `status`
+
+   A later migration adds `customer_name`, `customer_email`, and `postal_code`.
+   `OrderContext.createOrder()` first attempts the normalized payload and retries
+   with a legacy-compatible payload if insertion fails. Verify any schema
+   changes against `supabase/schema.sql` and migrations before modifying this.
+
+2. **Status format**
+
+   Existing data may contain either `pending_confirmation` or
+   `Pending Confirmation`. Preserve compatibility when rendering or updating
+   status values.
+
+3. **Realtime duplication**
+
+   `OrderProvider` listens for `orders_updated`, while Admin also receives
+   Supabase Realtime/polling results and dispatches those events. Any future
+   synchronization work must deduplicate by `order.id` and avoid event loops.
+
+4. **Local storage semantics**
+
+   Local storage is a fallback, not a replacement for Supabase. Do not silently
+   discard remote orders when a query returns an empty result or temporarily
+   fails. Keep error handling explicit and preserve the existing fallback
+   behavior.
+
+5. **Provider fallback**
+
+   `useOrderContext()` has a fallback object for tests/components rendered
+   without `OrderProvider`. If adding a context method, update that fallback as
+   well.
+
+6. **Repository naming**
+
+   There is no `src/pages/AdminInventory.jsx` in this repository. Inventory table
+   behavior is implemented in
+   [src/components/AdminProductTable.jsx](./src/components/AdminProductTable.jsx).
+
+## Relevant recent commits
 
 ```text
-QA_ACCEPTANCE_CHECKLIST.md       (deleted in worktree; do not restore/revert blindly)
-index.html
-package-lock.json
-package.json
-qa_actionable.md
-src/App.jsx
-src/components/AdminAnalytics.jsx
-src/components/AdminProductTable.jsx
-src/components/GlobalLoader.jsx
-src/components/Hero.jsx
-src/components/LoginDrawer.jsx
-src/components/Navbar.jsx
-src/components/ProductCard.jsx
-src/components/ProductCatalog.jsx
-src/components/ResendVerificationModal.jsx
-src/components/SortFilterDrawer.jsx
-src/components/WhatsAppConcierge.jsx
-src/index.css
-src/locales/en.js
-src/locales/fr.js
-src/pages/Admin.jsx
-src/pages/Catalog.jsx
-qa_acceptance_checklist_v2.md
-test-results/
+d1dee08  Remove legacy mock orders, bind Admin to OrderContext, add purge action
+3d3b928  Add Admin order pagination, preview, edit, and delete capabilities
+9c9b057  Add Supabase Realtime subscription and polling fallback
+3ce29c5  Add resilient Admin query fallbacks
+de6db7b  Centralize order persistence and Admin/Account synchronization
 ```
 
-Start with `git status --short` and inspect before editing. Do not assume all
-changes belong to the previous agent.
+## Verification commands
 
-## Project context
+Use `npm.cmd` in PowerShell because Windows execution policy may block
+`npm.ps1`:
 
-Read [PROJECT_PLAN.md](./PROJECT_PLAN.md) before making broader changes. It is
-the project blueprint for a white-label luxury jewelry storefront using React,
-Vite, Supabase, React Router, Vitest, Playwright, Tailwind, and `lucide-react`.
-The plan marks the major product, catalog, admin, localization, footer,
-analytics, RBAC, Ameex, and QA work as implemented, while noting a few
-follow-up/QA areas.
+```text
+npm.cmd run lint
+npm.cmd run test
+npm.cmd run build
+git diff --check
+```
 
-Relevant repository conventions:
+Expected baseline:
 
-- Use existing scripts and tests; do not add a new test/build tool.
-- Prefer precise, surgical edits.
-- Keep public storefront access separate from protected admin/RBAC flows.
-- Preserve dynamic site configuration, theme tokens, FR/EN localization, and
-  responsive luxury UI behavior.
-- Use `lucide-react` for UI icons.
-- Do not expose Supabase secrets or credentials.
-- Use `apply_patch` for manual edits.
+- Tests: 7 files, 16 tests passing.
+- Build: succeeds with an existing Vite chunk-size warning.
+- Lint: succeeds with existing warnings, including Fast Refresh/effect and
+  duplicate locale-key warnings.
 
-## Required next steps
+## Recommended next-session checks
 
-1. Inspect `git status --short`, the current diff, and the latest commits.
-2. Confirm the `WhatsAppConcierge` hook-order fix is still present.
-3. If GitHub CLI authentication is available, run:
+1. Inspect `git status --short` and confirm no unexpected worktree changes.
+2. Read [OrderContext.jsx](./src/context/OrderContext.jsx) and
+   [Admin.jsx](./src/pages/Admin.jsx) before modifying synchronization.
+3. Verify that a normal checkout order:
+   - appears once in Admin without a tab switch,
+   - persists after reload,
+   - appears in another browser through Realtime or within 10 seconds through
+     polling.
+4. Verify that editing an order updates both the table and Supabase.
+5. Verify that deleting one order removes it from context, local storage, and
+   Supabase.
+6. Verify that purge confirmation clears the table to `0 orders` and does not
+   leave stale rows after polling.
+7. Run the existing validation commands before committing.
 
-   ```text
-   gh run list --limit 10
-   ```
+## Definition of done for the next session
 
-   Then inspect the failing run/job/log to verify whether the remote failure
-   was the hook lint error or another issue.
-4. If GitHub CLI is not authenticated, state that clearly and continue with the
-   local CI-equivalent checks rather than asking the user to discard changes.
-5. Run the smallest relevant validation first, then the complete existing
-   sequence if needed:
-
-   ```text
-   npm.cmd run lint
-   npm.cmd run test
-   npm.cmd run build
-   npm.cmd run test:e2e
-   ```
-
-6. Investigate any remaining non-zero result. Warnings alone are not a failure
-   unless the CI configuration treats them as errors.
-7. Review the final diff and report exactly what changed and which checks
-   passed. Do not commit unless the user explicitly asks for a commit.
-
-## Definition of done
-
-The next session is complete when the actual remote failure is identified (or
-remote access is explicitly unavailable), the smallest necessary code change is
-implemented without disturbing unrelated worktree changes, and the relevant
-local checks pass. The final response should link to changed files using
-absolute workspace paths and mention any environment-only limitation such as
-GitHub authentication or Windows file locking.
+The next session should preserve the canonical OrderContext architecture,
+maintain realtime/polling reliability, avoid reintroducing mock orders or
+duplicate Admin state, and leave the repository with passing lint/tests/build
+checks. Only commit or push when explicitly requested by the user.
