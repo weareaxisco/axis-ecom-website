@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, Heart } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useSiteConfig } from '../context/ConfigContext'
@@ -35,6 +35,8 @@ export default function ProductCard({ product, onProductClick }) {
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
   const [timerKey, setTimerKey] = useState(0)
+  const cardRef = useRef(null)
+  const touchStartX = useRef(null)
   const images = useMemo(() => normalizeImages(product), [product.images, product.main_image_url, product.hover_image_url])
   const gallery = images.length ? images : [cardImageFallback]
   const categoryName = getCategoryName(product)
@@ -55,6 +57,17 @@ export default function ProductCard({ product, onProductClick }) {
     return () => window.clearInterval(interval)
   }, [gallery.length, isHovered, timerKey])
 
+  useEffect(() => {
+    const element = cardRef.current
+    if (!element || typeof IntersectionObserver === 'undefined') return undefined
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setIsHovered(true)
+      else setIsHovered(false)
+    }, { threshold: 0.65 })
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+
   const changeImage = (direction) => {
     setTimerKey((key) => key + 1)
     setActiveImageIndex(
@@ -64,14 +77,15 @@ export default function ProductCard({ product, onProductClick }) {
 
   return (
     <article
-      className="group w-full max-w-full overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-primary)] transition-all duration-300 ease-out hover:shadow-lg"
+      ref={cardRef}
+      className="group mx-auto w-[92vw] max-w-full overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-primary)] transition-all duration-300 ease-out hover:shadow-lg md:w-full"
       onClick={() => onProductClick ? onProductClick(product) : navigate(`/product/${product.id}`)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onFocus={() => setIsHovered(true)}
       onBlur={() => setIsHovered(false)}
     >
-      <div className="relative aspect-[3/4] w-full max-w-full overflow-hidden bg-[var(--surface-primary)]">
+      <div className="relative aspect-[3/4] w-full max-w-full overflow-hidden bg-[var(--surface-primary)]" onTouchStart={(event) => { touchStartX.current = event.touches[0].clientX }} onTouchEnd={(event) => { if (touchStartX.current === null) return; const distance = event.changedTouches[0].clientX - touchStartX.current; if (Math.abs(distance) > 35 && gallery.length > 1) changeImage(distance < 0 ? 1 : -1); touchStartX.current = null }}>
         {product.is_new && (
           <span className="absolute left-4 top-4 z-10 text-[10px] uppercase tracking-[0.2em] text-white">
         {t('new')}
@@ -115,7 +129,7 @@ export default function ProductCard({ product, onProductClick }) {
                 event.stopPropagation()
                 changeImage(-1)
               }}
-              className="absolute left-3 top-1/2 z-10 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center text-white opacity-0 transition-all duration-300 ease-out hover:text-[var(--accent-gold)] group-hover:opacity-100"
+              className="absolute left-3 top-1/2 z-10 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center text-white opacity-100 transition-all duration-300 ease-out hover:text-[var(--accent-gold)] md:opacity-0 md:group-hover:opacity-100"
             >
               <ChevronLeft size={19} strokeWidth={1.25} />
             </button>
@@ -126,7 +140,7 @@ export default function ProductCard({ product, onProductClick }) {
                 event.stopPropagation()
                 changeImage(1)
               }}
-              className="absolute right-3 top-1/2 z-10 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center text-white opacity-0 transition-all duration-300 ease-out hover:text-[var(--accent-gold)] group-hover:opacity-100"
+              className="absolute right-3 top-1/2 z-10 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center text-white opacity-100 transition-all duration-300 ease-out hover:text-[var(--accent-gold)] md:opacity-0 md:group-hover:opacity-100"
             >
               <ChevronRight size={19} strokeWidth={1.25} />
             </button>

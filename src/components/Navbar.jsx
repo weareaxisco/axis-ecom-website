@@ -131,25 +131,21 @@ export default function Navbar() {
 
   useEffect(() => {
     let lastScrollY = window.scrollY
-    let revealTimer
     const handleScroll = () => {
       const currentScrollY = window.scrollY
       const delta = currentScrollY - lastScrollY
-      if (Math.abs(delta) < 6 && currentScrollY > 20) return
+      if (Math.abs(delta) < 4) return
       setIsScrolled(currentScrollY > 20)
       setScrollY(currentScrollY)
       const nextDirection = delta < 0 ? 'up' : 'down'
       setScrollDirection(nextDirection)
       setIsDesktopHeaderVisible(currentScrollY <= 20 || nextDirection === 'up')
       lastScrollY = currentScrollY
-      window.clearTimeout(revealTimer)
-      revealTimer = window.setTimeout(() => setIsDesktopHeaderVisible(true), 220)
     }
 
     handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => {
-      window.clearTimeout(revealTimer)
       window.removeEventListener('scroll', handleScroll)
     }
   }, [])
