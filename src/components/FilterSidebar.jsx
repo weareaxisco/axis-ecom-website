@@ -10,7 +10,7 @@ const defaultGroups = [
 
 export default function FilterSidebar({ filters, onChange, onReset, mobile = false, categoryOptions, collectionOptions = [], tagOptions = [] }) {
   const groups = [
-    [defaultGroups[0][0], defaultGroups[0][1], categoryOptions?.length ? categoryOptions : defaultGroups[0][2]],
+    [defaultGroups[0][0], defaultGroups[0][1], categoryOptions || defaultGroups[0][2]],
     [defaultGroups[1][0], defaultGroups[1][1], collectionOptions],
     [defaultGroups[2][0], defaultGroups[2][1], tagOptions],
     ...defaultGroups.slice(3),

@@ -7,9 +7,11 @@ export default function TaxonomyInput({ label, value, options, onChange, onCreat
   const create = async () => {
     const name = draft.trim()
     if (!name) return
-    await onCreate(name)
-    setDraft('')
-    setCreating(false)
+    const created = await onCreate(name)
+    if (created) {
+      setDraft('')
+      setCreating(false)
+    }
   }
   return <label className="text-[10px] uppercase tracking-widest text-neutral-400">{label}
     <div className="mt-1 flex gap-2">

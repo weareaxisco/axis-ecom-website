@@ -48,11 +48,6 @@ export default function Catalog() {
     return () => { active = false }
   }, [])
   useEffect(() => {
-    supabase.from('categories').select('name_en').order('name_en').then(({ data }) => {
-        if (data?.length) setCategoryOptions(data.map((item) => item.name_en))
-    })
-  }, [])
-  useEffect(() => {
       const categories = new Set()
       const collections = new Set()
       const tags = new Set()
@@ -64,7 +59,7 @@ export default function Catalog() {
         const values = Array.isArray(product.tags) ? product.tags : product.tags ? [product.tags] : []
         values.forEach((tag) => tags.add(tag))
       })
-      setCategoryOptions((current) => [...new Set([...current, ...categories])].sort())
+      setCategoryOptions([...categories].sort())
       setCollectionOptions([...collections].sort())
       setTagOptions([...tags].sort())
   }, [products])

@@ -45,20 +45,26 @@ export default function AdminAddProductModal({ onClose, onCreated, initialProduc
   const createTaxonomy = async (type, name) => {
     const table = type === 'category' ? 'categories' : 'collections'
     const payload = type === 'category' ? { name_en: name } : { name }
+    const existing = type === 'category' ? categories : collections
+    if (existing.some((item) => item.toLowerCase() === name.toLowerCase())) {
+      setForm((current) => ({ ...current, [type]: existing.find((item) => item.toLowerCase() === name.toLowerCase()) }))
+      return true
+    }
     const { data, error: createError } = await supabase.from(table).insert(payload).select().single()
     if (createError) {
       setError(createError.message)
-      return
+      return false
     }
     if (type === 'category') {
       setCategoryRecords((current) => [...current, data])
-      setCategories((current) => [...current, name])
-      setForm((current) => ({ ...current, category: name }))
+      setCategories((current) => [...new Set([...current, data.name_en || name])])
+      setForm((current) => ({ ...current, category: data.name_en || name }))
     } else {
       setCollectionRecords((current) => [...current, data])
-      setCollections((current) => [...current, name])
-      setForm((current) => ({ ...current, collection: name }))
+      setCollections((current) => [...new Set([...current, data.name || name])])
+      setForm((current) => ({ ...current, collection: data.name || name }))
     }
+    return true
   }
   const submit = async (event) => {
     event.preventDefault()
