@@ -11,6 +11,8 @@ import AdminProductPreview from '../components/AdminProductPreview'
 const slugify = (value) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
 const sku = () => `MSN-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
 const emptyForm = { name: '', sku: '', category: '', collection: '', price_dh: '', stock: '0', description: '', images: [], tags: [], specifications: {} }
+const isMissingColumnError = (error, column) => error?.code === 'PGRST204' && error.message?.toLowerCase().includes(column)
+const categoryName = (item) => item.name_en || item.title || item.name
 
 export default function AdminProductEditor() {
   const { id } = useParams()
@@ -37,13 +39,19 @@ export default function AdminProductEditor() {
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
   const [taxonomies, setTaxonomies] = useState({ categories: [], collections: [] })
   useEffect(() => {
-    Promise.all([supabase.from('categories').select('id, name_en').order('name_en'), supabase.from('collections').select('id, name').order('name')]).then(([categoryResult, collectionResult]) => setTaxonomies({ categories: categoryResult.data?.map((item) => item.name_en) || [], collections: collectionResult.data?.map((item) => item.name) || [] }))
+    Promise.all([supabase.from('categories').select('*'), supabase.from('collections').select('*')]).then(([categoryResult, collectionResult]) => setTaxonomies({ categories: categoryResult.data?.map(categoryName).filter(Boolean).sort() || [], collections: collectionResult.data?.map((item) => item.name || item.title).filter(Boolean).sort() || [] }))
   }, [])
   const createTaxonomy = async (type, name) => {
     const slug = slugify(name)
     const table = type === 'category' ? 'categories' : 'collections'
-    const payload = type === 'category' ? { name, name_en: name, slug } : { name, slug }
-    const { error: createError } = await supabase.from(table).insert(payload)
+    const candidates = type === 'category' ? [{ name, name_en: name, title: name, slug }, { name_en: name, slug }, { title: name, slug }, { name, slug }] : [{ name, slug }, { title: name, slug }]
+    let createError
+    for (const payload of candidates) {
+      const result = await supabase.from(table).insert(payload)
+      createError = result.error
+      if (!createError) break
+      if (!['PGRST204', '42703'].includes(createError.code)) break
+    }
     if (createError) { setError(createError.message); return false }
     setTaxonomies((current) => ({ ...current, [type === 'category' ? 'categories' : 'collections']: [...current[type === 'category' ? 'categories' : 'collections'], name] }))
     setForm((current) => ({ ...current, [type]: name }))
@@ -54,8 +62,13 @@ export default function AdminProductEditor() {
     setSaving(true)
     setError('')
     const payload = { ...form, sku: form.sku.trim() || sku(), slug: slugify(form.name), price_dh: Number(form.price_dh), stock: Number(form.stock), images: form.images }
-    const query = editing ? supabase.from('products').update(payload).eq('id', id) : supabase.from('products').insert(payload)
-    const { error: saveError } = await query
+    const saveProduct = (data) => editing ? supabase.from('products').update(data).eq('id', id) : supabase.from('products').insert(data)
+    let saveError = (await saveProduct(payload)).error
+    if (isMissingColumnError(saveError, 'sku')) {
+      const withoutSku = { ...payload }
+      delete withoutSku.sku
+      saveError = (await saveProduct(withoutSku)).error
+    }
     setSaving(false)
     if (saveError) {
       setError(saveError.message)

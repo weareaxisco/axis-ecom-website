@@ -21,7 +21,7 @@ function replaceWithFallback(event) {
   }
 }
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, onProductClick }) {
   const { config } = useSiteConfig()
   const { t } = useLanguage()
   const { wishlistItems, addToWishlist, removeFromWishlist } = useWishlist()
@@ -62,7 +62,7 @@ export default function ProductCard({ product }) {
   return (
     <article
       className="group w-full max-w-full overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-primary)] transition-all duration-300 ease-out hover:shadow-lg"
-      onClick={() => navigate(`/product/${product.id}`)}
+      onClick={() => onProductClick ? onProductClick(product) : navigate(`/product/${product.id}`)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onFocus={() => setIsHovered(true)}
@@ -162,7 +162,11 @@ export default function ProductCard({ product }) {
           </p>
           <button
             type="button"
-            onClick={() => navigate(`/product/${product.id}`)}
+            onClick={(event) => {
+              event.stopPropagation()
+              if (onProductClick) onProductClick(product)
+              else navigate(`/product/${product.id}`)
+            }}
             className="absolute inset-x-0 flex h-10 items-center justify-center bg-black py-2.5 text-xs font-semibold uppercase tracking-widest text-white opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 dark:bg-white dark:text-black"
           >
             {t('discover')}
