@@ -15,6 +15,7 @@ import AdminAnalytics from '../components/AdminAnalytics'
 import AdminTaxonomyManager from '../components/AdminTaxonomyManager'
 import { adminRoles, getAllowedAdminTabs, getPrimaryAdminWorkspace, hasAdminPermission } from '../utils/adminAccess'
 import { supabase as analyticsSupabase } from '../supabaseClient'
+import { useOrderContext } from '../context/OrderContext'
 
 const orderReference = (id) => {
   const value = String(id || '')
@@ -55,6 +56,7 @@ const mockOrders = [
 
 function LoginGate({ onAuthorized }) {
   const { t } = useLanguage()
+  const { orders: contextOrders } = useOrderContext()
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const submit = async (event) => {
@@ -161,6 +163,16 @@ function AdminContent() {
     })
     return () => { active = false }
   }, [isAdmin])
+  useEffect(() => {
+    if (contextOrders.length) setOrders(contextOrders)
+  }, [contextOrders])
+  useEffect(() => {
+    const handleOrder = (event) => {
+      if (event.detail?.id) setOrders((current) => [event.detail, ...current.filter((order) => order.id !== event.detail.id)])
+    }
+    window.addEventListener('orders_updated', handleOrder)
+    return () => window.removeEventListener('orders_updated', handleOrder)
+  }, [])
   useEffect(() => {
     const handleOrderCreated = (event) => {
       if (event.detail?.id) setOrders((current) => current.some((order) => order.id === event.detail.id) ? current : [event.detail, ...current])

@@ -44,7 +44,7 @@ const onlineTimeline = ['Payment Confirmed', 'Crafting & Preparation', 'Dispatch
 export default function Checkout() {
   const { selectedItems: cartItems, subtotal, hasOnsiteOnly, clearSelectedItems } = useCart()
   const { t } = useLanguage()
-  const { placeOrder } = useOrderContext()
+  const { createOrder } = useOrderContext()
   const { user, updateUserProfile } = useAuth()
   const [cities, setCities] = useState(fallbackCities)
   const [step, setStep] = useState(1)
@@ -125,7 +125,7 @@ export default function Checkout() {
       const snapshot = { items: cartItems, subtotal, shippingFee, total, city: form.city, address: form.address, phone: form.phone, customer_name: form.fullName || user?.user_metadata?.full_name || 'Guest Customer', customer_email: user?.email || '' }
       let order
       try {
-        order = await placeOrder({ items: snapshot.items, subtotal_dh: snapshot.subtotal, shipping_fee_dh: snapshot.shippingFee, total_dh: snapshot.total, city: snapshot.city, delivery_address: snapshot.address, postal_code: form.postalCode, phone: snapshot.phone, customer_name: snapshot.customer_name, customer_email: snapshot.customer_email, payment_method: payment })
+        order = await createOrder({ items: snapshot.items, subtotal_dh: snapshot.subtotal, shipping_fee_dh: snapshot.shippingFee, total_dh: snapshot.total, total_amount: snapshot.total, city: snapshot.city, delivery_address: snapshot.address, shipping_address: snapshot.address, postal_code: form.postalCode, phone: snapshot.phone, customer_name: snapshot.customer_name, customer_email: snapshot.customer_email, payment_method: payment })
       } catch (error) {
         submissionError = error
         order = { ...snapshot, id: `local-${Date.now()}` }

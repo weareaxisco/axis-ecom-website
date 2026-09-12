@@ -7,8 +7,8 @@ const statuses = ['pending_confirmation', 'deposit_received', 'in_preparation', 
 const statusLabels = ['Pending Confirmation', 'Deposit Received', 'In Preparation', 'Dispatched via Ameex', 'Out for Delivery', 'Delivered']
 const money = (value) => `${Number(value || 0).toLocaleString()} DH`
 
-export default function OrderTracker({ userId }) {
-  const [orders, setOrders] = useState([])
+export default function OrderTracker({ userId, contextOrders = [] }) {
+  const [orders, setOrders] = useState(contextOrders)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -16,10 +16,17 @@ export default function OrderTracker({ userId }) {
     supabase.from('orders').select('*').eq('user_id', userId).order('created_at', { ascending: false }).then(({ data, error }) => {
       if (!active) return
       if (error) console.warn(`Order history unavailable: ${error.message}`)
-      setOrders(data || [])
+      setOrders(data?.length ? data : contextOrders.filter((order) => order.user_id === userId))
       setLoading(false)
     })
     return () => { active = false }
+  }, [userId, contextOrders])
+  useEffect(() => {
+    const update = (event) => {
+      if (event.detail?.user_id === userId || event.detail?.customer_email === '') setOrders((current) => [event.detail, ...current.filter((order) => order.id !== event.detail.id)])
+    }
+    window.addEventListener('orders_updated', update)
+    return () => window.removeEventListener('orders_updated', update)
   }, [userId])
 
   if (loading) return <p className="py-12 text-center text-sm text-neutral-500">Loading your private orders...</p>
