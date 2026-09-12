@@ -101,23 +101,23 @@ export function OrderProvider({ children }) {
       shipping_fee_dh: payload.shipping_fee_dh ?? 0,
       total_dh: payload.total_dh ?? payload.total_amount,
       delivery_address: payload.delivery_address || payload.address,
-      payment_method: payload.payment_method || 'cod',
+      payment_method: payload.payment_method || 'card',
       postal_code: payload.postal_code,
     }
     const databaseOrder = {
       id: newOrder.id,
-      ...(newOrder.user_id ? { user_id: newOrder.user_id } : {}),
+      user_id: newOrder.user_id || null,
       customer_name: newOrder.customer_name,
       customer_email: newOrder.customer_email,
       phone: newOrder.phone,
       delivery_address: newOrder.delivery_address,
       city: newOrder.city,
       postal_code: newOrder.postal_code,
-      payment_method: newOrder.payment_method,
+      payment_method: payload.payment_method || 'card',
       items: newOrder.items,
-      subtotal_dh: newOrder.subtotal_dh,
-      shipping_fee_dh: newOrder.shipping_fee_dh,
-      total_dh: newOrder.total_dh,
+      subtotal_dh: Number(newOrder.subtotal_dh || 0),
+      shipping_fee_dh: Number(newOrder.shipping_fee_dh || 0),
+      total_dh: Number(newOrder.total_dh || 0),
       status: newOrder.status,
       created_at: newOrder.created_at,
     }
@@ -148,8 +148,15 @@ export function OrderProvider({ children }) {
   }, [])
 
   const updateOrder = useCallback(async (id, changes) => {
-    const { data, error } = await supabase.from('orders').update(changes).eq('id', id).select().single()
-    const updated = data || { id, ...changes }
+    const updatePayload = {
+      customer_name: changes.customer_name,
+      phone: changes.phone,
+      delivery_address: changes.delivery_address,
+      city: changes.city,
+      status: changes.status,
+    }
+    const { data, error } = await supabase.from('orders').update(updatePayload).eq('id', id).select().single()
+    const updated = data || { id, ...updatePayload }
     setOrders((current) => current.map((order) => order.id === id ? { ...order, ...updated } : order))
     window.dispatchEvent(new CustomEvent('orders_updated', { detail: updated }))
     if (error) throw new Error(error.message)
