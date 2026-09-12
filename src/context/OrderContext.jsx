@@ -136,11 +136,8 @@ export function OrderProvider({ children }) {
     window.dispatchEvent(new CustomEvent('orders_updated', { detail: newOrder }))
     window.dispatchEvent(new CustomEvent('order:created', { detail: newOrder }))
     try {
-      const { data, error } = await supabase.from('orders').insert(databaseOrder).select().single()
+      const { error } = await supabase.from('orders').insert([databaseOrder])
       if (error) console.warn('[orders] remote insert rejected; local order retained:', error.message)
-      else if (data) {
-        setOrders((current) => current.map((order) => order.id === newOrder.id ? { ...order, ...data } : order))
-      }
     } catch (error) {
       console.warn('[orders] remote insert unavailable; local order retained:', error)
     }
