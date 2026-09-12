@@ -56,7 +56,7 @@
   - Add **+ Add Specification** button to create arbitrary attributes (*"Metal"*, *"Carat Weight"*, *"Gemstone"*).
   - Render specs inside the live product preview accordion.
 
-- [ ] **3.3 Real-Time Live Preview Frame (`src/components/AdminProductPreview.jsx`)**
+- [x] **3.3 Real-Time Live Preview Frame (`src/components/AdminProductPreview.jsx`)**
   - Render a live Maison product card and detail panel reflecting left-form state in real-time.
   - Include a manual **Refresh Preview** fallback button.
 
@@ -65,11 +65,11 @@
 ## Phase 4: Markdown Description Toolbar & Image Reordering
 *Goal: Add rich text description formatting and drag-and-drop photo management.*
 
-- [ ] **4.1 Markdown Description Toolbar (`src/components/MarkdownToolbar.jsx`)**
+- [x] **4.1 Markdown Description Toolbar (`src/components/MarkdownToolbar.jsx`)**
   - Mount formatting toolbar above description input: `Heading`, `Bold`, `Italic`, `Link`, `Blockquote`, `Numbered List`, `Bulleted List`, `Horizontal Rule`.
   - Format selected text or insert Markdown tags at the cursor position.
 
-- [ ] **4.2 Drag-and-Drop Image Reordering Canvas (`src/components/ImageUploader.jsx`)**
+- [x] **4.2 Drag-and-Drop Image Reordering Canvas (`src/components/ImageUploader.jsx`)**
   - Create dropzone accepting file drops, local browsing, and direct URL strings.
   - Implement pointer drag-to-swap reordering for thumbnail cards with highlight drop indicators.
   - Highlight position `0` as **[ COVER IMAGE ]**.
