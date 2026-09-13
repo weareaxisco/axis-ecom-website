@@ -7,7 +7,14 @@ import { useLanguage } from '../context/LanguageContext'
 const location = 'Maison Diamiss — Kénitra'
 const slotGroups = [{ label: 'Matin', values: ['10:30', '11:30'] }, { label: 'Après-midi', values: ['14:30', '16:00', '17:30'] }]
 const focuses = [{ key: 'highJewelryFocus', value: 'High Jewelry' }, { key: 'bespokeEngagementFocus', value: 'Bespoke Engagement' }, { key: 'watchComplicationsFocus', value: 'Watch Complications' }]
-const generateUUID = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+const generateUUID = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
+    const random = (Math.random() * 16) | 0
+    const value = character === 'x' ? random : (random & 0x3) | 0x8
+    return value.toString(16)
+  })
+}
 
 export default function Concierge() {
   const initialForm = { location, date: '', time: '10:30', focus: focuses[0].value, fullName: '', email: '', phone: '', notes: '' }

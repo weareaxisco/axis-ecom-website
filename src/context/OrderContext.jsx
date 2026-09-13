@@ -4,7 +4,14 @@ import { supabase } from '../supabaseClient'
 const OrderContext = createContext(null)
 const localOrdersKey = 'maison_orders'
 const channelName = 'maison_orders_channel'
-const generateUUID = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+const generateUUID = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
+    const random = (Math.random() * 16) | 0
+    const value = character === 'x' ? random : (random & 0x3) | 0x8
+    return value.toString(16)
+  })
+}
 const readLocalOrders = () => {
   try {
     const value = JSON.parse(window.localStorage.getItem(localOrdersKey) || '[]')
