@@ -4,6 +4,7 @@ import { useSiteConfigSettings } from '../context/SiteConfigContext'
 import { useLanguage } from '../context/LanguageContext'
 
 const statuses = ['pending_confirmation', 'requested', 'confirmed', 'rescheduled', 'completed', 'cancelled']
+const kenitraSlots = ['10:30', '11:30', '14:30', '16:00', '17:30']
 
 export default function AdminAppointments({ onError, onCount }) {
   const { t } = useLanguage()
@@ -13,6 +14,7 @@ export default function AdminAppointments({ onError, onCount }) {
   const [rescheduling, setRescheduling] = useState(null)
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
+  const [status, setStatus] = useState('rescheduled')
 
   useEffect(() => {
     let active = true
@@ -73,6 +75,7 @@ export default function AdminAppointments({ onError, onCount }) {
     setRescheduling(appointment)
     setDate(appointment.appointment_date)
     setTime(appointment.time_slot)
+    setStatus(appointment.status || 'pending_confirmation')
   }
 
   const saveReschedule = async (event) => {
@@ -80,16 +83,16 @@ export default function AdminAppointments({ onError, onCount }) {
     const { error } = await supabase.from('appointments').update({
       appointment_date: date,
       time_slot: time,
-      status: 'rescheduled',
+      status,
     }).eq('id', rescheduling.id)
     if (error) {
       onError(error.message)
       return
     }
     setAppointments((current) => current.map((item) => item.id === rescheduling.id
-      ? { ...item, appointment_date: date, time_slot: time, status: 'rescheduled' }
+      ? { ...item, appointment_date: date, time_slot: time, status }
       : item))
-    syncCalendar({ ...rescheduling, appointment_date: date, time_slot: time, status: 'rescheduled' }, 'rescheduled')
+    syncCalendar({ ...rescheduling, appointment_date: date, time_slot: time, status }, status)
     setRescheduling(null)
   }
 
@@ -134,8 +137,12 @@ export default function AdminAppointments({ onError, onCount }) {
             <label className="mt-6 block text-[10px] uppercase tracking-widest text-neutral-400">{t('date')}
               <input required type="date" value={date} onChange={(event) => setDate(event.target.value)} className="mt-2 w-full border border-neutral-800 bg-neutral-900 px-3 py-3 text-sm" />
             </label>
-            <label className="mt-4 block text-[10px] uppercase tracking-widest text-neutral-400">{t('time')}
-              <input required type="time" value={time} onChange={(event) => setTime(event.target.value)} className="mt-2 w-full border border-neutral-800 bg-neutral-900 px-3 py-3 text-sm" />
+            <fieldset className="mt-4">
+              <legend className="text-[10px] uppercase tracking-widest text-neutral-400">{t('time')}</legend>
+              <div className="mt-2 flex flex-wrap gap-2">{kenitraSlots.map((slot) => <button key={slot} type="button" onClick={() => setTime(slot)} className={`border px-3 py-2 text-xs ${time === slot ? 'border-amber-500 text-amber-300' : 'border-neutral-800 text-neutral-400'}`}>{slot}</button>)}</div>
+            </fieldset>
+            <label className="mt-4 block text-[10px] uppercase tracking-widest text-neutral-400">Status
+              <select value={status} onChange={(event) => setStatus(event.target.value)} className="mt-2 w-full border border-neutral-800 bg-neutral-900 px-3 py-3 text-sm">{statuses.map((value) => <option key={value}>{value}</option>)}</select>
             </label>
             <button type="submit" className="mt-6 w-full bg-amber-500 py-3 text-xs font-semibold uppercase tracking-widest text-black">{t('saveReschedule')}</button>
           </form>

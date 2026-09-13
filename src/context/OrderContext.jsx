@@ -141,6 +141,7 @@ export function OrderProvider({ children }) {
       total_dh: Number(newOrder.total_dh || 0),
       status: newOrder.status,
       stock_decremented: false,
+      stock_restored: false,
       created_at: newOrder.created_at,
     }
     setOrders((current) => {
@@ -164,12 +165,13 @@ export function OrderProvider({ children }) {
         await Promise.all(stockItems.map(async (item) => {
         const targetId = String(item.id)
         const { error: rpcError } = await supabase.rpc('decrement_product_stock', { p_id: targetId, qty: item.quantity })
+        let newStock
         if (rpcError) {
           console.warn('[orders] stock RPC failed; using direct update fallback:', rpcError.message)
           const { data: product, error: stockError } = await supabase.from('products').select('stock').eq('id', targetId).maybeSingle()
           if (stockError) throw stockError
           if (!product) return
-          const newStock = Math.max(0, Number(product.stock) - item.quantity)
+          newStock = Math.max(0, Number(product.stock) - item.quantity)
           const { error: updateError } = await supabase.from('products').update({ stock: newStock }).eq('id', targetId)
           if (updateError) throw updateError
         }
@@ -191,6 +193,11 @@ export function OrderProvider({ children }) {
       city: changes.city,
       status: changes.status,
     }
+    if (changes.items) updatePayload.items = changes.items
+    if (changes.subtotal_dh !== undefined) updatePayload.subtotal_dh = Number(changes.subtotal_dh)
+    if (changes.total_dh !== undefined) updatePayload.total_dh = Number(changes.total_dh)
+    if (changes.stock_decremented !== undefined) updatePayload.stock_decremented = changes.stock_decremented
+    if (changes.stock_restored !== undefined) updatePayload.stock_restored = changes.stock_restored
     const { data, error } = await supabase.from('orders').update(updatePayload).eq('id', id).select().single()
     const updated = data || { id, ...updatePayload }
     setOrders((current) => current.map((order) => order.id === id ? { ...order, ...updated } : order))
