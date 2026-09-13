@@ -4,12 +4,7 @@ import { supabase } from '../supabaseClient'
 const OrderContext = createContext(null)
 const localOrdersKey = 'maison_orders'
 const channelName = 'maison_orders_channel'
-const generateUuid = () => globalThis.crypto?.randomUUID?.()
-  || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
-    const random = Math.random() * 16 | 0
-    const value = character === 'x' ? random : (random & 0x3 | 0x8)
-    return value.toString(16)
-  })
+const generateUUID = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `id-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
 const readLocalOrders = () => {
   try {
     const value = JSON.parse(window.localStorage.getItem(localOrdersKey) || '[]')
@@ -102,7 +97,7 @@ export function OrderProvider({ children }) {
         console.warn('[orders] stock check unavailable:', error.message)
       }
     }
-    const orderId = generateUuid()
+    const orderId = generateUUID()
     const newOrder = {
       id: orderId,
       user_id: user?.id,
@@ -157,18 +152,16 @@ export function OrderProvider({ children }) {
     try {
       const { error } = await supabase.from('orders').insert([databaseOrder])
       if (error) console.warn('[orders] remote insert rejected; local order retained:', error.message)
-      else {
-        await Promise.all(stockItems.map(async (item) => {
-          const { data, error: stockError } = await supabase.from('products').select('stock').eq('id', item.id).maybeSingle()
-          if (stockError) throw stockError
-          if (data) {
-            const newStock = Math.max(0, Number(data.stock) - item.quantity)
-            const { error } = await supabase.from('products').update({ stock: newStock }).eq('id', item.id)
-            if (error) throw error
-            window.dispatchEvent(new CustomEvent('inventory_updated', { detail: { productId: item.id, stock: newStock } }))
-          }
-        }))
-      }
+      else await Promise.all(stockItems.map(async (item) => {
+        const targetId = String(item.id)
+        const { data: product, error: stockError } = await supabase.from('products').select('stock').eq('id', targetId).maybeSingle()
+        if (stockError) throw stockError
+        if (!product) return
+        const newStock = Math.max(0, Number(product.stock) - item.quantity)
+        const { error: updateError } = await supabase.from('products').update({ stock: newStock }).eq('id', targetId)
+        if (updateError) throw updateError
+        window.dispatchEvent(new CustomEvent('inventory_updated', { detail: { productId: targetId, stock: newStock } }))
+      }))
     } catch (error) {
       console.warn('[orders] remote insert unavailable; local order retained:', error)
     }
@@ -225,7 +218,7 @@ export function useOrderContext() {
   return {
     orders: [],
     createOrder: async (payload) => {
-      const order = { ...payload, id: generateUuid(), created_at: new Date().toISOString(), status: 'pending_confirmation' }
+      const order = { ...payload, id: generateUUID(), created_at: new Date().toISOString(), status: 'pending_confirmation' }
       window.dispatchEvent(new CustomEvent('orders_updated', { detail: order }))
       return order
     },
@@ -233,7 +226,7 @@ export function useOrderContext() {
     deleteOrder: async () => {},
     clearAllOrders: async () => {},
     placeOrder: async (payload) => {
-      const order = { ...payload, id: generateUuid(), created_at: new Date().toISOString(), status: 'pending_confirmation' }
+      const order = { ...payload, id: generateUUID(), created_at: new Date().toISOString(), status: 'pending_confirmation' }
       window.dispatchEvent(new CustomEvent('orders_updated', { detail: order }))
       return order
     },
