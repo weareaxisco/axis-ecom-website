@@ -5,7 +5,7 @@ import { useLanguage } from '../context/LanguageContext'
 
 const statuses = ['pending_confirmation', 'requested', 'confirmed', 'rescheduled', 'completed', 'cancelled']
 
-export default function AdminAppointments({ onError }) {
+export default function AdminAppointments({ onError, onCount }) {
   const { t } = useLanguage()
   const { siteConfig } = useSiteConfigSettings()
   const [appointments, setAppointments] = useState([])
@@ -19,20 +19,26 @@ export default function AdminAppointments({ onError }) {
     supabase.from('appointments').select('*').order('appointment_date', { ascending: true }).then(({ data, error }) => {
       if (!active) return
       if (error) onError(error.message)
-      setAppointments(data || [])
+      const nextAppointments = data || []
+      setAppointments(nextAppointments)
+      onCount?.(nextAppointments.length)
       setLoading(false)
     })
     const channel = supabase.channel('admin_appointments_channel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, (payload) => {
         const appointmentId = payload.new?.id || payload.old?.id
         if (!active || !appointmentId) return
-        setAppointments((current) => payload.eventType === 'DELETE'
+        setAppointments((current) => {
+          const nextAppointments = payload.eventType === 'DELETE'
           ? current.filter((item) => item.id !== appointmentId)
-          : [payload.new, ...current.filter((item) => item.id !== appointmentId)])
+          : [payload.new, ...current.filter((item) => item.id !== appointmentId)]
+          onCount?.(nextAppointments.length)
+          return nextAppointments
+        })
       })
       .subscribe()
     return () => { active = false; supabase.removeChannel(channel) }
-  }, [onError])
+  }, [onError, onCount])
 
   const updateStatus = async (id, status) => {
     setAppointments((current) => current.map((item) => item.id === id ? { ...item, status } : item))
@@ -94,16 +100,15 @@ export default function AdminAppointments({ onError }) {
       <div className="overflow-x-auto border border-neutral-800 bg-neutral-950/70">
         <table className="w-full min-w-[900px] text-left">
           <thead className="border-b border-neutral-800 text-[10px] uppercase tracking-widest text-neutral-500">
-            <tr>{[t('boutique'), t('date'), t('time'), t('guestsLabel'), t('focus'), t('adminStatus'), t('actions')].map((heading) => <th key={heading} className="px-5 py-4">{heading}</th>)}</tr>
+            <tr>{[t('boutique'), 'Date & Créneau de Visite', 'Contact', t('focus'), t('adminStatus'), t('actions')].map((heading) => <th key={heading} className="px-5 py-4">{heading}</th>)}</tr>
           </thead>
           <tbody className="divide-y divide-neutral-800">
             {appointments.map((appointment) => (
               <tr key={appointment.id} className="text-sm">
-                <td className="px-5 py-5">{appointment.boutique_location}</td>
-                <td className="px-5 py-5 text-neutral-400">{appointment.appointment_date}</td>
-                <td className="px-5 py-5 text-neutral-400">{appointment.time_slot}</td>
-                <td className="px-5 py-5">{appointment.guests}</td>
-                <td className="px-5 py-5 text-neutral-400">{appointment.consultation_type}</td>
+                <td className="px-5 py-5">{appointment.boutique_location || 'Maison Diamiss — Kénitra'}</td>
+                <td className="px-5 py-5"><div className="font-medium text-amber-400">{appointment.appointment_date}</div><div className="text-xs text-neutral-400">{appointment.time_slot}</div></td>
+                <td className="px-5 py-5 text-xs text-neutral-400"><div>{appointment.client_name || '—'}</div><div>{appointment.email || appointment.phone || '—'}</div></td>
+                <td className="px-5 py-5 text-neutral-400">{appointment.consultation_type || appointment.service_type}</td>
                 <td className="px-5 py-5">
                   <select aria-label={`Status for appointment ${appointment.id}`} value={appointment.status} onChange={(event) => updateStatus(appointment.id, event.target.value)} className="border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs">
                     {statuses.map((status) => <option key={status}>{status}</option>)}

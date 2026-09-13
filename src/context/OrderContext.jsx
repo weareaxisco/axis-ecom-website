@@ -140,6 +140,7 @@ export function OrderProvider({ children }) {
       shipping_fee_dh: Number(newOrder.shipping_fee_dh || 0),
       total_dh: Number(newOrder.total_dh || 0),
       status: newOrder.status,
+      stock_decremented: false,
       created_at: newOrder.created_at,
     }
     setOrders((current) => {
@@ -159,16 +160,23 @@ export function OrderProvider({ children }) {
     try {
       const { error } = await supabase.from('orders').insert([databaseOrder])
       if (error) console.warn('[orders] remote insert rejected; local order retained:', error.message)
-      else await Promise.all(stockItems.map(async (item) => {
+      else {
+        await Promise.all(stockItems.map(async (item) => {
         const targetId = String(item.id)
-        const { data: product, error: stockError } = await supabase.from('products').select('stock').eq('id', targetId).maybeSingle()
-        if (stockError) throw stockError
-        if (!product) return
-        const newStock = Math.max(0, Number(product.stock) - item.quantity)
-        const { error: updateError } = await supabase.from('products').update({ stock: newStock }).eq('id', targetId)
-        if (updateError) throw updateError
-        window.dispatchEvent(new CustomEvent('inventory_updated', { detail: { productId: targetId, stock: newStock } }))
-      }))
+        const { error: rpcError } = await supabase.rpc('decrement_product_stock', { p_id: targetId, qty: item.quantity })
+        if (rpcError) {
+          console.warn('[orders] stock RPC failed; using direct update fallback:', rpcError.message)
+          const { data: product, error: stockError } = await supabase.from('products').select('stock').eq('id', targetId).maybeSingle()
+          if (stockError) throw stockError
+          if (!product) return
+          const newStock = Math.max(0, Number(product.stock) - item.quantity)
+          const { error: updateError } = await supabase.from('products').update({ stock: newStock }).eq('id', targetId)
+          if (updateError) throw updateError
+        }
+        window.dispatchEvent(new CustomEvent('inventory_updated', { detail: { productId: targetId } }))
+        }))
+        await supabase.from('orders').update({ stock_decremented: true }).eq('id', databaseOrder.id)
+      }
     } catch (error) {
       console.warn('[orders] remote insert unavailable; local order retained:', error)
     }

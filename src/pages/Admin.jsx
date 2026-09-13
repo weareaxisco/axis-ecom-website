@@ -118,7 +118,7 @@ function AdminContent() {
   const navigate = useNavigate()
   const { user, loading: authLoading } = useAuth()
   const { t } = useLanguage()
-  const { orders, updateOrder, deleteOrder, clearAllOrders } = useOrderContext()
+  const { orders, updateOrder: contextUpdateOrder, deleteOrder, clearAllOrders } = useOrderContext()
   const { products: contextProducts } = useProductContext()
   const [tab, setTab] = useState(() => {
     try {
@@ -130,6 +130,7 @@ function AdminContent() {
   const [products, setProducts] = useState(mockProducts)
   const [loading, setLoading] = useState(true)
   const [notice, setNotice] = useState('')
+  const [appointmentCount, setAppointmentCount] = useState(0)
   const [showProductModal, setShowProductModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
   const [authorizedUser, setAuthorizedUser] = useState(null)
@@ -318,12 +319,35 @@ function AdminContent() {
 
   const handleAppointmentError = useCallback((message) => setNotice(`Unable to load appointment: ${message}`), [])
 
+  const updateOrder = useCallback(async (id, changes) => {
+    const order = orders.find((item) => item.id === id)
+    const shouldDecrement = ['confirmed', 'delivered'].includes(changes.status) && !order?.stock_decremented
+    if (shouldDecrement) {
+      for (const item of order.items || []) {
+        const targetId = String(item.id || item.product_id || item.productId || '')
+        const quantity = Number(item.quantity || 1)
+        if (!targetId || !quantity) continue
+        const { error: rpcError } = await supabase.rpc('decrement_product_stock', { p_id: targetId, qty: quantity })
+        if (rpcError) {
+          const { data: product, error: stockError } = await supabase.from('products').select('stock').eq('id', targetId).maybeSingle()
+          if (stockError) throw stockError
+          if (product) {
+            const { error: updateError } = await supabase.from('products').update({ stock: Math.max(0, Number(product.stock) - quantity) }).eq('id', targetId)
+            if (updateError) throw updateError
+          }
+        }
+        window.dispatchEvent(new CustomEvent('inventory_updated', { detail: { productId: targetId } }))
+      }
+      await supabase.from('orders').update({ stock_decremented: true }).eq('id', id)
+    }
+    return contextUpdateOrder(id, { ...changes, ...(shouldDecrement ? { stock_decremented: true } : {}) })
+  }, [contextUpdateOrder, orders])
   const counts = useMemo(() => ({ products: Array.isArray(products) ? products.length : 0, orders: Array.isArray(orders) ? orders.length : 0 }), [products, orders])
   const ordersTable = <OrdersTable filteredOrders={filteredOrders} visibleOrders={visibleOrders} query={orderQuery} setQuery={setOrderQuery} page={orderPage} setPage={setOrderPage} pageSize={orderPageSize} setPageSize={setOrderPageSize} pageCount={orderPageCount} onEdit={updateOrder} onDelete={deleteOrder} onClear={() => { if (window.confirm('Wipe all orders permanently?')) clearAllOrders().catch((error) => setNotice(`Unable to purge orders: ${error.message}`)) }} onNotice={setNotice} />
   const tabs = [
     ...(can('manage_orders') ? [{ id: 'analytics', label: 'Analytics' }, { id: 'orders', label: `${t('myOrders')} (${counts.orders})` }] : []),
     ...(can('manage_products') ? [{ id: 'inventory', label: `${t('inventory')} (${counts.products})` }, { id: 'taxonomies', label: 'Taxonomies' }] : []),
-    ...(can('manage_appointments') ? [{ id: 'appointments', label: 'Appointments' }] : []),
+    ...(can('manage_appointments') ? [{ id: 'appointments', label: `RENDEZ-VOUS (${appointmentCount})` }] : []),
     ...(can('manage_settings') ? [{ id: 'settings', label: t('settings') }] : []),
     ...(['super_admin', 'admin'].includes(activeUser?.role) ? [{ id: 'staff', label: 'Staff & Permissions' }] : []),
   ]
@@ -331,10 +355,10 @@ function AdminContent() {
   if (!isAdmin) return <LoginGate onAuthorized={setAuthorizedUser} />
 
   return <main className="min-h-screen bg-neutral-950 px-4 pb-20 pt-12 text-white md:px-10"><div className="mx-auto max-w-7xl"><header className="flex flex-wrap items-end justify-between gap-6 border-b border-neutral-800 pb-8"><div><p className="text-[10px] uppercase tracking-[0.3em] text-amber-400">Maison de l'Élégance</p><h1 className="mt-3 font-serif text-4xl uppercase tracking-widest">Operations</h1></div><button type="button" onClick={() => supabase.auth.signOut()} className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-neutral-500 hover:text-amber-400"><LogOut size={15} /> Sign out</button></header>
-    <nav className="mt-8 hidden flex-wrap gap-2 border-b border-neutral-800 md:flex">{can('manage_orders') && <button type="button" onClick={() => selectTab('analytics')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'analytics' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Analytics</button>}{can('manage_orders') && <button type="button" onClick={() => selectTab('orders')} className={`inline-flex items-center gap-2 border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'orders' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}><ShoppingBag size={15} /> {t('myOrders')} ({counts.orders})</button>}{can('manage_products') && <button type="button" onClick={() => selectTab('inventory')} className={`inline-flex items-center gap-2 border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'inventory' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}><Package size={15} /> {t('inventory')} ({counts.products})</button>}{can('manage_products') && <button type="button" onClick={() => selectTab('taxonomies')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'taxonomies' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Taxonomies</button>}{can('manage_appointments') && <button type="button" onClick={() => selectTab('appointments')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'appointments' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Appointments</button>}{can('manage_settings') && <button type="button" onClick={() => selectTab('settings')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'settings' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>{t('settings')}</button>}{    ['super_admin', 'admin'].includes(activeUser?.role) && <button type="button" onClick={() => selectTab('staff')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'staff' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Staff &amp; Permissions</button>}</nav>
+    <nav className="mt-8 hidden flex-wrap gap-2 border-b border-neutral-800 md:flex">{can('manage_orders') && <button type="button" onClick={() => selectTab('analytics')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'analytics' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Analytics</button>}{can('manage_orders') && <button type="button" onClick={() => selectTab('orders')} className={`inline-flex items-center gap-2 border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'orders' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}><ShoppingBag size={15} /> {t('myOrders')} ({counts.orders})</button>}{can('manage_products') && <button type="button" onClick={() => selectTab('inventory')} className={`inline-flex items-center gap-2 border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'inventory' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}><Package size={15} /> {t('inventory')} ({counts.products})</button>}{can('manage_products') && <button type="button" onClick={() => selectTab('taxonomies')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'taxonomies' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Taxonomies</button>}{can('manage_appointments') && <button type="button" onClick={() => selectTab('appointments')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'appointments' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>RENDEZ-VOUS ({appointmentCount})</button>}{can('manage_settings') && <button type="button" onClick={() => selectTab('settings')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'settings' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>{t('settings')}</button>}{    ['super_admin', 'admin'].includes(activeUser?.role) && <button type="button" onClick={() => selectTab('staff')} className={`border-b-2 px-5 py-4 text-xs uppercase tracking-widest ${activeTab === 'staff' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-500'}`}>Staff &amp; Permissions</button>}</nav>
     <div className="relative md:hidden"><nav ref={mobileTabsRef} className="mt-8 flex overflow-x-auto no-scrollbar whitespace-nowrap gap-3 border-b border-neutral-800 pb-3" aria-label="Admin mobile navigation">{tabs.map((tabItem) => <button key={tabItem.id} type="button" onClick={(event) => { selectTab(tabItem.id); event.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }) }} className={`shrink-0 rounded-none border-b-2 px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition-all ${activeTab === tabItem.id ? 'border-amber-400 bg-neutral-900/60 font-bold text-amber-400' : 'border-transparent text-neutral-400 hover:text-white'}`}>{tabItem.label}</button>)}</nav>{showTabFade && <span aria-hidden="true" className="pointer-events-none absolute right-0 top-8 h-9 w-12 bg-gradient-to-l from-neutral-950 to-transparent" />}</div>
     {notice && <p role="status" className="fixed bottom-6 left-1/2 z-[70] w-[90%] max-w-md -translate-x-1/2 rounded-none border border-amber-500/40 bg-neutral-900 px-6 py-3 text-center text-xs text-amber-300 shadow-2xl transition-all duration-300 ease-in-out md:w-auto">{notice}</p>}
-    <section className="mt-8">{activeTab === 'analytics' ? <AdminAnalytics orders={Array.isArray(orders) ? orders : []} events={Array.isArray(analyticsEvents) ? analyticsEvents : []} /> : activeTab === 'staff' ? <AdminStaff /> : activeTab === 'settings' ? <AdminSettings /> : activeTab === 'appointments' ? <AdminAppointments onError={handleAppointmentError} /> : activeTab === 'taxonomies' ? <AdminTaxonomyManager products={products} onNotice={setNotice} /> : loading ? <p className="py-16 text-center text-sm text-neutral-500">Loading operations data...</p> : activeTab === 'inventory' ? <AdminProductTable products={products} onToggleOnsiteOnly={updateOnsiteOnly} onAddProduct={() => navigate('/admin/inventory/editor/new')} onEditProduct={(product) => navigate(`/admin/inventory/editor/edit/${product.id}`)} onDeleteProduct={handleDeleteProduct} onBulkTag={handleBulkTag} onBulkDelete={handleBulkDelete} /> : ordersTable}</section>{showProductModal && <AdminAddProductModal initialProduct={editingProduct} onClose={() => { setShowProductModal(false); setEditingProduct(null) }} onCreated={(product) => setProducts((current) => [product, ...current])} onUpdated={(product) => setProducts((current) => current.map((item) => item.id === product.id ? product : item))} />}
+    <section className="mt-8">{activeTab === 'analytics' ? <AdminAnalytics orders={Array.isArray(orders) ? orders : []} events={Array.isArray(analyticsEvents) ? analyticsEvents : []} /> : activeTab === 'staff' ? <AdminStaff /> : activeTab === 'settings' ? <AdminSettings /> : activeTab === 'appointments' ? <AdminAppointments onError={handleAppointmentError} onCount={setAppointmentCount} /> : activeTab === 'taxonomies' ? <AdminTaxonomyManager products={products} onNotice={setNotice} /> : loading ? <p className="py-16 text-center text-sm text-neutral-500">Loading operations data...</p> : activeTab === 'inventory' ? <AdminProductTable products={products} onToggleOnsiteOnly={updateOnsiteOnly} onAddProduct={() => navigate('/admin/inventory/editor/new')} onEditProduct={(product) => navigate(`/admin/inventory/editor/edit/${product.id}`)} onDeleteProduct={handleDeleteProduct} onBulkTag={handleBulkTag} onBulkDelete={handleBulkDelete} /> : ordersTable}</section>{showProductModal && <AdminAddProductModal initialProduct={editingProduct} onClose={() => { setShowProductModal(false); setEditingProduct(null) }} onCreated={(product) => setProducts((current) => [product, ...current])} onUpdated={(product) => setProducts((current) => current.map((item) => item.id === product.id ? product : item))} />}
   </div></main>
 }
 
