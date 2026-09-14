@@ -78,18 +78,29 @@ export default function AdminSettings() {
     setUploadingAsset(kind)
     setMessage('')
     const filePath = `${kind}_${Date.now()}.${extension}`
-    const { error } = await supabase.storage.from('site-assets').upload(filePath, file, { upsert: false, contentType: file.type || undefined })
-    if (error) {
+    try {
+      const { error } = await supabase.storage.from('site-assets').upload(filePath, file, { upsert: false, contentType: file.type || undefined })
+      if (error) {
+        console.error(`[AdminSettings] ${kind} asset upload failed:`, error)
+        setMessage(`Téléversement impossible : ${error.message}`)
+        return
+      }
+      const { data } = supabase.storage.from('site-assets').getPublicUrl(filePath)
+      if (!data?.publicUrl) {
+        console.error(`[AdminSettings] ${kind} asset public URL was not returned`)
+        setMessage('Téléversement terminé, mais l’URL publique est indisponible. Réessayez.')
+        return
+      }
+      setForm((current) => ({ ...current, [kind === 'logo' ? 'logo_image_url' : 'favicon_url']: data.publicUrl }))
+      if (kind === 'logo') setLogoPreviewError(false)
+      else setFaviconPreviewError(false)
+      setMessage('Asset téléversé. Enregistrez les modifications pour le publier.')
+    } catch (uploadError) {
+      console.error(`[AdminSettings] ${kind} asset upload threw:`, uploadError)
+      setMessage(`Téléversement impossible : ${uploadError.message || 'Erreur de stockage inconnue.'}`)
+    } finally {
       setUploadingAsset('')
-      setMessage(`Téléversement impossible : ${error.message}`)
-      return
     }
-    const { data } = supabase.storage.from('site-assets').getPublicUrl(filePath)
-    setForm((current) => ({ ...current, [kind === 'logo' ? 'logo_image_url' : 'favicon_url']: data.publicUrl }))
-    if (kind === 'logo') setLogoPreviewError(false)
-    else setFaviconPreviewError(false)
-    setUploadingAsset('')
-    setMessage('Asset téléversé. Enregistrez les modifications pour le publier.')
   }
   const removeLogo = () => {
     setForm((current) => ({ ...current, logo_image_url: '', logo_type: 'text' }))

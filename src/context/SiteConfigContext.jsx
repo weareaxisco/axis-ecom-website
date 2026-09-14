@@ -5,8 +5,16 @@ const fallback = { site_name: "Maison de L'Élégance", business_name: "Maison d
 const SiteConfigContext = createContext(null)
 const getInitialSiteConfig = () => {
   if (typeof window === 'undefined') return fallback
-  const siteName = window.localStorage.getItem('site_name')?.trim()
-  return siteName ? { ...fallback, site_name: siteName } : fallback
+  const storage = window.localStorage
+  const businessName = storage.getItem('diamiss_business_name')?.trim() || storage.getItem('site_name')?.trim()
+  const logoType = storage.getItem('diamiss_logo_type')?.trim()
+  const logoUrl = storage.getItem('diamiss_logo_url')?.trim()
+  return {
+    ...fallback,
+    ...(businessName ? { site_name: businessName, business_name: businessName } : {}),
+    ...(logoType ? { logo_type: logoType } : {}),
+    ...(logoUrl ? { logo_image_url: logoUrl } : {}),
+  }
 }
 
 export function SiteConfigProvider({ children }) {
@@ -17,12 +25,25 @@ export function SiteConfigProvider({ children }) {
       if (error) console.warn(`Site settings fallback: ${error.message}`)
       if (data) {
         setSiteConfig((current) => ({ ...current, ...data, business_name: data.business_name || data.site_name || current.business_name }))
-        if (typeof window !== 'undefined' && (data.business_name || data.site_name)) window.localStorage.setItem('site_name', data.business_name || data.site_name)
+        if (typeof window !== 'undefined') {
+          if (data.business_name || data.site_name) {
+            const businessName = data.business_name || data.site_name
+            window.localStorage.setItem('site_name', businessName)
+            window.localStorage.setItem('diamiss_business_name', businessName)
+          }
+          if (data.logo_type) window.localStorage.setItem('diamiss_logo_type', data.logo_type)
+          if (data.logo_image_url) window.localStorage.setItem('diamiss_logo_url', data.logo_image_url)
+        }
       }
       setLoading(false)
     })
     const handleStorage = (event) => {
-      if (event.key === 'site_name' && event.newValue) setSiteConfig((current) => ({ ...current, site_name: event.newValue, business_name: event.newValue }))
+      if (!event.newValue) return
+      if (event.key === 'site_name' || event.key === 'diamiss_business_name') {
+        setSiteConfig((current) => ({ ...current, site_name: event.newValue, business_name: event.newValue }))
+      }
+      if (event.key === 'diamiss_logo_type') setSiteConfig((current) => ({ ...current, logo_type: event.newValue }))
+      if (event.key === 'diamiss_logo_url') setSiteConfig((current) => ({ ...current, logo_image_url: event.newValue }))
     }
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
@@ -49,7 +70,15 @@ export function SiteConfigProvider({ children }) {
   }, [siteConfig.favicon_url])
   const updateSiteConfig = (updates) => {
     setSiteConfig((current) => ({ ...current, ...updates, business_name: updates.business_name || updates.site_name || current.business_name }))
-    if (typeof window !== 'undefined' && (updates.business_name?.trim() || updates.site_name?.trim())) window.localStorage.setItem('site_name', (updates.business_name || updates.site_name).trim())
+    if (typeof window !== 'undefined') {
+      const businessName = (updates.business_name || updates.site_name)?.trim()
+      if (businessName) {
+        window.localStorage.setItem('site_name', businessName)
+        window.localStorage.setItem('diamiss_business_name', businessName)
+      }
+      if (updates.logo_type) window.localStorage.setItem('diamiss_logo_type', updates.logo_type)
+      if (updates.logo_image_url) window.localStorage.setItem('diamiss_logo_url', updates.logo_image_url)
+    }
   }
   const value = useMemo(() => ({ siteConfig, businessName: siteConfig.business_name || siteConfig.site_name, updateSiteConfig, loading }), [siteConfig, loading])
   return <SiteConfigContext.Provider value={value}>{children}</SiteConfigContext.Provider>
