@@ -5,8 +5,10 @@ import { supabase } from '../supabaseClient'
 import { useLanguage } from '../context/LanguageContext'
 import ResendVerificationModal from '../components/ResendVerificationModal'
 import { useAuth } from '../context/AuthContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 export default function Login() {
+  useDocumentTitle('Sign In')
   const { t } = useLanguage()
   const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()

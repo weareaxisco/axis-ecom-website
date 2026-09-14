@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { useLanguage } from '../context/LanguageContext'
 import { useSiteConfigSettings } from '../context/SiteConfigContext'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 const defaultDescription = {
   fr: 'Maison de l’Élégance — Haute Joaillerie et Horlogerie à Casablanca.',
@@ -21,12 +20,10 @@ function setMeta(attribute, value, content) {
 export default function SEOHead({ product = null, title, noindex = false }) {
   const { language } = useLanguage()
   const { businessName } = useSiteConfigSettings()
-  useDocumentTitle(title || product?.name)
   useEffect(() => {
     const name = product?.name || businessName
     const pageTitle = title || (product ? `${name} | ${businessName}` : businessName)
     const description = product?.description || defaultDescription[language]
-    document.title = pageTitle
     setMeta('name', 'description', description)
     setMeta('name', 'robots', noindex ? 'noindex,follow' : 'index,follow')
     setMeta('property', 'og:title', pageTitle)

@@ -1,6 +1,8 @@
 import { useLanguage } from '../context/LanguageContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 export default function LegalPrivacy() {
+  useDocumentTitle('Privacy Policy')
   const { t } = useLanguage()
   const sections = [
     ['privacyDataHeading', 'privacyDataBody'],

@@ -11,8 +11,10 @@ import LoadingScreen from '../components/LoadingScreen'
 import AccountPrivacy from '../components/AccountPrivacy'
 import SiteFeedbackModal from '../components/SiteFeedbackModal'
 import { useOrderContext } from '../context/OrderContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 export default function Account() {
+  useDocumentTitle('My Account')
   const navigate = useNavigate()
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)

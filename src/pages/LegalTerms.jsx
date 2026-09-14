@@ -1,6 +1,8 @@
 import { useLanguage } from '../context/LanguageContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 export default function LegalTerms() {
+  useDocumentTitle('Terms & Conditions')
   const { t } = useLanguage()
   const sections = [
     ['termsOrdersHeading', 'termsOrdersBody'],

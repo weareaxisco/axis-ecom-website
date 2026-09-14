@@ -5,11 +5,13 @@ import ProductGrid from '../components/ProductGrid'
 import FilterSidebar from '../components/FilterSidebar'
 import { useLanguage } from '../context/LanguageContext'
 import { useProductContext } from '../context/ProductContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 const initialFilters = { category: [], collection: [], tags: [], metal: [], gemstone: [], minPrice: '', maxPrice: '', exclusive: false }
 const normalize = (value) => String(value || '').toLowerCase().replace(/[-_]/g, ' ')
 
 export default function Catalog() {
+  useDocumentTitle('Catalog')
   const [params, setParams] = useSearchParams()
   const { products, taxonomies } = useProductContext()
   const [filters, setFilters] = useState(() => ({

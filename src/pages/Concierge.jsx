@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient'
 import AppointmentModal from '../components/AppointmentModal'
 import { useSiteConfigSettings } from '../context/SiteConfigContext'
 import { useLanguage } from '../context/LanguageContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 const location = 'Maison Diamiss — Kénitra'
 const slotGroups = [{ label: 'Matin', values: ['10:30', '11:30'] }, { label: 'Après-midi', values: ['14:30', '16:00', '17:30'] }]
@@ -61,6 +62,7 @@ export const getOutlookCalendarUrl = (appointment, locationUrl = '') => {
 }
 
 export default function Concierge() {
+  useDocumentTitle('Concierge')
   const initialForm = { location, date: '', time: '10:30', focus: focuses[0].value, fullName: '', email: '', phone: '', notes: '' }
   const [form, setForm] = useState(initialForm)
   const [confirmation, setConfirmation] = useState(null)

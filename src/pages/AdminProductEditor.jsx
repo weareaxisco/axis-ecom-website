@@ -7,6 +7,7 @@ import ImageUploader from '../components/ImageUploader'
 import MarkdownToolbar from '../components/MarkdownToolbar'
 import AdminProductPreview from '../components/AdminProductPreview'
 import { useProductContext } from '../context/ProductContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 const slugify = (value) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
 const sku = () => `MSN-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
@@ -14,6 +15,7 @@ const emptyForm = { name: '', sku: '', category: '', collection: '', price_dh: '
 const isMissingColumnError = (error, column) => error?.code === 'PGRST204' && error.message?.toLowerCase().includes(column)
 
 export default function AdminProductEditor() {
+  useDocumentTitle('Inventory Editor - Admin')
   const { id } = useParams()
   const navigate = useNavigate()
   const editing = Boolean(id)

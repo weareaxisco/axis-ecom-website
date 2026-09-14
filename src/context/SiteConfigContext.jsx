@@ -57,3 +57,7 @@ export function useSiteConfigSettings() {
   if (!context) throw new Error('useSiteConfigSettings must be used within SiteConfigProvider')
   return context
 }
+
+export function useOptionalSiteConfigSettings() {
+  return useContext(SiteConfigContext)
+}

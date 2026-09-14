@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Eye, EyeOff, Mail } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { useLanguage } from '../context/LanguageContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 const initialForm = {
   title: 'Mrs.',
@@ -22,6 +23,7 @@ function ErrorSlot({ message }) {
 }
 
 export default function Register() {
+  useDocumentTitle('Create Account')
   const { t } = useLanguage()
   const [form, setForm] = useState(initialForm)
   const [showPassword, setShowPassword] = useState(false)

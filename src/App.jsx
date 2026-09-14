@@ -37,6 +37,7 @@ import MaisonInformation from './pages/MaisonInformation'
 import AdminGuard from './components/AdminGuard'
 import AdminProductEditor from './pages/AdminProductEditor'
 import './App.css'
+import { useDocumentTitle } from './hooks/useDocumentTitle'
 
 function NotFound() {
   const { t } = useLanguage()
@@ -69,6 +70,7 @@ function AdminAccessNotice() {
 
 function App() {
   const location = useLocation()
+  useDocumentTitle(location.pathname === '/' ? 'Home' : undefined)
   const isAdminStudio = location.pathname.startsWith('/admin/inventory/editor')
   return (
     <ConfigProvider>

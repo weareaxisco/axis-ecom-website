@@ -17,6 +17,7 @@ import { adminRoles, getAllowedAdminTabs, getPrimaryAdminWorkspace, hasAdminPerm
 import { supabase as analyticsSupabase } from '../supabaseClient'
 import { useOrderContext } from '../context/OrderContext'
 import { useProductContext } from '../context/ProductContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 const orderReference = (id) => {
   const value = String(id || '')
@@ -167,6 +168,7 @@ function AdminContent() {
   const allowedTabsKey = allowedTabs.join('|')
   const primaryWorkspace = getPrimaryAdminWorkspace(activeUser)
   const activeTab = allowedTabs.includes(tab) ? tab : primaryWorkspace
+  useDocumentTitle(activeTab === 'staff' ? 'Staff & Permissions - Admin' : activeTab === 'analytics' ? 'Analytics - Admin' : activeTab === 'settings' ? 'Settings - Admin' : activeTab === 'appointments' ? 'Appointments - Admin' : activeTab === 'inventory' ? 'Inventory - Admin' : activeTab === 'taxonomies' ? 'Taxonomies - Admin' : 'Orders - Admin')
   const selectTab = (nextTab) => {
     setTab(nextTab)
     try {

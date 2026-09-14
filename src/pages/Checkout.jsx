@@ -7,6 +7,7 @@ import { trackEvent } from '../utils/analytics'
 import { useOrderContext } from '../context/OrderContext'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../supabaseClient'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 const money = (value) => `${Number(value || 0).toLocaleString()} DH`
 const fallbackCities = [
@@ -42,6 +43,7 @@ const codTimeline = [
 const onlineTimeline = ['Payment Confirmed', 'Crafting & Preparation', 'Dispatched via Ameex (Tracking Link)', 'Delivered']
 
 export default function Checkout() {
+  useDocumentTitle('Checkout')
   const { selectedItems: cartItems, subtotal, hasOnsiteOnly, clearSelectedItems } = useCart()
   const { t } = useLanguage()
   const { createOrder } = useOrderContext()

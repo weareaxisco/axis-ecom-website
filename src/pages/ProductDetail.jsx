@@ -14,6 +14,7 @@ import { getProductPrice } from '../utils/productUtils'
 import ProductReviews from '../components/ProductReviews'
 import EnquiryModal from '../components/EnquiryModal'
 import { useLanguage } from '../context/LanguageContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 const metals = ['18k Rose Gold', '18k Yellow Gold', '18k White Gold', 'Platinum']
 
@@ -29,6 +30,7 @@ export default function ProductDetail({ previewProduct = null, isPreview = false
   const [guideOpen, setGuideOpen] = useState(false)
   const [open, setOpen] = useState('details')
   const [enquiryOpen, setEnquiryOpen] = useState(false)
+  useDocumentTitle(product?.name || 'Product')
 
   useEffect(() => {
     if (isPreview && previewProduct) {

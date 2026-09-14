@@ -2,8 +2,10 @@ import { MapPin, Phone, Clock } from 'lucide-react'
 import { useSiteConfigSettings } from '../context/SiteConfigContext'
 import { getSafeMapEmbedUrl } from '../utils/maps'
 import { useLanguage } from '../context/LanguageContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 export default function Boutique() {
+  useDocumentTitle('Boutique')
   const { siteConfig } = useSiteConfigSettings()
   const { t } = useLanguage()
   const mapUrl = getSafeMapEmbedUrl(siteConfig.map_embed_url)

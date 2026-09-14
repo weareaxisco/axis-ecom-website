@@ -1,7 +1,9 @@
 import { useSiteConfigSettings } from '../context/SiteConfigContext'
 import { useLanguage } from '../context/LanguageContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 export default function Careers() {
+  useDocumentTitle('Careers')
   const { siteConfig } = useSiteConfigSettings()
   const { t } = useLanguage()
   return <main className="min-h-screen bg-[var(--bg-primary)] px-4 pb-20 pt-36 text-[var(--text-primary)] md:px-10">
