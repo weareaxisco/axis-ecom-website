@@ -30,18 +30,21 @@ export function SiteConfigProvider({ children }) {
   useEffect(() => {
     if (typeof document === 'undefined') return undefined
     const favicon = siteConfig.favicon_url?.trim()
-    let icon = document.head.querySelector('link[data-dynamic-favicon]')
+    const icons = [...document.head.querySelectorAll("link[rel*='icon']")]
     if (!favicon) {
-      icon?.remove()
+      document.head.querySelectorAll('link[data-dynamic-favicon]').forEach((icon) => icon.remove())
+      const defaultIcon = document.head.querySelector('link[data-default-favicon]')
+      if (defaultIcon) defaultIcon.href = '/favicon.svg'
       return undefined
     }
-    if (!icon) {
-      icon = document.createElement('link')
+    if (!icons.length) {
+      const icon = document.createElement('link')
       icon.rel = 'icon'
       icon.dataset.dynamicFavicon = 'true'
       document.head.appendChild(icon)
+      icons.push(icon)
     }
-    icon.href = favicon
+    icons.forEach((icon) => { icon.href = favicon })
     return undefined
   }, [siteConfig.favicon_url])
   const updateSiteConfig = (updates) => {
