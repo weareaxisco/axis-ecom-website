@@ -29,7 +29,7 @@ export default function AdminStaff() {
   const [message, setMessage] = useState('')
   const [saving, setSaving] = useState(false)
   const load = async () => {
-    const { data, error } = await supabase.from('profiles').select('id, full_name, email, custom_alias, role, permissions, can_manage_orders, can_manage_inventory, can_manage_taxonomies, can_manage_appointments, can_manage_settings, can_manage_staff').in('role', ['super_admin', 'admin', 'staff_catalog', 'staff_orders']).order('full_name')
+    const { data, error } = await supabase.from('profiles').select('id, full_name, email, custom_alias, role, permissions, can_manage_orders, can_manage_inventory, can_manage_taxonomies, can_manage_appointments, can_manage_settings, can_manage_staff, can_view_analytics').in('role', ['super_admin', 'admin', 'staff_catalog', 'staff_orders']).order('full_name')
     if (error) setMessage(error.message)
     setStaff(data || [])
     setLoading(false)
@@ -80,9 +80,7 @@ export default function AdminStaff() {
         permissions.can_manage_settings = false
         permissions.can_manage_staff = false
       }
-      const profilePermissionColumns = Object.fromEntries(permissionOptions
-        .filter(([key]) => key !== 'can_view_analytics')
-        .map(([key]) => [key, permissions[key] === true]))
+      const profilePermissionColumns = Object.fromEntries(permissionOptions.map(([key]) => [key, permissions[key] === true]))
       if (form.id) {
         const updateBody = { action: 'update', id: form.id, full_name: form.full_name, email: form.email, custom_alias: form.custom_alias, role, permissions, permissionFlags: permissions }
         const { data, error } = await functionOptions(updateBody)

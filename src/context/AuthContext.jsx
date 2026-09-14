@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
     const load = async (nextSession) => {
       const nextUser = nextSession?.user ? { ...nextSession.user, role: 'customer' } : null
       if (nextUser) {
-        const { data, error } = await supabase.from('profiles').select('role, custom_alias, permissions, can_manage_orders, can_manage_inventory, can_manage_taxonomies, can_manage_appointments, can_manage_settings, can_manage_staff').eq('id', nextUser.id).maybeSingle()
+        const { data, error } = await supabase.from('profiles').select('role, custom_alias, permissions, can_manage_orders, can_manage_inventory, can_manage_taxonomies, can_manage_appointments, can_manage_settings, can_manage_staff, can_view_analytics').eq('id', nextUser.id).maybeSingle()
         if (error && !error.message.includes('column')) console.warn(`Profile role lookup unavailable: ${error.message}`)
         nextUser.role = data?.role || nextUser.app_metadata?.role || 'customer'
         nextUser.permissions = data?.permissions || {}
@@ -28,6 +28,8 @@ export function AuthProvider({ children }) {
           for (const key of ['orders', 'inventory', 'taxonomies', 'appointments', 'settings', 'staff']) {
             nextUser.permissions[`can_manage_${key}`] = Boolean(data[`can_manage_${key}`] ?? nextUser.permissions[`can_manage_${key}`])
           }
+          nextUser.can_view_analytics = Boolean(data.can_view_analytics ?? nextUser.permissions.can_view_analytics)
+          nextUser.permissions.can_view_analytics = nextUser.can_view_analytics
         }
       }
       if (active) {

@@ -71,7 +71,7 @@ function LoginGate({ onAuthorized }) {
     try {
       const { data, error: signInError } = await supabase.auth.signInWithPassword(form)
       if (signInError || !data.user) throw signInError || new Error(t('invalidCredentials'))
-      const { data: profile, error: profileError } = await supabase.from('profiles').select('role, custom_alias, permissions, can_manage_orders, can_manage_inventory, can_manage_taxonomies, can_manage_appointments, can_manage_settings, can_manage_staff').eq('id', data.user.id).maybeSingle()
+      const { data: profile, error: profileError } = await supabase.from('profiles').select('role, custom_alias, permissions, can_manage_orders, can_manage_inventory, can_manage_taxonomies, can_manage_appointments, can_manage_settings, can_manage_staff, can_view_analytics').eq('id', data.user.id).maybeSingle()
       if (profileError) throw profileError
       console.error('[Admin auth] profile role:', profile?.role || 'missing')
       if (!profile?.role || !adminRoles.includes(profile.role)) {
@@ -83,7 +83,8 @@ function LoginGate({ onAuthorized }) {
       }
       const permissions = { ...(profile.permissions || {}) }
       for (const key of ['orders', 'inventory', 'taxonomies', 'appointments', 'settings', 'staff']) permissions[`can_manage_${key}`] = Boolean(profile[`can_manage_${key}`] ?? permissions[`can_manage_${key}`])
-      onAuthorized({ ...data.user, role: profile.role, custom_alias: profile.custom_alias || '', permissions })
+      permissions.can_view_analytics = Boolean(profile.can_view_analytics ?? permissions.can_view_analytics)
+      onAuthorized({ ...data.user, role: profile.role, custom_alias: profile.custom_alias || '', can_view_analytics: permissions.can_view_analytics, permissions })
     } catch (authError) {
       console.error('[Admin auth] sign-in failed:', authError)
       setError(authError.message || 'Unable to sign in.')
@@ -198,9 +199,10 @@ function AdminContent() {
     if (!isAdmin) return undefined
     let active = true
     const hydrate = async () => {
-      const [productResult, orderResult, analyticsResult] = await Promise.allSettled([
+      const [productResult, orderResult, appointmentsResult, analyticsResult] = await Promise.allSettled([
         supabase.from('products').select('*'),
         supabase.from('orders').select('*').order('created_at', { ascending: false }),
+        supabase.from('appointments').select('id'),
         canViewAnalytics
           ? analyticsSupabase.from('analytics_events').select('event_name, visitor_id, metadata, created_at').order('created_at', { ascending: false }).limit(500)
           : Promise.resolve({ data: [] }),
@@ -211,6 +213,8 @@ function AdminContent() {
       else if (productResult.status === 'rejected' || productResult.value?.error) warnings.push('products')
       if (orderResult.status === 'fulfilled' && Array.isArray(orderResult.value.data) && orderResult.value.data.length) orderResult.value.data.forEach((order) => window.dispatchEvent(new CustomEvent('orders_updated', { detail: order })))
       else if (orderResult.status === 'rejected' || orderResult.value?.error) warnings.push('orders')
+      if (appointmentsResult.status === 'fulfilled' && Array.isArray(appointmentsResult.value.data)) setAppointmentCount(appointmentsResult.value.data.length)
+      else if (appointmentsResult.status === 'rejected' || appointmentsResult.value?.error) warnings.push('appointments')
       if (analyticsResult.status === 'fulfilled' && Array.isArray(analyticsResult.value.data)) setAnalyticsEvents(analyticsResult.value.data)
       else if (analyticsResult.status === 'rejected' || analyticsResult.value?.error) warnings.push('analytics')
       if (warnings.length) setNotice(`Some live data is unavailable; using local ${warnings.join(', ')} fallback.`)
