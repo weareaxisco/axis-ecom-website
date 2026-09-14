@@ -29,15 +29,15 @@ export default function AdminStaff() {
   const { session, user } = useAuth()
   const isSuperAdmin = user?.role === 'super_admin'
   const assignableRoles = getAssignableRoles(user?.role)
-  const isSelfEdit = Boolean(form.id && form.id === user?.id)
-  const isSelfLock = isSelfEdit && !isSuperAdmin
-  const modalRoles = isSelfLock ? [form.role] : assignableRoles
   const [staff, setStaff] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [mode, setMode] = useState(null)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [saving, setSaving] = useState(false)
+  const isSelfEdit = Boolean(form.id && form.id === user?.id)
+  const isSelfLock = isSelfEdit && !isSuperAdmin
+  const modalRoles = isSelfLock ? [form.role] : assignableRoles
   const load = async () => {
     const { data, error } = await supabase.from('profiles').select('id, full_name, email, custom_alias, role, permissions, can_manage_orders, can_manage_inventory, can_manage_taxonomies, can_manage_appointments, can_manage_settings, can_manage_staff, can_view_analytics').in('role', ['super_admin', 'admin', 'staff_catalog', 'staff_orders']).order('full_name')
     if (error) setMessage(error.message)
@@ -51,8 +51,10 @@ export default function AdminStaff() {
     const role = member.role
     if (!canModifyTarget(user?.role, member.role, user?.id === member.id)) return
     if (member.role === 'super_admin') permissionOptions.forEach(([key]) => { permissions[key] = true })
-    if (!isSuperAdmin && user?.id !== member.id) {
+    if (!isSuperAdmin) {
       permissions.can_view_analytics = false
+    }
+    if (!isSuperAdmin && user?.id !== member.id) {
       permissions.can_manage_settings = false
       permissions.can_manage_staff = false
     }
@@ -87,13 +89,15 @@ export default function AdminStaff() {
       const permissions = { ...form.permissions }
       const role = isSelfLock ? form.role : (assignableRoles.includes(form.role) ? form.role : 'staff_catalog')
       if (role === 'super_admin') permissionOptions.forEach(([key]) => { permissions[key] = true })
-      if (!isSuperAdmin && !isSelfLock) {
+      if (!isSuperAdmin) {
         permissions.can_view_analytics = false
+      }
+      if (!isSuperAdmin && !isSelfLock) {
         permissions.can_manage_settings = false
         permissions.can_manage_staff = false
       }
       if (form.id) {
-        const updateBody = { action: 'update', id: form.id, full_name: form.full_name, email: form.email, custom_alias: form.custom_alias, role, permissions, permissionFlags: permissions }
+        const updateBody = { action: 'update', id: form.id, full_name: form.full_name, email: form.email, custom_alias: form.custom_alias, ...(isSelfLock ? {} : { role }), permissions, permissionFlags: permissions }
         const { data, error } = await functionOptions(updateBody)
         if (error) {
           console.error('Manage Staff Error:', error)

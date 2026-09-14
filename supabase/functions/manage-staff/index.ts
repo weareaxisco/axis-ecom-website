@@ -36,8 +36,11 @@ Deno.serve(async (request) => {
   if (!['super_admin', 'admin'].includes(callerRole)) return jsonError(`Forbidden: role "${callerProfile?.role || 'missing'}" cannot manage staff.`, 403)
   const body = await request.json()
   if (!['create', 'update', 'delete'].includes(body.action)) return jsonError('Invalid staff payload.', 400)
-  if (body.action !== 'delete' && !['super_admin', 'admin', 'staff_catalog'].includes(body.role)) return jsonError('Invalid staff role.', 400)
+  if (body.action === 'create' && !['super_admin', 'admin', 'staff_catalog'].includes(body.role)) return jsonError('Invalid staff role.', 400)
   if (body.action === 'create' && callerRole !== 'super_admin' && roleRank(body.role) >= roleRank(callerRole)) return jsonError('Forbidden: cannot create a staff member at or above your role.', 403)
+  if (callerRole !== 'super_admin' && (body.can_view_analytics === true || body.permissionFlags?.can_view_analytics === true || body.permissions?.can_view_analytics === true)) {
+    return jsonError('Forbidden: only Super Admins can grant Analytics access.', 403)
+  }
   if (body.action === 'create') {
     if (!body.email || !body.password) return jsonError('Invalid staff payload: email and password are required.', 400)
     const { data, error } = await service.auth.admin.createUser({ email: body.email, password: body.password, email_confirm: true })
@@ -58,8 +61,14 @@ Deno.serve(async (request) => {
   const { data: targetProfile, error: targetError } = await service.from('profiles').select('role').eq('id', body.id).single()
   if (targetError || !targetProfile) return jsonError('Target staff profile not found.', 404)
   const isSelf = caller.id === body.id
+  const targetRole = normalizeRole(targetProfile.role)
+  const requestedRole = body.role ? normalizeRole(body.role) : targetRole
+  if (body.action === 'update' && body.role && !['super_admin', 'admin', 'staff_catalog'].includes(requestedRole)) return jsonError('Invalid staff role.', 400)
+  if (callerRole !== 'super_admin' && body.action === 'update' && body.role && requestedRole !== 'staff_catalog') {
+    return jsonError('Forbidden: only Super Admins can assign elevated staff roles.', 403)
+  }
   if (callerRole !== 'super_admin' && !isSelf && roleRank(callerRole) <= roleRank(targetProfile.role)) return jsonError('Forbidden: you cannot modify a staff member at or above your role.', 403)
-  if (body.action === 'update' && (roleRank(body.role) >= roleRank(callerRole) && !(isSelf && normalizeRole(body.role) === normalizeRole(targetProfile.role)))) {
+  if (body.action === 'update' && body.role && (roleRank(requestedRole) >= roleRank(callerRole) && !(isSelf && requestedRole === targetRole))) {
     return jsonError('Forbidden: cannot assign a role at or above your role.', 403)
   }
   if (body.action === 'delete') {
@@ -71,7 +80,7 @@ Deno.serve(async (request) => {
   if (authError) return jsonError(authError.message, 400)
   const permissions = normalizePermissions(body.permissions, body.permissionFlags)
   if (callerRole !== 'super_admin') permissions.can_view_analytics = false
-  const { error: profileError } = await service.from('profiles').update({ full_name: body.full_name, email: body.email, custom_alias: body.custom_alias || null, role: body.role, permissions, ...permissions }).eq('id', body.id)
+  const { error: profileError } = await service.from('profiles').update({ full_name: body.full_name, email: body.email, custom_alias: body.custom_alias || null, role: body.role || targetProfile.role, permissions, ...permissions }).eq('id', body.id)
   if (profileError) return jsonError(profileError.message, 400)
   return Response.json({ id: body.id }, { headers: corsHeaders })
 })

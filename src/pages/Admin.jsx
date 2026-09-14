@@ -202,7 +202,7 @@ function AdminContent() {
       const [productResult, orderResult, appointmentsResult, analyticsResult] = await Promise.allSettled([
         supabase.from('products').select('*'),
         supabase.from('orders').select('*').order('created_at', { ascending: false }),
-        supabase.from('appointments').select('id'),
+        supabase.from('appointments').select('id', { count: 'exact', head: true }),
         canViewAnalytics
           ? analyticsSupabase.from('analytics_events').select('event_name, visitor_id, metadata, created_at').order('created_at', { ascending: false }).limit(500)
           : Promise.resolve({ data: [] }),
@@ -213,7 +213,7 @@ function AdminContent() {
       else if (productResult.status === 'rejected' || productResult.value?.error) warnings.push('products')
       if (orderResult.status === 'fulfilled' && Array.isArray(orderResult.value.data) && orderResult.value.data.length) orderResult.value.data.forEach((order) => window.dispatchEvent(new CustomEvent('orders_updated', { detail: order })))
       else if (orderResult.status === 'rejected' || orderResult.value?.error) warnings.push('orders')
-      if (appointmentsResult.status === 'fulfilled' && Array.isArray(appointmentsResult.value.data)) setAppointmentCount(appointmentsResult.value.data.length)
+      if (appointmentsResult.status === 'fulfilled' && !appointmentsResult.value.error && appointmentsResult.value.count !== null) setAppointmentCount(appointmentsResult.value.count)
       else if (appointmentsResult.status === 'rejected' || appointmentsResult.value?.error) warnings.push('appointments')
       if (analyticsResult.status === 'fulfilled' && Array.isArray(analyticsResult.value.data)) setAnalyticsEvents(analyticsResult.value.data)
       else if (analyticsResult.status === 'rejected' || analyticsResult.value?.error) warnings.push('analytics')
