@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import Hero from './components/Hero'
 import Navbar from './components/Navbar'
 import ProductCatalog from './components/ProductCatalog'
@@ -114,6 +115,7 @@ function App() {
             <WhatsAppConcierge />
             <WishlistDrawer />
             <CookieConsent />
+            <SpeedInsights />
           </div>
             </OrderProvider>
             </ProductProvider>
