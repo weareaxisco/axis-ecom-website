@@ -28,6 +28,7 @@ import { useLanguage } from '../context/LanguageContext'
 import { useAuth } from '../context/AuthContext'
 import { adminRoles } from '../utils/adminAccess'
 import { supabase } from '../supabaseClient'
+import BrandLogo from './common/BrandLogo'
 
 function IconButton({ label, children, onClick, className = '' }) {
   return (
@@ -115,7 +116,7 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin
 export default function Navbar() {
   const { config, themeMode, toggleTheme } = useSiteConfig()
   const { siteConfig } = useSiteConfigSettings()
-  const brandName = siteConfig.site_name || config.store_name
+  const brandName = siteConfig.business_name || siteConfig.site_name || config.store_name
   const { cartItems, setIsBagOpen } = useCart()
   const { wishlistItems, setIsWishlistOpen } = useWishlist()
   const { t } = useLanguage()
@@ -234,7 +235,7 @@ export default function Navbar() {
               </IconButton>
             </div>
             <a href="/" className="pointer-events-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 truncate px-2 text-center font-serif text-sm tracking-widest">
-              {brandName}
+              <BrandLogo textClassName="truncate" alt={brandName} />
             </a>
             <div className="flex w-[60px] items-center justify-end">
               <IconButton label={t('shoppingBag')} className="relative" onClick={() => setIsBagOpen(true)}>
@@ -285,11 +286,7 @@ export default function Navbar() {
               href="/"
               className="absolute left-1/2 -translate-x-1/2 text-center font-serif uppercase tracking-[0.15em] text-xl transition-all duration-300 ease-out hover:text-[var(--accent-gold)] md:text-2xl"
             >
-              {config.logo_url ? (
-                <img src={config.logo_url} alt={brandName} className="max-h-10 max-w-48 object-contain" />
-              ) : (
-                brandName
-              )}
+              <BrandLogo className="max-h-10 max-w-48 object-contain" textClassName="whitespace-nowrap" alt={brandName} />
             </a>
 
             <div className="flex h-10 items-center gap-1">

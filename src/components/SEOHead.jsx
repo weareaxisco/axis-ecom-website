@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
 import { useLanguage } from '../context/LanguageContext'
+import { useSiteConfigSettings } from '../context/SiteConfigContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 const defaultDescription = {
   fr: 'Maison de l’Élégance — Haute Joaillerie et Horlogerie à Casablanca.',
@@ -18,9 +20,11 @@ function setMeta(attribute, value, content) {
 
 export default function SEOHead({ product = null, title, noindex = false }) {
   const { language } = useLanguage()
+  const { businessName } = useSiteConfigSettings()
+  useDocumentTitle(title || product?.name)
   useEffect(() => {
-    const name = product?.name || 'Maison de l’Élégance'
-    const pageTitle = title || (product ? `${name} | Maison de l’Élégance` : 'Maison de l’Élégance | Haute Joaillerie')
+    const name = product?.name || businessName
+    const pageTitle = title || (product ? `${name} | ${businessName}` : businessName)
     const description = product?.description || defaultDescription[language]
     document.title = pageTitle
     setMeta('name', 'description', description)
@@ -44,7 +48,7 @@ export default function SEOHead({ product = null, title, noindex = false }) {
       name,
       description,
       image: [product.main_image_url, product.hover_image_url].filter(Boolean),
-      brand: { '@type': 'Brand', name: 'Maison de l’Élégance' },
+      brand: { '@type': 'Brand', name: businessName },
       offers: {
         '@type': 'Offer',
         priceCurrency: 'MAD',
@@ -52,13 +56,13 @@ export default function SEOHead({ product = null, title, noindex = false }) {
         availability: product.in_stock === false ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
         url: window.location.href,
       },
-    } : { '@context': 'https://schema.org', '@type': 'Organization', name: 'Maison de l’Élégance' }
+    } : { '@context': 'https://schema.org', '@type': 'Organization', name: businessName }
     const script = document.createElement('script')
     script.type = 'application/ld+json'
     script.dataset.maisonJsonld = 'true'
     script.textContent = JSON.stringify(schema)
     document.head.appendChild(script)
     return () => script.remove()
-  }, [language, noindex, product, title])
+  }, [businessName, language, noindex, product, title])
   return null
 }
