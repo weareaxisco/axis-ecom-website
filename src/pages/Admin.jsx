@@ -12,6 +12,7 @@ import AdminAppointments from '../components/AdminAppointments'
 import AdminStaff from '../components/AdminStaff'
 import AdminAnalytics from '../components/AdminAnalytics'
 import AdminTaxonomyManager from '../components/AdminTaxonomyManager'
+import LoadingScreen from '../components/LoadingScreen'
 import { adminRoles, getAllowedAdminTabs, getPrimaryAdminWorkspace, hasAdminPermission } from '../utils/adminAccess'
 import { supabase as analyticsSupabase } from '../supabaseClient'
 import { useOrderContext } from '../context/OrderContext'
@@ -398,7 +399,7 @@ function AdminContent() {
     ...(can('manage_settings') ? [{ id: 'settings', label: t('settings') }] : []),
     ...(['super_admin', 'admin'].includes(activeUser?.role) ? [{ id: 'staff', label: 'Staff & Permissions' }] : []),
   ]
-  if (authLoading) return <main className="flex min-h-screen items-center justify-center bg-neutral-950 text-center text-sm text-neutral-500"><div><span className="mx-auto block h-10 w-10 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" /><p className="mt-4">{t('loading')}</p></div></main>
+  if (authLoading) return <LoadingScreen />
   if (!isAdmin) return <LoginGate onAuthorized={setAuthorizedUser} />
 
   return <main className="min-h-screen bg-neutral-950 px-4 pb-20 pt-12 text-white md:px-10"><div className="mx-auto max-w-7xl"><header className="flex flex-wrap items-end justify-between gap-6 border-b border-neutral-800 pb-8"><div><p className="text-[10px] uppercase tracking-[0.3em] text-amber-400">Maison de l'Élégance</p><h1 className="mt-3 font-serif text-4xl uppercase tracking-widest">Operations</h1></div><button type="button" onClick={() => supabase.auth.signOut()} className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-neutral-500 hover:text-amber-400"><LogOut size={15} /> Sign out</button></header>

@@ -10,11 +10,22 @@ export function SiteConfigProvider({ children }) {
   useEffect(() => {
     supabase.from('site_config').select('*').eq('id', 1).maybeSingle().then(({ data, error }) => {
       if (error) console.warn(`Site settings fallback: ${error.message}`)
-      if (data) setSiteConfig((current) => ({ ...current, ...data }))
+      if (data) {
+        setSiteConfig((current) => ({ ...current, ...data }))
+        if (typeof window !== 'undefined' && data.site_name) window.localStorage.setItem('site_name', data.site_name)
+      }
       setLoading(false)
     })
+    const handleStorage = (event) => {
+      if (event.key === 'site_name' && event.newValue) setSiteConfig((current) => ({ ...current, site_name: event.newValue }))
+    }
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
   }, [])
-  const updateSiteConfig = (updates) => setSiteConfig((current) => ({ ...current, ...updates }))
+  const updateSiteConfig = (updates) => {
+    setSiteConfig((current) => ({ ...current, ...updates }))
+    if (typeof window !== 'undefined' && updates.site_name?.trim()) window.localStorage.setItem('site_name', updates.site_name.trim())
+  }
   const value = useMemo(() => ({ siteConfig, updateSiteConfig, loading }), [siteConfig, loading])
   return <SiteConfigContext.Provider value={value}>{children}</SiteConfigContext.Provider>
 }

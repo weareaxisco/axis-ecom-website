@@ -24,6 +24,7 @@ export default function AdminSettings() {
     const { error } = await supabase.from('site_config').upsert({ id: 1, ...form })
     if (error) { setMessage(error.message); return }
     updateSiteConfig(form)
+    window.localStorage.setItem('site_name', form.site_name.trim())
     setMessage(t('siteSettingsSaved'))
   }
   const input = 'mt-2 w-full border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm outline-none focus:border-amber-500'

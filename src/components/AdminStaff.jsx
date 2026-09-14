@@ -44,6 +44,7 @@ export default function AdminStaff() {
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
     })
   }
+  const errorMessage = (error, data) => data?.error || error?.message || 'Unable to save staff member.'
   const save = async (event) => {
     event.preventDefault()
     setSaving(true)
@@ -51,15 +52,19 @@ export default function AdminStaff() {
     try {
       if (form.id) {
         const updateBody = { action: 'update', id: form.id, full_name: form.full_name, email: form.email, role: form.role, permissions: form.permissions }
-        const { error } = await functionOptions(updateBody)
+        const { data, error } = await functionOptions(updateBody)
         if (error) {
+          console.error('Manage Staff Error:', error)
           const { error: fallbackError } = await supabase.from('profiles').update({ full_name: form.full_name, email: form.email, role: form.role, permissions: form.permissions }).eq('id', form.id)
-          if (fallbackError) throw new Error(`${error.message}. ${fallbackError.message}`)
+          if (fallbackError) throw new Error(`${errorMessage(error, data)}. ${fallbackError.message}`)
         }
       } else {
         if (!form.password) throw new Error('A temporary password is required.')
-        const { error } = await functionOptions({ action: 'create', ...form, permissions: form.permissions })
-        if (error) throw new Error('Veuillez déployer l’Edge Function manage-staff avant de créer un compte.')
+        const { data, error } = await functionOptions({ action: 'create', ...form, permissions: form.permissions })
+        if (error) {
+          console.error('Manage Staff Error:', error)
+          throw new Error(errorMessage(error, data))
+        }
       }
       await load()
       closeModal()
@@ -71,8 +76,11 @@ export default function AdminStaff() {
   }
   const remove = async (member) => {
     if (!window.confirm(`Delete ${member.full_name || member.email}?`)) return
-    const { error } = await functionOptions({ action: 'delete', id: member.id })
-    if (error) setMessage(error.message)
+    const { data, error } = await functionOptions({ action: 'delete', id: member.id })
+    if (error) {
+      console.error('Manage Staff Error:', error)
+      setMessage(errorMessage(error, data))
+    }
     else setStaff((current) => current.filter((item) => item.id !== member.id))
   }
   const togglePermission = (key) => setForm((current) => ({ ...current, permissions: { ...current.permissions, [key]: !current.permissions[key] } }))
