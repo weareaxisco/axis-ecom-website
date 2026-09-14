@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Check, ImageOff } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Check, ImageOff, LoaderCircle, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { useSiteConfigSettings } from '../context/SiteConfigContext'
 import { isSafeMapEmbedUrl } from '../utils/maps'
@@ -13,6 +13,37 @@ function AssetPlaceholder({ label }) {
   return <div className="flex h-24 items-center justify-center gap-2 rounded-md border border-dashed border-neutral-700 bg-neutral-950/70 text-[10px] uppercase tracking-widest text-neutral-600"><ImageOff size={15} strokeWidth={1.25} /> {label}</div>
 }
 
+function AssetDropzone({ label, currentUrl, fileName, uploading, accept, onUpload, onRemove, preview, emptyLabel }) {
+  const inputRef = useRef(null)
+  const [dragOver, setDragOver] = useState(false)
+  const chooseFile = (event) => {
+    const [file] = event.target.files || []
+    if (file) onUpload(file)
+    event.target.value = ''
+  }
+  const dropFile = (event) => {
+    event.preventDefault()
+    setDragOver(false)
+    const [file] = event.dataTransfer.files || []
+    if (file) onUpload(file)
+  }
+  return <div className="mt-3">
+    <input ref={inputRef} type="file" accept={accept} onChange={chooseFile} className="hidden" />
+    {currentUrl ? <div className="rounded-xl border border-neutral-800 bg-neutral-950/70 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          {preview}
+          <div className="min-w-0"><p className="truncate text-xs text-neutral-200">{fileName || 'Asset distant'}</p><p className="text-[10px] uppercase tracking-widest text-emerald-400">Actif</p></div>
+        </div>
+        <div className="flex gap-2">
+          <button type="button" onClick={() => inputRef.current?.click()} disabled={uploading} className="inline-flex items-center gap-1.5 border border-neutral-700 px-3 py-2 text-[10px] uppercase tracking-widest text-neutral-300 transition-colors hover:border-amber-500 hover:text-amber-300"><RefreshCw size={13} /> Remplacer</button>
+          <button type="button" onClick={onRemove} disabled={uploading} className="inline-flex items-center gap-1.5 border border-rose-500/40 px-3 py-2 text-[10px] uppercase tracking-widest text-rose-300 transition-colors hover:border-rose-400"><Trash2 size={13} /> Supprimer</button>
+        </div>
+      </div>
+    </div> : <button type="button" onClick={() => inputRef.current?.click()} onDragOver={(event) => { event.preventDefault(); setDragOver(true) }} onDragLeave={() => setDragOver(false)} onDrop={dropFile} disabled={uploading} className={`flex min-h-32 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-all ${dragOver ? 'scale-[1.01] border-amber-500 bg-amber-500/10 shadow-lg shadow-amber-500/10' : 'border-neutral-800 bg-neutral-950/60 hover:border-amber-500/50 hover:bg-neutral-900/40'} ${uploading ? 'cursor-wait' : 'cursor-pointer'}`}>{uploading ? <><LoaderCircle className="animate-spin text-amber-400" size={22} strokeWidth={1.25} /><span className="mt-3 text-[10px] uppercase tracking-widest text-amber-300">Téléversement en cours...</span></> : <><Upload className="text-neutral-500" size={22} strokeWidth={1.25} /><span className="mt-3 text-[10px] uppercase tracking-widest text-neutral-300">Déposer ou choisir un fichier</span><span className="mt-2 text-[10px] text-neutral-600">{label} · max {emptyLabel}</span></>}</button>}
+  </div>
+}
+
 export default function AdminSettings() {
   const { t } = useLanguage()
   const { siteConfig, updateSiteConfig } = useSiteConfigSettings()
@@ -22,6 +53,7 @@ export default function AdminSettings() {
   const [feedCopied, setFeedCopied] = useState(false)
   const [logoPreviewError, setLogoPreviewError] = useState(false)
   const [faviconPreviewError, setFaviconPreviewError] = useState(false)
+  const [uploadingAsset, setUploadingAsset] = useState('')
 
   useEffect(() => setForm(siteConfig), [siteConfig])
   useEffect(() => {
@@ -30,6 +62,43 @@ export default function AdminSettings() {
   }, [form.logo_image_url, form.favicon_url])
 
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }))
+  const uploadAsset = async (kind, file) => {
+    const rules = kind === 'logo'
+      ? { extensions: ['png', 'svg', 'webp', 'jpg'], maxSize: 2 * 1024 * 1024, label: 'PNG, SVG, WEBP ou JPG' }
+      : { extensions: ['ico', 'png', 'svg'], maxSize: 512 * 1024, label: 'ICO, PNG ou SVG' }
+    const extension = file.name.split('.').pop()?.toLowerCase()
+    if (!extension || !rules.extensions.includes(extension)) {
+      setMessage(`Format invalide. Utilisez : ${rules.label}.`)
+      return
+    }
+    if (file.size > rules.maxSize) {
+      setMessage(kind === 'logo' ? 'Le logo doit faire 2 Mo maximum.' : 'Le favicon doit faire 512 Ko maximum.')
+      return
+    }
+    setUploadingAsset(kind)
+    setMessage('')
+    const filePath = `${kind}_${Date.now()}.${extension}`
+    const { error } = await supabase.storage.from('site-assets').upload(filePath, file, { upsert: false, contentType: file.type || undefined })
+    if (error) {
+      setUploadingAsset('')
+      setMessage(`Téléversement impossible : ${error.message}`)
+      return
+    }
+    const { data } = supabase.storage.from('site-assets').getPublicUrl(filePath)
+    setForm((current) => ({ ...current, [kind === 'logo' ? 'logo_image_url' : 'favicon_url']: data.publicUrl }))
+    if (kind === 'logo') setLogoPreviewError(false)
+    else setFaviconPreviewError(false)
+    setUploadingAsset('')
+    setMessage('Asset téléversé. Enregistrez les modifications pour le publier.')
+  }
+  const removeLogo = () => {
+    setForm((current) => ({ ...current, logo_image_url: '', logo_type: 'text' }))
+    setMessage('Logotype image supprimé. Mode texte activé par défaut.')
+  }
+  const removeFavicon = () => {
+    setForm((current) => ({ ...current, favicon_url: '' }))
+    setMessage('Favicon supprimé. L’icône par défaut du navigateur sera restaurée après enregistrement.')
+  }
   const save = async (event) => {
     event.preventDefault()
     const validationErrors = validateSiteConfig(form)
@@ -78,20 +147,22 @@ export default function AdminSettings() {
             })}
           </div>
         </fieldset>
-        <label className="text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400 sm:col-span-2">URL DU LOGO (IMAGE)
+        <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400 sm:col-span-2">IMAGE DU LOGOTYPE
           <input type="url" value={form.logo_image_url || ''} onChange={update('logo_image_url')} className={input} placeholder="https://..." disabled={form.logo_type !== 'image'} />
           <span className={helper}>Format recommandé : PNG fond transparent, max 200px de hauteur.</span>
-        </label>
+          <AssetDropzone label="PNG, SVG, WEBP ou JPG" currentUrl={form.logo_image_url} fileName={form.logo_image_url?.split('/').pop()} uploading={uploadingAsset === 'logo'} accept=".png,.svg,.webp,.jpg,image/png,image/svg+xml,image/webp,image/jpeg" onUpload={(file) => uploadAsset('logo', file)} onRemove={removeLogo} emptyLabel="2 Mo" preview={hasLogoPreview ? <img src={form.logo_image_url} alt="" onError={() => setLogoPreviewError(true)} className="h-16 w-28 object-contain" /> : <span className="flex h-16 w-28 items-center justify-center border border-dashed border-neutral-700"><ImageOff size={16} /></span>} />
+        </div>
         <div className="sm:col-span-2">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400">APERÇU EN DIRECT · LOGO</p>
           <div className="mt-2 rounded-lg border border-neutral-800 bg-neutral-950 p-5" style={{ backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,.03) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.03) 50%, rgba(255,255,255,.03) 75%, transparent 75%)', backgroundSize: '12px 12px' }}>
             {hasLogoPreview ? <img src={form.logo_image_url} alt="Aperçu du logo" onError={() => setLogoPreviewError(true)} className="mx-auto h-20 max-w-full object-contain" /> : <AssetPlaceholder label="Aucune image configurée" />}
           </div>
         </div>
-        <label className="text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400 sm:col-span-2">URL DU FAVICON
+        <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400 sm:col-span-2">ICÔNE DE NAVIGATEUR (FAVICON)
           <input type="url" value={form.favicon_url || ''} onChange={update('favicon_url')} className={input} placeholder="https://..." />
           <span className={helper}>Format recommandé : PNG ou SVG carré, 32 × 32 px minimum.</span>
-        </label>
+          <AssetDropzone label="ICO, PNG ou SVG" currentUrl={form.favicon_url} fileName={form.favicon_url?.split('/').pop()} uploading={uploadingAsset === 'favicon'} accept=".ico,.png,.svg,image/x-icon,image/png,image/svg+xml" onUpload={(file) => uploadAsset('favicon', file)} onRemove={removeFavicon} emptyLabel="512 Ko" preview={hasFaviconPreview ? <img src={form.favicon_url} alt="" onError={() => setFaviconPreviewError(true)} className="h-8 w-8 object-contain" /> : <span className="flex h-8 w-8 items-center justify-center border border-dashed border-neutral-700"><ImageOff size={13} /></span>} />
+        </div>
         <div className="sm:col-span-2">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400">APERÇU EN DIRECT · FAVICON</p>
           <div className="mt-2 flex items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-950 p-4">
