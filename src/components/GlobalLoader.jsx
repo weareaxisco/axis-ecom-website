@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useSiteConfigSettings } from '../context/SiteConfigContext'
-import { useLanguage } from '../context/LanguageContext'
 import LoadingScreen from './LoadingScreen'
 
 export default function GlobalLoader() {
-  const { siteConfig, loading } = useSiteConfigSettings()
-  const { t } = useLanguage()
+  const { loading } = useSiteConfigSettings()
   const { pathname } = useLocation()
   const [routeLoading, setRouteLoading] = useState(false)
   const hasMounted = useRef(false)
