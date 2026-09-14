@@ -44,7 +44,18 @@ export default function AdminStaff() {
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
     })
   }
-  const errorMessage = (error, data) => data?.error || error?.message || 'Unable to save staff member.'
+  const errorMessage = async (error, data) => {
+    if (data?.error) return data.error
+    if (error?.context && typeof error.context.json === 'function') {
+      try {
+        const payload = await error.context.json()
+        if (payload?.error) return payload.error
+      } catch {
+        // The SDK context may already have been consumed or may not be JSON.
+      }
+    }
+    return error?.message || 'Unable to save staff member.'
+  }
   const save = async (event) => {
     event.preventDefault()
     setSaving(true)
@@ -56,14 +67,14 @@ export default function AdminStaff() {
         if (error) {
           console.error('Manage Staff Error:', error)
           const { error: fallbackError } = await supabase.from('profiles').update({ full_name: form.full_name, email: form.email, role: form.role, permissions: form.permissions }).eq('id', form.id)
-          if (fallbackError) throw new Error(`${errorMessage(error, data)}. ${fallbackError.message}`)
+          if (fallbackError) throw new Error(`${await errorMessage(error, data)}. ${fallbackError.message}`)
         }
       } else {
         if (!form.password) throw new Error('A temporary password is required.')
         const { data, error } = await functionOptions({ action: 'create', ...form, permissions: form.permissions })
         if (error) {
           console.error('Manage Staff Error:', error)
-          throw new Error(errorMessage(error, data))
+          throw new Error(await errorMessage(error, data))
         }
       }
       await load()
@@ -79,7 +90,7 @@ export default function AdminStaff() {
     const { data, error } = await functionOptions({ action: 'delete', id: member.id })
     if (error) {
       console.error('Manage Staff Error:', error)
-      setMessage(errorMessage(error, data))
+      setMessage(await errorMessage(error, data))
     }
     else setStaff((current) => current.filter((item) => item.id !== member.id))
   }
