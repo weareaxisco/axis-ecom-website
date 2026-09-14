@@ -3,9 +3,14 @@ import { supabase } from '../supabaseClient'
 
 const fallback = { site_name: "Maison de L'Élégance", contact_email: '', contact_phone: '+212 522 000 000', contact_address: 'Casablanca, Morocco', currency_label: 'DH', instagram_url: '', tiktok_url: '', whatsapp_number: '', map_embed_url: '', opening_hours: 'Monday - Saturday, 10:00 - 19:00', boutique_image_url: '', ga_tracking_id: '', calendar_api_url: '' }
 const SiteConfigContext = createContext(null)
+const getInitialSiteConfig = () => {
+  if (typeof window === 'undefined') return fallback
+  const siteName = window.localStorage.getItem('site_name')?.trim()
+  return siteName ? { ...fallback, site_name: siteName } : fallback
+}
 
 export function SiteConfigProvider({ children }) {
-  const [siteConfig, setSiteConfig] = useState(fallback)
+  const [siteConfig, setSiteConfig] = useState(getInitialSiteConfig)
   const [loading, setLoading] = useState(true)
   useEffect(() => {
     supabase.from('site_config').select('*').eq('id', 1).maybeSingle().then(({ data, error }) => {
