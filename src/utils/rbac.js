@@ -11,7 +11,9 @@ export function getRoleRank(role) {
   return ROLE_RANKS[String(role || '').toLowerCase().replace(/[-\s]/g, '_')] || 0
 }
 
-export function canModifyTarget(actorRole, targetRole) {
+export function canModifyTarget(actorRole, targetRole, isSelf = false) {
+  if (isSelf) return true
+  if (String(actorRole || '').toLowerCase().replace(/[-\s]/g, '_') === 'super_admin') return true
   return getRoleRank(actorRole) > getRoleRank(targetRole)
 }
 
