@@ -12,7 +12,19 @@ Deno.serve(async (request) => {
   const { data: callerProfile } = await service.from('profiles').select('role').eq('id', caller.id).single()
   if (!callerProfile || !['super_admin', 'admin'].includes(callerProfile.role)) return new Response('Forbidden', { status: 403 })
   const body = await request.json()
-  if (!body.id || !['update', 'delete'].includes(body.action)) return new Response('Invalid staff payload', { status: 400 })
+  if (!['create', 'update', 'delete'].includes(body.action)) return new Response('Invalid staff payload', { status: 400 })
+  if (body.action === 'create') {
+    if (!body.email || !body.password || !['admin', 'staff_catalog', 'staff_orders'].includes(body.role)) return new Response('Invalid staff payload', { status: 400 })
+    const { data, error } = await service.auth.admin.createUser({ email: body.email, password: body.password, email_confirm: true })
+    if (error || !data.user) return new Response(error?.message || 'Unable to create staff user', { status: 400 })
+    const { error: profileError } = await service.from('profiles').insert({ id: data.user.id, full_name: body.full_name || body.email, email: body.email, role: body.role, permissions: body.permissions || {} })
+    if (profileError) {
+      await service.auth.admin.deleteUser(data.user.id)
+      return new Response(profileError.message, { status: 400 })
+    }
+    return Response.json({ id: data.user.id })
+  }
+  if (!body.id) return new Response('Invalid staff payload', { status: 400 })
   if (body.action === 'delete') {
     const { error } = await service.auth.admin.deleteUser(body.id)
     if (error) return new Response(error.message, { status: 400 })
