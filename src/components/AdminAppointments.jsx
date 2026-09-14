@@ -20,6 +20,7 @@ export default function AdminAppointments({ onError, onCount, profile }) {
   const [openStatusId, setOpenStatusId] = useState(null)
   const currentUser = user || profile
   const canManageAppointments = ['super_admin', 'admin'].includes(currentUser?.role)
+    || currentUser?.can_manage_appointments === true
     || currentUser?.permissions?.can_manage_appointments === true
   const statusClass = (value) => value === 'confirmed' || value === 'completed'
     ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'

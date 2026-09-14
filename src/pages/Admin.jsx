@@ -201,7 +201,9 @@ function AdminContent() {
       const [productResult, orderResult, analyticsResult] = await Promise.allSettled([
         supabase.from('products').select('*'),
         supabase.from('orders').select('*').order('created_at', { ascending: false }),
-        analyticsSupabase.from('analytics_events').select('event_name, visitor_id, metadata, created_at').order('created_at', { ascending: false }).limit(500),
+        canViewAnalytics
+          ? analyticsSupabase.from('analytics_events').select('event_name, visitor_id, metadata, created_at').order('created_at', { ascending: false }).limit(500)
+          : Promise.resolve({ data: [] }),
       ])
       if (!active) return
       const warnings = []
@@ -216,7 +218,7 @@ function AdminContent() {
     }
     hydrate().catch((error) => { if (active) { setNotice(`Admin data fallback active: ${error.message}`); setLoading(false) } })
     return () => { active = false }
-  }, [isAdmin])
+  }, [canViewAnalytics, isAdmin])
   useEffect(() => {
     if (contextProducts.length) setProducts(contextProducts)
   }, [contextProducts])

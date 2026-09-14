@@ -32,6 +32,7 @@ import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import GlobalLoader from './components/GlobalLoader'
 import CookieConsent from './components/CookieConsent'
 import { trackEvent } from './utils/analytics'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import MaisonInformation from './pages/MaisonInformation'
 import AdminGuard from './components/AdminGuard'
 import AdminProductEditor from './pages/AdminProductEditor'
@@ -78,6 +79,7 @@ function App() {
         <CartProvider>
           <ProductProvider>
           <OrderProvider>
+          <SpeedInsights />
           <ScrollToTop />
           <AdminAccessNotice />
           <GlobalLoader />
