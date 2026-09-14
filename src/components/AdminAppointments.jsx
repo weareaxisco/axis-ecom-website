@@ -29,7 +29,12 @@ export default function AdminAppointments({ onError, onCount, profile }) {
         : 'border-neutral-700 bg-neutral-900 text-neutral-300'
 
   useEffect(() => {
-    if (!canManageAppointments) return undefined
+    if (!canManageAppointments) {
+      setAppointments([])
+      onCount?.(0)
+      setLoading(false)
+      return undefined
+    }
     let active = true
     supabase.from('appointments').select('*').order('appointment_date', { ascending: true }).then(({ data, error }) => {
       if (!active) return
