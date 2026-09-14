@@ -26,7 +26,10 @@ Deno.serve(async (request) => {
     if (!body.email || !body.password || !['admin', 'staff_catalog', 'staff_orders'].includes(body.role)) return jsonError('Invalid staff payload: email, password, and a valid role are required.', 400)
     const { data, error } = await service.auth.admin.createUser({ email: body.email, password: body.password, email_confirm: true })
     if (error || !data.user) return jsonError(error?.message || 'Unable to create staff user.', 400)
-    const { error: profileError } = await service.from('profiles').insert({ id: data.user.id, full_name: body.full_name || body.email, email: body.email, role: body.role, permissions: body.permissions || {} })
+    const { error: profileError } = await service.from('profiles').upsert(
+      { id: data.user.id, full_name: body.full_name || body.email, email: body.email, role: body.role, permissions: body.permissions || {} },
+      { onConflict: 'id' },
+    )
     if (profileError) {
       await service.auth.admin.deleteUser(data.user.id)
       return jsonError(profileError.message, 400)
