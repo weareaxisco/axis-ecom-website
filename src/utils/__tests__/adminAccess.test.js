@@ -9,10 +9,10 @@ describe('admin workspace access', () => {
     expect(hasAdminPermission(user, 'manage_orders')).toBe(false)
   })
 
-  it('locks order staff to orders and analytics', () => {
+  it('locks order staff to orders without analytics', () => {
     const user = { role: 'staff_orders', permissions: { manage_orders: true } }
     expect(getPrimaryAdminWorkspace(user)).toBe('orders')
-    expect(getAllowedAdminTabs(user)).toEqual(['analytics', 'orders'])
+    expect(getAllowedAdminTabs(user)).toEqual(['orders'])
   })
 
   it('gives appointment-only staff only the appointment workspace', () => {
