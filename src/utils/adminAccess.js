@@ -1,7 +1,7 @@
 export const adminRoles = ['super_admin', 'admin', 'staff_catalog', 'staff_orders']
 
 export function hasAdminPermission(user, permission) {
-  return user?.role === 'super_admin' || user?.role === 'admin' || user?.permissions?.[permission] === true
+  return user?.role === 'super_admin' || user?.role === 'admin' || user?.permissions?.[permission] === true || user?.permissions?.[`can_${permission}`] === true
 }
 
 export function getAllowedAdminTabs(user) {

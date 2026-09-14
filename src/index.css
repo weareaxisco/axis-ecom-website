@@ -102,6 +102,15 @@
     transform: scale(1.05);
   }
 
+  @keyframes loading-shimmer {
+    from { transform: translateX(-100%); opacity: 0.35; }
+    to { transform: translateX(300%); opacity: 1; }
+  }
+
+  .loading-shimmer {
+    animation: loading-shimmer 1.4s ease-in-out infinite;
+  }
+
   to {
     transform: scale(1.1);
   }
