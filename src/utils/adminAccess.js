@@ -1,7 +1,9 @@
 export const adminRoles = ['super_admin', 'admin', 'staff_catalog', 'staff_orders']
 
 export function hasAdminPermission(user, permission) {
-  return user?.role === 'super_admin' || user?.role === 'admin' || user?.permissions?.[permission] === true || user?.permissions?.[`can_${permission}`] === true
+  if (user?.role === 'super_admin') return true
+  const key = permission.replace(/^manage_/, 'can_manage_')
+  return user?.permissions?.[key] === true || user?.permissions?.[permission] === true
 }
 
 export function getAllowedAdminTabs(user) {
@@ -9,10 +11,10 @@ export function getAllowedAdminTabs(user) {
     hasAdminPermission(user, 'manage_orders') && 'analytics',
     hasAdminPermission(user, 'manage_orders') && 'orders',
     hasAdminPermission(user, 'manage_products') && 'inventory',
-    hasAdminPermission(user, 'manage_products') && ['super_admin', 'admin'].includes(user?.role) && 'taxonomies',
+    hasAdminPermission(user, 'manage_taxonomies') && 'taxonomies',
     hasAdminPermission(user, 'manage_appointments') && 'appointments',
     hasAdminPermission(user, 'manage_settings') && 'settings',
-    ['super_admin', 'admin'].includes(user?.role) && 'staff',
+    hasAdminPermission(user, 'manage_staff') && 'staff',
   ].filter(Boolean)
 }
 

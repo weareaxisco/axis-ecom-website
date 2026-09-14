@@ -27,7 +27,7 @@ Deno.serve(async (request) => {
     const { data, error } = await service.auth.admin.createUser({ email: body.email, password: body.password, email_confirm: true })
     if (error || !data.user) return jsonError(error?.message || 'Unable to create staff user.', 400)
     const { error: profileError } = await service.from('profiles').upsert(
-      { id: data.user.id, full_name: body.full_name || body.email, email: body.email, role: body.role, permissions: body.permissions || {} },
+      { id: data.user.id, full_name: body.full_name || body.email, email: body.email, custom_alias: body.custom_alias || null, role: body.role, permissions: body.permissions || {}, ...(body.permissionFlags || {}) },
       { onConflict: 'id' },
     )
     if (profileError) {
@@ -44,7 +44,7 @@ Deno.serve(async (request) => {
   }
   const { error: authError } = await service.auth.admin.updateUserById(body.id, { email: body.email || undefined })
   if (authError) return jsonError(authError.message, 400)
-  const { error: profileError } = await service.from('profiles').update({ full_name: body.full_name, email: body.email, role: body.role, permissions: body.permissions || {} }).eq('id', body.id)
+  const { error: profileError } = await service.from('profiles').update({ full_name: body.full_name, email: body.email, custom_alias: body.custom_alias || null, role: body.role, permissions: body.permissions || {}, ...(body.permissionFlags || {}) }).eq('id', body.id)
   if (profileError) return jsonError(profileError.message, 400)
   return Response.json({ id: body.id }, { headers: corsHeaders })
 })
