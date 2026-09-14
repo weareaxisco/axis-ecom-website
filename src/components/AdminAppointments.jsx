@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { useAuth } from '../context/AuthContext'
 import { useSiteConfigSettings } from '../context/SiteConfigContext'
 import { useLanguage } from '../context/LanguageContext'
 
 const statuses = ['pending_confirmation', 'requested', 'confirmed', 'rescheduled', 'completed', 'cancelled']
 const kenitraSlots = ['10:30', '11:30', '14:30', '16:00', '17:30']
 
-export default function AdminAppointments({ onError, onCount }) {
+export default function AdminAppointments({ onError, onCount, profile }) {
   const { t } = useLanguage()
+  const { user } = useAuth()
   const { siteConfig } = useSiteConfigSettings()
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
@@ -16,6 +18,9 @@ export default function AdminAppointments({ onError, onCount }) {
   const [time, setTime] = useState('')
   const [status, setStatus] = useState('rescheduled')
   const [openStatusId, setOpenStatusId] = useState(null)
+  const currentUser = user || profile
+  const canManageAppointments = ['super_admin', 'admin'].includes(currentUser?.role)
+    || currentUser?.permissions?.can_manage_appointments === true
   const statusClass = (value) => value === 'confirmed' || value === 'completed'
     ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
     : value === 'cancelled' ? 'border-rose-500/40 bg-rose-500/10 text-rose-400'
@@ -23,6 +28,7 @@ export default function AdminAppointments({ onError, onCount }) {
         : 'border-neutral-700 bg-neutral-900 text-neutral-300'
 
   useEffect(() => {
+    if (!canManageAppointments) return undefined
     let active = true
     supabase.from('appointments').select('*').order('appointment_date', { ascending: true }).then(({ data, error }) => {
       if (!active) return
@@ -46,7 +52,7 @@ export default function AdminAppointments({ onError, onCount }) {
       })
       .subscribe()
     return () => { active = false; supabase.removeChannel(channel) }
-  }, [onError, onCount])
+  }, [canManageAppointments, onError, onCount])
 
   const updateStatus = async (id, status) => {
     setAppointments((current) => current.map((item) => item.id === id ? { ...item, status } : item))
