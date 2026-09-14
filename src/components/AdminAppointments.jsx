@@ -15,6 +15,12 @@ export default function AdminAppointments({ onError, onCount }) {
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
   const [status, setStatus] = useState('rescheduled')
+  const [openStatusId, setOpenStatusId] = useState(null)
+  const statusClass = (value) => value === 'confirmed' || value === 'completed'
+    ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
+    : value === 'cancelled' ? 'border-rose-500/40 bg-rose-500/10 text-rose-400'
+      : value === 'pending_confirmation' ? 'border-amber-500/40 bg-amber-500/10 text-amber-400'
+        : 'border-neutral-700 bg-neutral-900 text-neutral-300'
 
   useEffect(() => {
     let active = true
@@ -113,9 +119,7 @@ export default function AdminAppointments({ onError, onCount }) {
                 <td className="px-5 py-5 text-xs text-neutral-400"><div>{appointment.client_name || '—'}</div><div>{appointment.email || appointment.phone || '—'}</div></td>
                 <td className="px-5 py-5 text-neutral-400">{appointment.consultation_type || appointment.service_type}</td>
                 <td className="px-5 py-5">
-                  <select aria-label={`Status for appointment ${appointment.id}`} value={appointment.status} onChange={(event) => updateStatus(appointment.id, event.target.value)} className="border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs">
-                    {statuses.map((status) => <option key={status}>{status}</option>)}
-                  </select>
+                  <div className="relative inline-block"><button type="button" aria-expanded={openStatusId === appointment.id} onClick={() => setOpenStatusId((current) => current === appointment.id ? null : appointment.id)} className={`border px-3 py-2 text-[10px] uppercase tracking-widest ${statusClass(appointment.status)}`}>{appointment.status}</button>{openStatusId === appointment.id && <div className="absolute right-0 z-20 mt-2 min-w-44 border border-neutral-700 bg-neutral-950 p-1 shadow-xl">{statuses.map((value) => <button type="button" key={value} onClick={() => { updateStatus(appointment.id, value); setOpenStatusId(null) }} className={`block w-full border px-2 py-2 text-left text-[10px] uppercase tracking-widest ${statusClass(value)} mb-1 last:mb-0`}>{value}</button>)}</div>}</div>
                 </td>
                 <td className="px-5 py-5">
                   <div className="flex gap-2"><button type="button" onClick={() => openReschedule(appointment)} className="border border-amber-500/50 px-3 py-2 text-[10px] uppercase tracking-widest text-amber-300">{t('reschedule')}</button>{appointment.status === 'confirmed' && <button type="button" onClick={() => exportIcal(appointment)} className="border border-neutral-700 px-3 py-2 text-[10px] uppercase tracking-widest text-neutral-300">{t('exportIcalSync')}</button>}</div>
