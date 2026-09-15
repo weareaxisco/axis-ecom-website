@@ -19,9 +19,9 @@ export default function WishlistDrawer() {
     addToCart({ ...item, price: getProductPrice(item) }, 1, { suppressBagOpen: true })
   }
 
-  return <div ref={drawerRef} inert={!isWishlistOpen} className={`fixed inset-0 z-[100] h-full w-full bg-neutral-950 transition-opacity ${isWishlistOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} aria-hidden={!isWishlistOpen}>
-    <button type="button" aria-label={t('closeOverlay')} onClick={() => setIsWishlistOpen(false)} className="absolute inset-0 bg-black/70" />
-    <aside className={`absolute inset-y-0 right-0 flex h-full w-full flex-col bg-neutral-950 px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 text-white shadow-2xl transition-transform sm:w-[400px] ${isWishlistOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+  return <div ref={drawerRef} inert={!isWishlistOpen} className={`fixed inset-0 z-[100] h-full w-full transition-opacity duration-300 ${isWishlistOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} aria-hidden={!isWishlistOpen}>
+    <button type="button" aria-label={t('closeOverlay')} onClick={() => setIsWishlistOpen(false)} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+    <aside className={`absolute inset-y-0 right-0 flex h-full w-full max-w-md flex-col border-l border-neutral-800 bg-neutral-950 px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 text-white shadow-2xl transition-transform duration-300 ${isWishlistOpen ? 'translate-x-0' : 'translate-x-full'}`}>
       <header className="flex shrink-0 items-center justify-between border-b border-neutral-800 pb-5">
         <h2 className="font-serif text-2xl uppercase tracking-widest">{t('wishlistTitle')}</h2>
         <button type="button" aria-label={t('closeOverlay')} onClick={() => setIsWishlistOpen(false)} className="flex min-h-11 min-w-11 items-center justify-center"><X strokeWidth={1.5} /></button>
