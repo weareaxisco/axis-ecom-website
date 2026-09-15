@@ -87,7 +87,7 @@ function App() {
           <GlobalLoader />
           <div className="min-h-screen overflow-x-clip bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300">
           <SEOHead />
-          {!isAdminStudio && <div className="relative z-50 h-[104px] md:h-[152px]"><Navbar /></div>}
+          {!isAdminStudio &&           <div className="relative z-50 h-[104px] md:h-[120px]"><Navbar /></div>}
           <Routes>
             <Route path="/" element={<main className="overflow-x-clip"><Hero /><ProductCatalog /></main>} />
             <Route path="/product/:id" element={<ProductDetail />} />

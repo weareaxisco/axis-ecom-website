@@ -21,7 +21,12 @@ export function SiteConfigProvider({ children }) {
   const [siteConfig, setSiteConfig] = useState(getInitialSiteConfig)
   const [loading, setLoading] = useState(true)
   useEffect(() => {
+    let isMounted = true
+    const timeout = window.setTimeout(() => {
+      if (isMounted) setLoading(false)
+    }, 2500)
     supabase.from('site_config').select('*').eq('id', 1).maybeSingle().then(({ data, error }) => {
+      if (!isMounted) return
       if (error) console.warn(`Site settings fallback: ${error.message}`)
       if (data) {
         setSiteConfig((current) => ({ ...current, ...data, business_name: data.business_name || data.site_name || current.business_name }))
@@ -46,7 +51,11 @@ export function SiteConfigProvider({ children }) {
       if (event.key === 'diamiss_logo_url') setSiteConfig((current) => ({ ...current, logo_image_url: event.newValue }))
     }
     window.addEventListener('storage', handleStorage)
-    return () => window.removeEventListener('storage', handleStorage)
+    return () => {
+      isMounted = false
+      window.clearTimeout(timeout)
+      window.removeEventListener('storage', handleStorage)
+    }
   }, [])
   useEffect(() => {
     if (typeof document === 'undefined') return undefined

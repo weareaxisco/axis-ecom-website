@@ -8,7 +8,6 @@ import {
   Moon,
   Search,
   ShoppingBag,
-  Sparkles,
   MapPin,
   Sun,
   User,
@@ -51,11 +50,11 @@ function MobileDrawer({ config, isOpen, onClose, themeMode, toggleTheme, onLogin
     if (!isOpen && drawerRef.current?.contains(document.activeElement)) document.activeElement.blur()
   }, [isOpen])
   const mobileLinks = [
-    [t('highJewelry'), '/catalog?category=High%20Jewelry'],
-    [t('fineJewelry'), '/catalog?category=Fine%20Jewelry'],
-    [t('timepieces'), '/catalog?category=Timepieces'],
-    [t('menuTheMaison'), '/'],
-    [t('concierge'), '/concierge'],
+    ['HAUTE JOAILLERIE', '/catalog?category=haute-jewelry'],
+    ['FINE JEWELRY', '/catalog?category=fine-jewelry'],
+    ['SUR-MESURE', '/catalog?category=sur-mesure'],
+    ['THE MAISON', '/'],
+    ['CONCIERGE', '/concierge'],
   ]
   return (
     <div ref={drawerRef} inert={!isOpen} className={`pointer-events-none fixed inset-0 z-40 md:hidden ${isOpen ? 'visible' : 'invisible'}`} role="dialog" aria-modal="true" aria-hidden={!isOpen}>
@@ -173,7 +172,7 @@ export default function Navbar() {
   }, [])
 
   useEffect(() => {
-    document.documentElement.style.setProperty('--desktop-navbar-offset', isDesktopHeaderVisible ? '152px' : '0px')
+    document.documentElement.style.setProperty('--desktop-navbar-offset', isDesktopHeaderVisible ? '120px' : '0px')
     document.documentElement.style.setProperty('--mobile-navbar-offset', '104px')
   }, [isDesktopHeaderVisible])
 
@@ -253,18 +252,6 @@ export default function Navbar() {
         </div>
         </>, document.body)}
         <div className="mx-auto hidden max-w-7xl px-5 sm:px-8 md:block lg:px-10">
-          <div className="flex h-8 items-center justify-center border-b border-[var(--border-subtle)]/50 text-center">
-            <Sparkles
-              aria-hidden="true"
-              className="mr-2 text-[var(--accent-gold)]"
-              size={11}
-              strokeWidth={1.25}
-            />
-            <span className="tracking-[0.25em] text-[10px] uppercase opacity-70">
-              {config.brand_tagline || config.location_city}
-            </span>
-          </div>
-
           <div className="relative flex h-[4.5rem] items-center justify-between">
             <div className="flex items-center gap-1">
               <IconButton
@@ -329,11 +316,11 @@ export default function Navbar() {
 
           <nav className="hidden h-12 items-center justify-center gap-8 lg:flex" aria-label="Main navigation">
             {[
-              [t('highJewelry'), '/catalog?category=High%20Jewelry'],
-              [t('fineJewelry'), '/catalog?category=Fine%20Jewelry'],
-              [t('timepieces'), '/catalog?category=Timepieces'],
-              [t('menuTheMaison'), '/'],
-              [t('concierge'), '/concierge'],
+              ['HAUTE JOAILLERIE', '/catalog?category=haute-jewelry'],
+              ['FINE JEWELRY', '/catalog?category=fine-jewelry'],
+              ['SUR-MESURE', '/catalog?category=sur-mesure'],
+              ['THE MAISON', '/'],
+              ['CONCIERGE', '/concierge'],
             ].map(([link, href]) => (
               <a
                 key={link}

@@ -8,7 +8,8 @@ import { useProductContext } from '../context/ProductContext'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 const initialFilters = { category: [], collection: [], tags: [], metal: [], gemstone: [], minPrice: '', maxPrice: '', exclusive: false }
-const normalize = (value) => String(value || '').toLowerCase().replace(/[-_]/g, ' ')
+const normalize = (value) => String(value || '').toLowerCase().trim().replace(/[-_]+/g, ' ').replace(/\s+/g, ' ')
+const cleanSlug = (value) => String(value || '').toLowerCase().trim().replace(/[\s_]+/g, '-')
 
 export default function Catalog() {
   useDocumentTitle('Catalog')
@@ -16,11 +17,11 @@ export default function Catalog() {
   const { products, taxonomies } = useProductContext()
   const [filters, setFilters] = useState(() => ({
     ...initialFilters,
-    category: params.get('category') ? params.get('category').split(',') : [],
-    collection: params.get('collection') ? params.get('collection').split(',') : [],
-    tags: params.get('tags') ? params.get('tags').split(',') : [],
-    metal: params.get('metal') ? params.get('metal').split(',') : [],
-    gemstone: params.get('gemstone') ? params.get('gemstone').split(',') : [],
+    category: params.get('category') ? params.get('category').split(',').map(cleanSlug) : [],
+    collection: params.get('collection') ? params.get('collection').split(',').map(cleanSlug) : [],
+    tags: params.get('tags') ? params.get('tags').split(',').map(cleanSlug) : [],
+    metal: params.get('metal') ? params.get('metal').split(',').map(cleanSlug) : [],
+    gemstone: params.get('gemstone') ? params.get('gemstone').split(',').map(cleanSlug) : [],
     minPrice: params.get('min') || '',
     maxPrice: params.get('max') || '',
     exclusive: params.get('exclusive') === 'true',
@@ -33,11 +34,11 @@ export default function Catalog() {
 
   useEffect(() => {
     const next = new URLSearchParams()
-    if (filters.category.length) next.set('category', filters.category.join(','))
-    if (filters.collection.length) next.set('collection', filters.collection.join(','))
-    if (filters.tags.length) next.set('tags', filters.tags.join(','))
-    if (filters.metal.length) next.set('metal', filters.metal.join(','))
-    if (filters.gemstone.length) next.set('gemstone', filters.gemstone.join(','))
+    if (filters.category.length) next.set('category', filters.category.map(cleanSlug).join(','))
+    if (filters.collection.length) next.set('collection', filters.collection.map(cleanSlug).join(','))
+    if (filters.tags.length) next.set('tags', filters.tags.map(cleanSlug).join(','))
+    if (filters.metal.length) next.set('metal', filters.metal.map(cleanSlug).join(','))
+    if (filters.gemstone.length) next.set('gemstone', filters.gemstone.map(cleanSlug).join(','))
     if (filters.minPrice) next.set('min', filters.minPrice)
     if (filters.maxPrice) next.set('max', filters.maxPrice)
     if (filters.exclusive) next.set('exclusive', 'true')
